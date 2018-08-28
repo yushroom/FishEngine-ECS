@@ -31,7 +31,7 @@ public:
 	Mesh* mesh = nullptr;
 };
 
-
+#if 0
 class Rotator : public Component
 {
 	COMPONENT(Rotator);
@@ -61,6 +61,37 @@ public:
 	}
 };
 
+#else
+
+const double PI = std::acos(-1);
+
+class Rotator : public Component
+{
+	COMPONENT(Rotator)
+public:
+	float speed = 2.f;
+	Vector3 center;
+};
+
+class RotatorSystem : public ISystem
+{
+public:
+	void Update(Scene* scene) override
+	{
+		double time = glfwGetTime();
+		scene->ForEach<Rotator>([time](GameObject* go, Rotator* rot){
+			double rad = rot->speed * time;
+			float x = 5.0f * cos(rad);
+			float y = 5.0f * sin(rad);
+			auto& pos = go->GetTransform()->position;
+			pos.x = x;
+			pos.y = y;
+		});
+	}
+};
+
+#endif
+
 
 class RenderSystem2 : public ISystem
 {
@@ -81,10 +112,40 @@ public:
 		
 		
 		scene->ForEach<Renderable>([](GameObject* go, Renderable* rend)
-		 {
-			 auto& mtx = go->transformMatrix;
-			 Graphics::DrawMesh(rend->mesh, mtx, rend->material);
-		 });
+		{
+			auto& mtx = go->transformMatrix;
+			Graphics::DrawMesh(rend->mesh, mtx, rend->material);
+		});
+	}
+};
+
+class TransformSystem : public ISystem
+{
+public:
+	void Update(Scene* scene) override
+	{
+		scene->All([scene](GameObject* go){
+			EntityID parentID = go->GetParent();
+			auto& pos = go->GetTransform()->position;
+			if (parentID != 0)
+			{
+				GameObject* parent = scene->GetGameObjectByID(parentID);
+				auto& ppos = parent->GetTransform()->position;
+				float x = pos.x + ppos.x;
+				float y = pos.y + ppos.y;
+				auto& mtx = go->transformMatrix;
+				mtx[12] = x;
+				mtx[13] = y;
+				mtx[14] = 0.0f;
+			}
+			else
+			{
+				auto& mtx = go->transformMatrix;
+				mtx[12] = pos.x;
+				mtx[13] = pos.y;
+				mtx[14] = 0.0f;
+			}
+		});
 	}
 };
 
@@ -103,6 +164,7 @@ public:
 		EntityID goID = m_Scene->CreateGameObject();
 		m_Scene->GameObjectAddComponent<Camera>(goID);
 		
+#if 0
 		for (int y = 0; y < 11; ++y)
 		{
 			for (int x = 0; x < 11; ++x)
@@ -116,7 +178,28 @@ public:
 				rend->material = mat;
 			}
 		}
+#else
+
+		auto CreateRot = [&](bool AddRot = true){
+			EntityID id = m_Scene->CreateGameObject();
+			if (AddRot)
+			{
+				m_Scene->GameObjectAddComponent<Rotator>(id);
+			}
+			Renderable* rend = m_Scene->GameObjectAddComponent<Renderable>(id);
+			rend->mesh = Mesh::Cube;
+			rend->material = mat;
+			return id;
+		};
 		
+		auto sun = CreateRot(false);
+		auto earth = CreateRot();
+		auto moon = CreateRot();
+		m_Scene->GameObjectSetParent(earth, sun);
+		m_Scene->GameObjectSetParent(moon, earth);
+#endif
+		
+		m_Scene->AddSystem(new TransformSystem());
 		m_Scene->AddSystem(new RenderSystem2());
 		m_Scene->AddSystem(new RotatorSystem());
 	}

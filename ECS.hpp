@@ -61,15 +61,27 @@ public:
 
 class GameObject : public Object
 {
+	friend class Scene;
 public:
-	
 	GameObject(EntityID entityID, Scene* scene);
 	
 	EntityID ID;
-	std::vector<Component*> components;
-	Transform* transform = nullptr;
-	Matrix transformMatrix;
+	Matrix transformMatrix = {
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1,
+	};
 	
+	Transform* GetTransform() const
+	{
+		return components.front()->As<Transform>();
+	}
+	
+	EntityID GetParent() const { return parentID; }
+	
+protected:
+	std::vector<Component*> components;
 	EntityID parentID = 0;
 	int rootOrder = 0;		// index in parent's children array
 };
@@ -112,6 +124,21 @@ public:
 		go->components.push_back(comp);
 		comp->entityID = id;
 		return comp;
+	}
+	
+	void GameObjectSetParent(EntityID child, EntityID parent)
+	{
+		auto c = GetGameObjectByID(child);
+//		auto p = GetGameObjectByID(parent);
+		c->parentID = parent;
+	}
+	
+	void All(std::function<void(GameObject*)> func)
+	{
+		for (auto& pair : m_GameObjects)
+		{
+			func(pair.second);
+		}
 	}
 	
 	template<class T>
@@ -180,6 +207,14 @@ public:
 		{
 			s->Update(this);
 		}
+	}
+	
+	GameObject* GetGameObjectByID(EntityID id)
+	{
+		auto it = m_GameObjects.find(id);
+		if (it == m_GameObjects.end())
+			return nullptr;
+		return it->second;
 	}
 	
 protected:
