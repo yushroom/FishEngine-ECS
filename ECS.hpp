@@ -3,7 +3,9 @@
 #include <vector>
 #include <typeindex>
 #include <functional>
-
+#include "Math.hpp"
+#include "Engine.hpp"
+#include "Object.hpp"
 
 class Scene;
 
@@ -34,15 +36,42 @@ protected:
 };
 
 
+#define COMPONENT(T)                            \
+protected:                                      \
+	T() = default;                              \
+private:                                        \
+	friend class Scene;                         \
+	inline static std::vector<T*> components;   \
+	std::type_index GetTypeIndex() override     \
+	{ return std::type_index(typeid(T)); }      \
+	static T* Create() { T* t = new T(); components.push_back(t); return t; }               \
+
+
+
+class Transform : public Component
+{
+	COMPONENT(Transform)
+	friend class GameObject;
+public:
+	Vector3 position;
+	Vector3 scale;
+	Quaternion rotation;
+};
+
+
 class GameObject : public Object
 {
 public:
 	
-	GameObject(EntityID entityID) : ID(entityID) { }
+	GameObject(EntityID entityID, Scene* scene);
 	
 	EntityID ID;
 	std::vector<Component*> components;
-	Matrix transform;
+	Transform* transform = nullptr;
+	Matrix transformMatrix;
+	
+	EntityID parentID = 0;
+	int rootOrder = 0;		// index in parent's children array
 };
 
 
@@ -56,31 +85,39 @@ public:
 class Scene
 {
 public:
-	std::unordered_map<EntityID, GameObject*> gameObjects;
-	std::vector<ISystem*> systems;
-	
 	EntityID CreateGameObject()
 	{
-		lastEntityID++;
-		EntityID id = lastEntityID;
-		GameObject* go = new GameObject(id);
-		gameObjects[id] = go;
+		m_LastEntityID++;
+		EntityID id = m_LastEntityID;
+		GameObject* go = new GameObject(id, this);
+		m_GameObjects[id] = go;
+		GameObjectAddComponent<Transform>(go);
 		return id;
+	}
+	
+	template<class T>
+	T* GameObjectAddComponent(GameObject* go)
+	{
+		T* comp = T::Create();
+		go->components.push_back(comp);
+		comp->entityID = go->ID;
+		return comp;
 	}
 	
 	template<class T>
 	T* GameObjectAddComponent(EntityID id)
 	{
 		T* comp = T::Create();
-		auto go = gameObjects[id];
+		auto go = m_GameObjects[id];
 		go->components.push_back(comp);
+		comp->entityID = id;
 		return comp;
 	}
 	
 	template<class T>
 	void ForEach(std::function<void(GameObject*, T*)> func)
 	{
-		for (auto& pair : gameObjects)
+		for (auto& pair : m_GameObjects)
 		{
 			T* t = nullptr;
 			GameObject* go = pair.second;
@@ -100,7 +137,7 @@ public:
 	template<class T1, class T2>
 	void ForEach(std::function<void(GameObject*, T1*, T2*)> func)
 	{
-		for (auto& pair : gameObjects)
+		for (auto& pair : m_GameObjects)
 		{
 			T1* t1 = nullptr;
 			T2* t2 = nullptr;
@@ -125,24 +162,31 @@ public:
 	
 	
 	template<class T>
-	T* FindComponent()
+	T* FindComponent() const
 	{
 		if (T::components.empty())
 			return nullptr;
 		return T::components.front();
 	}
 	
+	void AddSystem(ISystem* system)
+	{
+		m_Systems.push_back(system);
+	}
+	
+	void Update()
+	{
+		for (ISystem* s : m_Systems)
+		{
+			s->Update(this);
+		}
+	}
+	
+protected:
+	std::unordered_map<EntityID, GameObject*> m_GameObjects;
+	std::vector<ISystem*> m_Systems;
+	
 private:
-	EntityID lastEntityID = 0;
+	EntityID m_LastEntityID = 0;
 };
 
-
-#define COMPONENT(T)                            \
-protected:                                      \
-	T() = default;                              \
-private:                                        \
-	friend class Scene;                         \
-	inline static std::vector<T*> components;   \
-	std::type_index GetTypeIndex() override     \
-	{ return std::type_index(typeid(T)); }      \
-	static T* Create() { T* t = new T(); components.push_back(t); return t; }               \

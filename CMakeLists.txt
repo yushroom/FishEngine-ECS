@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.9)
-project(test_bgfx)
+project(FishEngine-ECS)
 set(CMAKE_CXX_STANDARD 17)
 
 # Output
@@ -13,7 +13,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 file(GLOB SRCS ${CMAKE_CURRENT_LIST_DIR}/*.cpp)
 file(GLOB HEADERS ${CMAKE_CURRENT_LIST_DIR}/*.hpp)
 
-add_executable(main ${SRCS} ${HEADERS}
+add_executable(demo ${SRCS} ${HEADERS}
     # /Users/yushroom/program/github/bgfx/examples/common/bgfx_utils.cpp
     # /Users/yushroom/program/github/bgfx/examples/common/entry/entry.cpp
 )
@@ -26,7 +26,7 @@ include_directories("/Users/yushroom/program/github/bgfx/examples/common")
 include_directories("/Users/yushroom/program/github/bgfx/3rdparty")
 
 #target_link_libraries(main ozz_animation)
-set_target_properties(main PROPERTIES LINK_FLAGS "-lglfw -framework OpenGL -L/usr/local/Cellar/glfw/3.2.1/lib -L/Users/yushroom/program/github/bgfx/.build/osx64_clang/bin -lbgfxDebug -lbxDebug -lbimgDebug -lbimg_decodeDebug -framework Cocoa -framework metal -framework QuartzCore")
+set_target_properties(demo PROPERTIES LINK_FLAGS "-lglfw -framework OpenGL -L/usr/local/Cellar/glfw/3.2.1/lib -L/Users/yushroom/program/github/bgfx/.build/osx64_clang/bin -lbgfxDebug -lbxDebug -lbimgDebug -lbimg_decodeDebug -framework Cocoa -framework metal -framework QuartzCore")
 
 # # glfw
 # set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)

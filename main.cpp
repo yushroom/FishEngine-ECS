@@ -50,7 +50,7 @@ public:
 		
 		scene->ForEach<Rotator>([time](GameObject* go, Rotator* rotator)
 		{
-			auto& mtx = go->transform;
+			auto& mtx = go->transformMatrix;
 			int x = rotator->x;
 			int y = rotator->y;
 			bx::mtxRotateXY(mtx, time + x*0.21f, time + y*0.37f);
@@ -82,7 +82,7 @@ public:
 		
 		scene->ForEach<Renderable>([](GameObject* go, Renderable* rend)
 		 {
-			 auto& mtx = go->transform;
+			 auto& mtx = go->transformMatrix;
 			 Graphics::DrawMesh(rend->mesh, mtx, rend->material);
 		 });
 	}
@@ -94,7 +94,7 @@ class Demo1 : public GameApp
 public:
 	void Start() override
 	{
-		m_Shader = ShaderUtil::Compile("/Users/yushroom/program/test_bgfx/shader/vs.bin", "/Users/yushroom/program/test_bgfx/shader/fs.bin");
+		m_Shader = ShaderUtil::Compile("/Users/yushroom/program/FishEngine-ECS/shader/vs.bin", "/Users/yushroom/program/FishEngine-ECS/shader/fs.bin");
 		
 		Material* mat = new Material();
 		mat->m_Shader = m_Shader;
@@ -117,8 +117,8 @@ public:
 			}
 		}
 		
-		m_Scene->systems.push_back(new RenderSystem2());
-		m_Scene->systems.push_back(new RotatorSystem());
+		m_Scene->AddSystem(new RenderSystem2());
+		m_Scene->AddSystem(new RotatorSystem());
 	}
 
 	void Update() override
@@ -127,10 +127,7 @@ public:
 		// if no other draw calls are submitted to view 0.
 		bgfx::touch(0);
 		
-		for (auto& s : m_Scene->systems)
-		{
-			s->Update(m_Scene);
-		}
+		m_Scene->Update();
 	}
 	
 private:
