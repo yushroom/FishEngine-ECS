@@ -4,6 +4,7 @@
 #include "Renderable.hpp"
 #include "GameApp.hpp"
 #include "Graphics.hpp"
+#include "Material.hpp"
 
 #include <bx/math.h>
 
@@ -11,6 +12,9 @@
 SingletonRenderState::SingletonRenderState()
 {
 	m_UniformLightDir = bgfx::createUniform("lightDir", bgfx::UniformType::Vec4);
+	m_UniformBaseColor = bgfx::createUniform("BaseColor", bgfx::UniformType::Vec4);
+	m_UniformPBRParams = bgfx::createUniform("PBRParams", bgfx::UniformType::Vec4);
+	m_UniformCameraPos = bgfx::createUniform("CameraPos", bgfx::UniformType::Vec4);
 }
 
 
@@ -34,7 +38,7 @@ void RenderSystem::OnAdded()
 		| BGFX_STATE_WRITE_A
 		| BGFX_STATE_WRITE_Z
 		| BGFX_STATE_DEPTH_TEST_LESS
-		| BGFX_STATE_CULL_CW
+		| BGFX_STATE_CULL_CCW
 		| BGFX_STATE_MSAA
 		;
 }
@@ -56,12 +60,19 @@ void RenderSystem::Update()
 
 	auto renderState = m_Scene->GetSingletonComponent<SingletonRenderState>();
 
+	bgfx::setUniform(renderState->m_UniformCameraPos, camera->eye);
+
 	Light* light = m_Scene->FindComponent<Light>();
 	if (light != nullptr)
 	{
 		Vector3 d = Vector3::Normalize(light->direction);
 		bgfx::setUniform(renderState->m_UniformLightDir, &d);
 	}
+
+	float BaseColor[4] = { 1, 1, 1, 1 };
+	float PBRParams[] = { 0, 0.5, 0.5, 0 };
+	bgfx::setUniform(renderState->m_UniformBaseColor, BaseColor);
+	//bgfx::setUniform(renderState->m_UniformPBRParams, PBRParams);
 	
 	float view[16];
 	bx::mtxLookAt(view, camera->eye, camera->at);
@@ -74,9 +85,10 @@ void RenderSystem::Update()
 	bgfx::setViewTransform(0, view, proj);
 	
 	
-	m_Scene->ForEach<Renderable>([](GameObject* go, Renderable* rend)
+	m_Scene->ForEach<Renderable>([renderState](GameObject* go, Renderable* rend)
 	{
 		float* mtx = go->GetTransform()->GetLocalToWorldMatrix();
+		bgfx::setUniform(renderState->m_UniformPBRParams, rend->material->pbrparams);
 		Graphics::DrawMesh(rend->mesh, mtx, rend->material);
 	});
 }

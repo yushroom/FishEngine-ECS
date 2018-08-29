@@ -15,6 +15,9 @@ protected:
 
 private:
 	bgfx::UniformHandle m_UniformLightDir;
+	bgfx::UniformHandle m_UniformBaseColor;
+	bgfx::UniformHandle m_UniformPBRParams;
+	bgfx::UniformHandle m_UniformCameraPos;
 	uint64_t m_State = 0;
 };
 
