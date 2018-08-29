@@ -10,6 +10,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 #add_subdirectory("/Users/yushroom/program/github/ozz-animation" "ozz-animation")
 
+
 file(GLOB SRCS ${CMAKE_CURRENT_LIST_DIR}/*.cpp)
 file(GLOB HEADERS ${CMAKE_CURRENT_LIST_DIR}/*.hpp)
 
@@ -17,6 +18,9 @@ add_executable(demo ${SRCS} ${HEADERS}
     # /Users/yushroom/program/github/bgfx/examples/common/bgfx_utils.cpp
     # /Users/yushroom/program/github/bgfx/examples/common/entry/entry.cpp
 )
+
+target_compile_definitions(demo PRIVATE _ITERATOR_DEBUG_LEVEL=0)
+
 # include_directories("/usr/local/Cellar/glfw/3.2.1/include")
 include_directories("D:/program/bgfx/include")
 include_directories("D:/program/bimg/include")

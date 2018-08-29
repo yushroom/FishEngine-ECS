@@ -1,49 +1,29 @@
 #pragma once
+#include "ECS.hpp"
+#include <bgfx/bgfx.h>
 
-#include "ClassDef.hpp"
-#include "Engine.hpp"
-
-class System : public Singleton
+class SingletonRenderState : public SingletonComponent
 {
+	friend class Scene;
+	friend class RenderSystem;
 public:
-	virtual void Init() {}
-	virtual void Start() {}
-	virtual void Update(float deltaTime) {}
-	virtual void Clean() {}
+	uint64_t GetState() const { return m_State; }
+
+
+protected:
+	SingletonRenderState();
+
+private:
+	bgfx::UniformHandle m_UniformLightDir;
+	uint64_t m_State = 0;
 };
 
 
-class RenderSystem : public System
+class RenderSystem : public ISystem
 {
 public:
-	
-	static RenderSystem& GetInstance()
-	{
-		static RenderSystem instance;
-		return instance;
-	}
-	
-	void Init2(int width, int height);
-	
-	virtual void Start() override
-	{
-		
-	}
-	
-	virtual void Update(float deltaTime) override
-	{
-		
-	}
-	
-	virtual void Clean() override
-	{
-		
-	}
-	
-	uint64_t GetState() { return s_State; }
-	
+	void OnAdded() override;
+	void Start() override;
+	void Update() override;
 	void Resize(int width, int height);
-	
-private:
-	uint64_t s_State = 0;
 };

@@ -17,11 +17,11 @@ void main()
 
 $input v_normal
 
-const vec3 lightDir = vec3(0, -1, -1);
+uniform vec4 lightDir;
 
 void main()
 {
-	float NdotL = dot(-normalize(lightDir), normalize(v_normal));
+	float NdotL = -dot(normalize(lightDir.xyz), normalize(v_normal));
 	NdotL = clamp(NdotL, 0, 1);
 	gl_FragColor = vec4(NdotL);
 	gl_FragColor.a = 1.0;

@@ -1,4 +1,4 @@
-
+#pragma once
 #include <unordered_map>
 #include <vector>
 #include <typeindex>
@@ -50,12 +50,22 @@ private:                                        \
 
 class Transform : public Component
 {
-	COMPONENT(Transform)
-	friend class GameObject;
+	COMPONENT(Transform);
+	friend class TransformSystem;
 public:
 	Vector3 position;
 	Vector3 scale;
 	Quaternion rotation;
+
+	float* GetLocalToWorldMatrix() { return m_LocalToWorldMatrix; }
+
+protected:
+	Matrix m_LocalToWorldMatrix = {
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1,
+	};
 };
 
 
@@ -63,34 +73,44 @@ class GameObject : public Object
 {
 	friend class Scene;
 public:
-	GameObject(EntityID entityID, Scene* scene);
+
+	EntityID GetID() const { return ID; }
 	
-	EntityID ID;
-	Matrix transformMatrix = {
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1,
-	};
+	Transform* GetTransform() const { return m_Transform; }
 	
-	Transform* GetTransform() const
-	{
-		return components.front()->As<Transform>();
-	}
-	
-	EntityID GetParent() const { return parentID; }
+	EntityID GetParentID() const { return parentID; }
 	
 protected:
+	GameObject(EntityID entityID, Scene* scene);
+
+protected:
 	std::vector<Component*> components;
+	Transform* m_Transform = nullptr;
 	EntityID parentID = 0;
 	int rootOrder = 0;		// index in parent's children array
+private:
+	EntityID ID;
 };
 
 
 class ISystem
 {
+	friend Scene;
 public:
-	virtual void Update(Scene* scene) = 0;
+	virtual void OnAdded() {}
+	virtual void Start() {}
+	virtual void Update() = 0;
+
+protected:
+	Scene * m_Scene = nullptr;
+};
+
+
+class SingletonComponent
+{
+	friend Scene;
+protected:
+	SingletonComponent() = default;
 };
 
 
@@ -103,7 +123,7 @@ public:
 		EntityID id = m_LastEntityID;
 		GameObject* go = new GameObject(id, this);
 		m_GameObjects[id] = go;
-		GameObjectAddComponent<Transform>(go);
+		go->m_Transform = GameObjectAddComponent<Transform>(go);
 		return id;
 	}
 	
@@ -195,17 +215,63 @@ public:
 			return nullptr;
 		return T::components.front();
 	}
+
+	template<class T>
+	T* AddSingletonComponent()
+	{
+		auto typeidx = std::type_index(typeid(T));
+		auto it = m_SingletonComponents.find(typeidx);
+		if (it != m_SingletonComponents.end())
+		{
+			abort();
+		}
+
+		T* t = new T();
+		m_SingletonComponents[typeidx] = t;
+		return t;
+	}
+
+	template<class T>
+	T* GetSingletonComponent()
+	{
+		auto it = m_SingletonComponents.find(std::type_index(typeid(T)));
+		if (it == m_SingletonComponents.end())
+			return nullptr;
+		return (T*)it->second;
+	}
 	
 	void AddSystem(ISystem* system)
 	{
 		m_Systems.push_back(system);
+		system->m_Scene = this;
+		system->OnAdded();
+	}
+
+	template<class T>
+	T* GetSystem()
+	{
+		for (ISystem* s : m_Systems)
+		{
+			T* t = dynamic_cast<T*>(s);
+			if (t != nullptr)
+				return t;
+		}
+		return nullptr;
+	}
+
+	void Start()
+	{
+		for (ISystem* s : m_Systems)
+		{
+			s->Start();
+		}
 	}
 	
 	void Update()
 	{
 		for (ISystem* s : m_Systems)
 		{
-			s->Update(this);
+			s->Update();
 		}
 	}
 	
@@ -220,6 +286,7 @@ public:
 protected:
 	std::unordered_map<EntityID, GameObject*> m_GameObjects;
 	std::vector<ISystem*> m_Systems;
+	std::unordered_map<std::type_index, SingletonComponent*> m_SingletonComponents;
 	
 private:
 	EntityID m_LastEntityID = 0;

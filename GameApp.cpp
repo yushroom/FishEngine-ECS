@@ -1,4 +1,3 @@
-#define _ITERATOR_DEBUG_LEVEL 0
 #include "GameApp.hpp"
 
 #include <GLFW/glfw3.h>
@@ -12,6 +11,8 @@
 #include <GLFW/glfw3native.h>
 
 #include "Mesh.hpp"
+#include "ECS.hpp"
+#include "TransformSystem.hpp"
 #include "RenderSystem.hpp"
 
 static void* glfwNativeWindowHandle(GLFWwindow* _window)
@@ -46,7 +47,6 @@ static GameApp* mainApp = nullptr;
 
 static void glfwWindowSizeCallback(GLFWwindow* window, int width, int height)
 {
-	RenderSystem::GetInstance().Resize(width, height);
 	mainApp->Resize(width, height);
 }
 
@@ -79,9 +79,16 @@ void GameApp::Init()
 
 	glfwSetWindowSizeCallback(m_Window, glfwWindowSizeCallback);
 	
-	RenderSystem::GetInstance().Init2(m_WindowWidth, m_WindowHeight);
+	/*RenderSystem::GetInstance().Init2(m_WindowWidth, m_WindowHeight);*/
+	m_Scene = new Scene();
+	RenderSystem* rs = new RenderSystem();
+	m_Scene->AddSystem(rs);
 
 	Mesh::StaticInit();
+
+	m_Scene->AddSystem(new TransformSystem());
+
+	Resize(m_WindowWidth, m_WindowHeight);
 }
 
 
@@ -118,6 +125,8 @@ void GameApp::Resize(int width, int height)
 {
 	m_WindowWidth = width;
 	m_WindowHeight = height;
+	auto rs = m_Scene->GetSystem<RenderSystem>();
+	rs->Resize(width, height);
 }
 
 GameApp* GameApp::GetMainApp()

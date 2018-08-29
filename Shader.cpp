@@ -1,4 +1,3 @@
-#define _ITERATOR_DEBUG_LEVEL 0
 #include "Shader.hpp"
 
 #include <bgfx/bgfx.h>
