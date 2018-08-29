@@ -1,10 +1,10 @@
-#include "Material.hpp"
-#include "Mesh.hpp"
-#include "GameApp.hpp"
-#include "ECS.hpp"
-#include "Camera.hpp"
-#include "Light.hpp"
-#include "Renderable.hpp"
+#include <Material.hpp>
+#include <Mesh.hpp>
+#include <GameApp.hpp>
+#include <ECS.hpp>
+#include <Camera.hpp>
+#include <Light.hpp>
+#include <Renderable.hpp>
 
 #include <GLFW/glfw3.h>
 

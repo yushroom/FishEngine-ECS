@@ -11,21 +11,17 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 #add_subdirectory("/Users/yushroom/program/github/ozz-animation" "ozz-animation")
 
 
-file(GLOB SRCS ${CMAKE_CURRENT_LIST_DIR}/*.cpp)
-file(GLOB HEADERS ${CMAKE_CURRENT_LIST_DIR}/*.hpp)
+file(GLOB SRCS ${CMAKE_CURRENT_LIST_DIR}/FishEngine/*.cpp)
+file(GLOB HEADERS ${CMAKE_CURRENT_LIST_DIR}/FishEngine/*.hpp)
 
-add_executable(demo ${SRCS} ${HEADERS}
-    # /Users/yushroom/program/github/bgfx/examples/common/bgfx_utils.cpp
-    # /Users/yushroom/program/github/bgfx/examples/common/entry/entry.cpp
-)
+add_library(FishEngine ${SRCS} ${HEADERS})
 
-target_compile_definitions(demo PRIVATE _ITERATOR_DEBUG_LEVEL=0)
+target_compile_definitions(FishEngine PRIVATE _ITERATOR_DEBUG_LEVEL=0)
 
 # include_directories("/usr/local/Cellar/glfw/3.2.1/include")
 include_directories("D:/program/bgfx/include")
 include_directories("D:/program/bimg/include")
 include_directories("D:/program/bx/include")
-
 include_directories("D:/program/bx/include/compat/msvc")
 include_directories("D:/program/bgfx/3rdparty")
 
@@ -44,10 +40,14 @@ ADD_SUBDIRECTORY(./ThirdParty/glfw/)
 include_directories(./ThirdParty/glfw/include)
 SET_TARGET_PROPERTIES(glfw PROPERTIES FOLDER "ThirdParty")
 
-target_link_libraries(demo D:/program/bgfx/.build/win64_vs2017/bin/bgfxDebug.lib)
-target_link_libraries(demo D:/program/bgfx/.build/win64_vs2017/bin/bxDebug.lib)
-target_link_libraries(demo D:/program/bgfx/.build/win64_vs2017/bin/bimgDebug.lib)
-target_link_libraries(demo glfw)
+add_executable(demo1 "./Examples/demo1.cpp")
+target_compile_definitions(demo1 PRIVATE _ITERATOR_DEBUG_LEVEL=0)
+include_directories("./FishEngine")
+target_link_libraries(demo1 D:/program/bgfx/.build/win64_vs2017/bin/bgfxDebug.lib)
+target_link_libraries(demo1 D:/program/bgfx/.build/win64_vs2017/bin/bxDebug.lib)
+target_link_libraries(demo1 D:/program/bgfx/.build/win64_vs2017/bin/bimgDebug.lib)
+target_link_libraries(demo1 glfw)
+target_link_libraries(demo1 FishEngine)
 
 # # glew
 # if (MSVC)
