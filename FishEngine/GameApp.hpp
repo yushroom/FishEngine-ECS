@@ -13,8 +13,8 @@ public:
 	void Init();
 	void Run();
 
-	virtual void Start() = 0;
-	virtual void Update() = 0;
+	virtual void Start() { };
+	virtual void Update() { };
 	virtual void Clean() { };
 
 	void Resize(int width, int height);

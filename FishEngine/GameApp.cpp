@@ -62,6 +62,8 @@ void GameApp::Init()
 		return;
 	}
 
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
 	/* Create a windowed mode window and its OpenGL context */
 	m_Window = glfwCreateWindow(m_WindowWidth, m_WindowHeight, "Hello World", NULL, NULL);
 	if (!m_Window)
@@ -71,6 +73,7 @@ void GameApp::Init()
 		return;
 	}
 
+
 	/* Make the window's context current */
 	glfwMakeContextCurrent(m_Window);
 
@@ -78,6 +81,8 @@ void GameApp::Init()
 	glfwSetWindow(m_Window);
 
 	glfwSetWindowSizeCallback(m_Window, glfwWindowSizeCallback);
+
+	glfwSwapInterval(1);
 	
 	/*RenderSystem::GetInstance().Init2(m_WindowWidth, m_WindowHeight);*/
 	m_Scene = new Scene();
@@ -99,18 +104,21 @@ void GameApp::Run()
 	
 	while (!glfwWindowShouldClose(m_Window))
 	{
+		//glfwWaitEvents();
+
 		// Set view 0 default viewport.
 		bgfx::setViewRect(0, 0, 0, uint16_t(m_WindowWidth), uint16_t(m_WindowHeight) );
 		
 		Update();
-		
+		m_Scene->Update();
+
 		// Advance to next frame. Rendering thread will be kicked to
 		// process submitted rendering primitives.
 		bgfx::frame();
 
 
 		/* Swap front and back buffers */
-		//glfwSwapBuffers(window);
+		//glfwSwapBuffers(m_Window);
 
 		/* Poll for and process events */
 		glfwPollEvents();

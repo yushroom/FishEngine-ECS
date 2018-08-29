@@ -77,12 +77,6 @@ public:
 
 		m_Scene->Start();
 	}
-
-	void Update() override
-	{
-		float lightDir[] = { 1, 1, 1, 0 };
-		m_Scene->Update();
-	}
 	
 private:
 	Shader* m_Shader = nullptr;

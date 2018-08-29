@@ -38,9 +38,6 @@ public:
 			for (int x = 0; x < 11; ++x)
 			{
 				EntityID goID = m_Scene->CreateGameObject();
-				//PBRData* rotator = m_Scene->GameObjectAddComponent<PBRData>(goID);
-				//rotator->x = x;
-				//rotator->y = y;
 				auto go = m_Scene->GetGameObjectByID(goID);
 				auto& pos = go->GetTransform()->position;
 				pos.x = -7.5f + x * 1.5f;
@@ -57,12 +54,6 @@ public:
 		}
 
 		m_Scene->Start();
-	}
-
-	void Update() override
-	{
-		float lightDir[] = { 1, 1, 1, 0 };
-		m_Scene->Update();
 	}
 	
 private:

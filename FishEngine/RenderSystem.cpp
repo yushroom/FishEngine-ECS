@@ -26,7 +26,7 @@ void RenderSystem::OnAdded()
 	init.resolution.height = 480;
 	init.resolution.reset = BGFX_RESET_VSYNC;
 	bgfx::init(init);
-	bgfx::setDebug(BGFX_DEBUG_TEXT);
+	bgfx::setDebug(BGFX_DEBUG_STATS);
 	bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
 
 	auto state = m_Scene->AddSingletonComponent<SingletonRenderState>();
@@ -97,5 +97,5 @@ void RenderSystem::Update()
 
 void RenderSystem::Resize(int width, int height)
 {
-	bgfx::reset(width, height);
+	bgfx::reset(width, height, BGFX_RESET_VSYNC);
 }
