@@ -1,3 +1,4 @@
+#define _ITERATOR_DEBUG_LEVEL 0
 #include "GameApp.hpp"
 
 #include <GLFW/glfw3.h>
@@ -7,7 +8,7 @@
 #include <bx/file.h>
 #include <bx/pixelformat.h>
 
-#define GLFW_EXPOSE_NATIVE_COCOA
+#define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 
 #include "Mesh.hpp"
@@ -41,15 +42,19 @@ static void glfwSetWindow(GLFWwindow* _window)
 	bgfx::setPlatformData(pd);
 }
 
+static GameApp* mainApp = nullptr;
 
 static void glfwWindowSizeCallback(GLFWwindow* window, int width, int height)
 {
-	
+	RenderSystem::GetInstance().Resize(width, height);
+	mainApp->Resize(width, height);
 }
 
 
 void GameApp::Init()
 {
+	mainApp = this;
+
 	/* Initialize the library */
 	if (!glfwInit())
 	{
@@ -71,6 +76,8 @@ void GameApp::Init()
 
 	//bgfx::glfwSetWindow(window);
 	glfwSetWindow(m_Window);
+
+	glfwSetWindowSizeCallback(m_Window, glfwWindowSizeCallback);
 	
 	RenderSystem::GetInstance().Init2(m_WindowWidth, m_WindowHeight);
 
@@ -105,4 +112,15 @@ void GameApp::Run()
 	/* Loop until the user closes the window */
 	glfwTerminate();
 
+}
+
+void GameApp::Resize(int width, int height)
+{
+	m_WindowWidth = width;
+	m_WindowHeight = height;
+}
+
+GameApp* GameApp::GetMainApp()
+{
+	return mainApp;
 }

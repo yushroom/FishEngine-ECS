@@ -1,3 +1,4 @@
+#define _ITERATOR_DEBUG_LEVEL 0
 #include "Graphics.hpp"
 #include "Material.hpp"
 #include "Mesh.hpp"
@@ -16,7 +17,7 @@ class Camera : public Component
 	
 public:
 	float at[3]  = { 0.0f, 0.0f,   0.0f };
-	float eye[3] = { 0.0f, 0.0f, -35.0f };
+	float eye[3] = { 0.0f, 0.0f, -15.0f };
 //	Matrix view;
 //	Matrix proj;
 };
@@ -105,7 +106,9 @@ public:
 		float view[16];
 		bx::mtxLookAt(view, camera->eye, camera->at);
 		
-		float ratio = 640.0f / 480;
+		float width = GameApp::GetMainApp()->GetWidth();
+		float height = GameApp::GetMainApp()->GetHeight();
+		float ratio = width / height;
 		float proj[16];
 		bx::mtxProj(proj, 60.0f, ratio, 0.1f, 100.0f, bgfx::getCaps()->homogeneousDepth);
 		bgfx::setViewTransform(0, view, proj);
@@ -155,7 +158,7 @@ class Demo1 : public GameApp
 public:
 	void Start() override
 	{
-		m_Shader = ShaderUtil::Compile("/Users/yushroom/program/FishEngine-ECS/shader/vs.bin", "/Users/yushroom/program/FishEngine-ECS/shader/fs.bin");
+		m_Shader = ShaderUtil::Compile("D:/program/FishEngine-ECS/shader/vs.bin", "D:/program/FishEngine-ECS/shader/fs.bin");
 		
 		Material* mat = new Material();
 		mat->m_Shader = m_Shader;
@@ -164,22 +167,25 @@ public:
 		EntityID goID = m_Scene->CreateGameObject();
 		m_Scene->GameObjectAddComponent<Camera>(goID);
 		
-#if 0
+#if 1
 		for (int y = 0; y < 11; ++y)
 		{
 			for (int x = 0; x < 11; ++x)
 			{
 				EntityID goID = m_Scene->CreateGameObject();
-				Rotator* rotator = m_Scene->GameObjectAddComponent<Rotator>(goID);
-				rotator->x = x;
-				rotator->y = y;
+				//Rotator* rotator = m_Scene->GameObjectAddComponent<Rotator>(goID);
+				//rotator->x = x;
+				//rotator->y = y;
+				auto go = m_Scene->GetGameObjectByID(goID);
+				auto& pos = go->GetTransform()->position;
+				pos.x = -7.5 + x * 1.5f;
+				pos.y = -7.5 + y * 1.5f;
 				Renderable* rend = m_Scene->GameObjectAddComponent<Renderable>(goID);
-				rend->mesh = Mesh::Cube;
+				rend->mesh = Mesh::Sphere;
 				rend->material = mat;
 			}
 		}
 #else
-
 		auto CreateRot = [&](bool AddRot = true){
 			EntityID id = m_Scene->CreateGameObject();
 			if (AddRot)

@@ -16,6 +16,12 @@ public:
 	virtual void Update() = 0;
 	virtual void Clean() { };
 
+	void Resize(int width, int height);
+
+	static GameApp* GetMainApp();
+	int GetWidth() const { return m_WindowWidth; }
+	int GetHeight() const { return m_WindowHeight; }
+
 protected:
 	GLFWwindow * 	m_Window 		= nullptr;
 	float 			m_WindowWidth 	= 640;

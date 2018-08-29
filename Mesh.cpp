@@ -1,68 +1,104 @@
+#define _ITERATOR_DEBUG_LEVEL 0
 #include "Mesh.hpp"
 
-struct PosColorVertex
+#include <sstream>
+#include <fstream>
+#include <cassert>
+#include <filesystem>
+namespace fs = std::experimental::filesystem;
+
+std::string ReadFileAsString(const std::string &path)
 {
-	float m_x;
-	float m_y;
-	float m_z;
-	uint32_t m_abgr;
-	
-	static void init()
-	{
-		ms_decl
+	assert(fs::exists(path));
+	std::ifstream is(path);
+	std::stringstream buffer;
+	buffer << is.rdbuf();
+	return buffer.str();
+}
+
+
+void PUNTVertex::init()
+{
+	ms_decl
 		.begin()
 		.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
-		.add(bgfx::Attrib::Color0,   4, bgfx::AttribType::Uint8, true)
+		.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
+		.add(bgfx::Attrib::Normal, 3, bgfx::AttribType::Float)
+		.add(bgfx::Attrib::Tangent, 3, bgfx::AttribType::Float)
 		.end();
-	};
-	
-	static bgfx::VertexDecl ms_decl;
-};
+}
 
-bgfx::VertexDecl PosColorVertex::ms_decl;
-
-static PosColorVertex s_cubeVertices[] =
-{
-	{-1.0f,  1.0f,  1.0f, 0xff000000 },
-	{ 1.0f,  1.0f,  1.0f, 0xff0000ff },
-	{-1.0f, -1.0f,  1.0f, 0xff00ff00 },
-	{ 1.0f, -1.0f,  1.0f, 0xff00ffff },
-	{-1.0f,  1.0f, -1.0f, 0xffff0000 },
-	{ 1.0f,  1.0f, -1.0f, 0xffff00ff },
-	{-1.0f, -1.0f, -1.0f, 0xffffff00 },
-	{ 1.0f, -1.0f, -1.0f, 0xffffffff },
-};
-
-static const uint16_t s_cubeTriList[] =
-{
-	0, 1, 2, // 0
-	1, 3, 2,
-	4, 6, 5, // 2
-	5, 6, 7,
-	0, 2, 4, // 4
-	4, 2, 6,
-	1, 5, 3, // 6
-	5, 7, 3,
-	0, 4, 1, // 8
-	4, 5, 1,
-	2, 3, 6, // 10
-	6, 3, 7,
-};
+bgfx::VertexDecl PUNTVertex::ms_decl;
 
 
 void Mesh::StaticInit()
 {
-	PosColorVertex::init();
+	PUNTVertex::init();
 	
-	Cube = new Mesh();
-	
-	Cube->m_VertexBuffer = bgfx::createVertexBuffer(
-		bgfx::makeRef(s_cubeVertices, sizeof(s_cubeVertices)), 
-		PosColorVertex::ms_decl
+	Cube = MeshUtil::FromTextFile(ReadFileAsString(R"(D:\program\FishEngine-Experiment\Assets\Models\Cube.txt)"));
+
+	Sphere = MeshUtil::FromTextFile(ReadFileAsString(R"(D:\program\FishEngine-Experiment\Assets\Models\Sphere.txt)"));
+}
+
+Mesh* MeshUtil::FromTextFile(const String & str)
+{
+	std::istringstream is(str);
+	auto mesh = new Mesh();
+	is >> mesh->m_vertexCount >> mesh->m_triangleCount;
+	//mesh->m_vertices.resize(mesh->m_vertexCount);
+	//mesh->m_normals.resize(mesh->m_vertexCount);
+	//mesh->m_uv.resize(mesh->m_vertexCount);
+	//mesh->m_tangents.resize(mesh->m_vertexCount);
+	//mesh->m_triangles.resize(mesh->m_triangleCount * 3);
+	mesh->vertices.resize(mesh->m_vertexCount);
+	mesh->indices.resize(mesh->m_triangleCount * 3);
+
+
+	//float vx, vy, vz;
+	//Vector3 vmin(Mathf::Infinity, Mathf::Infinity, Mathf::Infinity);
+	//Vector3 vmax(Mathf::NegativeInfinity, Mathf::NegativeInfinity, Mathf::NegativeInfinity);
+	//for (uint32_t i = 0; i < mesh->m_vertexCount; ++i)
+	//{
+	//	is >> vx >> vy >> vz;
+	//	if (vmin.x > vx) vmin.x = vx;
+	//	if (vmin.y > vy) vmin.y = vy;
+	//	if (vmin.z > vz) vmin.z = vz;
+	//	if (vmax.x < vx) vmax.x = vx;
+	//	if (vmax.y < vy) vmax.y = vy;
+	//	if (vmax.z < vz) vmax.z = vz;
+	//	auto & v = mesh->m_vertices[i];
+	//	v.x = vx;
+	//	v.y = vy;
+	//	v.z = vz;
+	//}
+	//mesh->m_bounds.SetMinMax(vmin, vmax);
+	//for (auto & f : mesh->m_normals)
+	//	is >> f.x >> f.y >> f.z;
+	//for (auto & f : mesh->m_uv)
+	//	is >> f.x >> f.y;
+	//for (auto & f : mesh->m_tangents)
+	//	is >> f.x >> f.y >> f.z;
+	//for (auto & f : mesh->m_triangles)
+	//	is >> f;
+	for (auto & v : mesh->vertices)
+		is >> v.position.x >> v.position.y >> v.position.z;
+	for (auto & v : mesh->vertices)
+		is >> v.normal.x >> v.normal.y >> v.normal.z;
+	for (auto & v : mesh->vertices)
+		is >> v.uv.x >> v.uv.y;
+	for (auto & v : mesh->vertices)
+		is >> v.tangent.x >> v.tangent.y >> v.tangent.z;
+	for (auto & f : mesh->indices)
+		is >> f;
+
+	mesh->m_VertexBuffer = bgfx::createVertexBuffer(
+		bgfx::makeRef(mesh->vertices.data(), sizeof(PUNTVertex)*mesh->vertices.size()),
+		PUNTVertex::ms_decl
 	);
-	
-	// Create static index buffer for triangle list rendering.
-	Cube->m_IndexBuffer = bgfx::createIndexBuffer(// Static data can be passed with bgfx::makeRef
-		bgfx::makeRef(s_cubeTriList, sizeof(s_cubeTriList) )
+
+	mesh->m_IndexBuffer = bgfx::createIndexBuffer(
+		bgfx::makeRef(mesh->indices.data(), sizeof(uint16_t)*mesh->indices.size())
 	);
+
+	return mesh;
 }

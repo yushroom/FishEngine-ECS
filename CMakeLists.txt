@@ -17,26 +17,33 @@ add_executable(demo ${SRCS} ${HEADERS}
     # /Users/yushroom/program/github/bgfx/examples/common/bgfx_utils.cpp
     # /Users/yushroom/program/github/bgfx/examples/common/entry/entry.cpp
 )
-include_directories("/usr/local/Cellar/glfw/3.2.1/include")
-include_directories("/Users/yushroom/program/github/bgfx/include")
-include_directories("/Users/yushroom/program/github/bimg/include")
-include_directories("/Users/yushroom/program/github/bx/include")
+# include_directories("/usr/local/Cellar/glfw/3.2.1/include")
+include_directories("D:/program/bgfx/include")
+include_directories("D:/program/bimg/include")
+include_directories("D:/program/bx/include")
 
-include_directories("/Users/yushroom/program/github/bgfx/examples/common")
-include_directories("/Users/yushroom/program/github/bgfx/3rdparty")
+include_directories("D:/program/bx/include/compat/msvc")
+include_directories("D:/program/bgfx/3rdparty")
 
 #target_link_libraries(main ozz_animation)
-set_target_properties(demo PROPERTIES LINK_FLAGS "-lglfw -framework OpenGL -L/usr/local/Cellar/glfw/3.2.1/lib -L/Users/yushroom/program/github/bgfx/.build/osx64_clang/bin -lbgfxDebug -lbxDebug -lbimgDebug -lbimg_decodeDebug -framework Cocoa -framework metal -framework QuartzCore")
+#set_target_properties(main PROPERTIES LINK_FLAGS "-lglfw -framework OpenGL -L/usr/local/Cellar/glfw/3.2.1/lib -L/Users/yushroom/program/github/bgfx/.build/osx64_clang/bin -lbgfxDebug -lbxDebug -lbimgDebug -lbimg_decodeDebug -framework Cocoa -framework metal -framework QuartzCore")
 
-# # glfw
-# set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-# set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-# set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-# set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-# set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
-# ADD_SUBDIRECTORY(./ThirdParty/glfw/)
-# include_directories(./ThirdParty/glfw/include)
-# SET_TARGET_PROPERTIES(glfw PROPERTIES FOLDER "ThirdParty")
+#link_directories("D:/program/bgfx/.build/win64_vs2017/bin")
+
+# glfw
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+ADD_SUBDIRECTORY(./ThirdParty/glfw/)
+include_directories(./ThirdParty/glfw/include)
+SET_TARGET_PROPERTIES(glfw PROPERTIES FOLDER "ThirdParty")
+
+target_link_libraries(demo D:/program/bgfx/.build/win64_vs2017/bin/bgfxDebug.lib)
+target_link_libraries(demo D:/program/bgfx/.build/win64_vs2017/bin/bxDebug.lib)
+target_link_libraries(demo D:/program/bgfx/.build/win64_vs2017/bin/bimgDebug.lib)
+target_link_libraries(demo glfw)
 
 # # glew
 # if (MSVC)

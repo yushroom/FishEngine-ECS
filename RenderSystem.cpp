@@ -1,3 +1,4 @@
+#define _ITERATOR_DEBUG_LEVEL 0
 #include "RenderSystem.hpp"
 #include <bgfx/bgfx.h>
 
@@ -22,4 +23,9 @@ void RenderSystem::Init2(int width, int height)
 		| BGFX_STATE_CULL_CW
 		| BGFX_STATE_MSAA
 	;
+}
+
+void RenderSystem::Resize(int width, int height)
+{
+	bgfx::reset(width, height);
 }

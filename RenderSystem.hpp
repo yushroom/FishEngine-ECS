@@ -42,6 +42,7 @@ public:
 	
 	uint64_t GetState() { return s_State; }
 	
+	void Resize(int width, int height);
 	
 private:
 	uint64_t s_State = 0;
