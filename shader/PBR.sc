@@ -10,9 +10,9 @@ void main()
 	gl_Position = mul(u_modelViewProj, vec4(a_position, 1.0) );
 	//v_normal = normalize( mul(u_model[0], vec4(a_normal, 0.0)).xyz );
 	v_position = mul(u_model[0], vec4(a_position, 1.0)).xyz;
-	v_normal = a_normal;
+	v_normal   = mul(u_model[0], vec4(a_normal, 0.0)).xyz;
+	v_tangent  = mul(u_model[0], vec4(a_tangent, 0.0)).xyz;
 	v_uv = a_uv;
-	v_tangent = a_tangent;
 }
 
 #else
@@ -37,7 +37,7 @@ void main()
 
 	vec4 outColor = vec4(0, 0, 0, 1);
 	vec3 L = normalize(lightDir.xyz);
-	vec3 V = -normalize(v_position - CameraPos.xyz);
+	vec3 V = normalize(CameraPos.xyz - v_position);
 	vec3 N = normalize(v_normal);
 
 	vec3 DiffuseColor = BaseColor.rgb - BaseColor.rgb * Metallic;
@@ -45,6 +45,8 @@ void main()
 	float NoL = saturate( dot(N, L) );
 	float NoV = saturate( dot(N, V) );
 	outColor.rgb = PI * LightColor.rgb * NoL * StandardShading(DiffuseColor, SpecularColor, vec3(Roughness), vec3(1), L, V, N);
+	//outColor.rgb = vec3(NoL);
+	//outColor.rgb = N * 0.5 + 0.5;
 
 	gl_FragColor = outColor;
 }

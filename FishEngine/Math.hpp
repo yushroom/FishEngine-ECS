@@ -12,6 +12,11 @@ struct Vector3
 	float y = 0;
 	float z = 0;
 
+	Vector3 operator-() const
+	{
+		return Vector3{ -x, -y, -z };
+	}
+
 	static Vector3 Normalize(const Vector3& v)
 	{
 		float invLen = 1.0f / sqrtf(v.x*v.x + v.y*v.y + v.z*v.z);

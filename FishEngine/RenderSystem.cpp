@@ -65,7 +65,9 @@ void RenderSystem::Update()
 	Light* light = m_Scene->FindComponent<Light>();
 	if (light != nullptr)
 	{
-		Vector3 d = Vector3::Normalize(light->direction);
+		Vector3 lightPos = { 0, 0, -1 };
+		Vector3 d = Vector3::Normalize(lightPos);
+		//Vector3 d = Vector3::Normalize(light->direction);
 		bgfx::setUniform(renderState->m_UniformLightDir, &d);
 	}
 
