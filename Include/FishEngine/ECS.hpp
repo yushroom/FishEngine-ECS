@@ -7,6 +7,11 @@
 #include "Engine.hpp"
 #include "Object.hpp"
 
+class TransformSystem;
+
+namespace ECS
+{
+
 class Scene;
 
 using EntityID = uint32_t;
@@ -40,7 +45,7 @@ protected:
 protected:                                      \
 	T() = default;                              \
 private:                                        \
-	friend class Scene;                         \
+	friend class ECS::Scene;                    \
 	inline static std::vector<T*> components;   \
 	std::type_index GetTypeIndex() override     \
 	{ return std::type_index(typeid(T)); }      \
@@ -51,10 +56,10 @@ private:                                        \
 class Transform : public Component
 {
 	COMPONENT(Transform);
-	friend class TransformSystem;
+	friend class ::TransformSystem;
 public:
-	Vector3 position;
-	Vector3 scale;
+	Vector3 position = {0, 0, 0};
+	Vector3 scale = {1, 1, 1};
 	Quaternion rotation;
 
 	const Matrix4x4& GetLocalToWorldMatrix() const { return m_LocalToWorldMatrix; }
@@ -301,3 +306,4 @@ private:
 	EntityID m_LastEntityID = 0;
 };
 
+} // namespace ECS

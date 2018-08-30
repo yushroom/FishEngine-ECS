@@ -101,7 +101,7 @@ void RenderSystem::Update()
 	bgfx::setViewTransform(0, view, proj);
 	
 	
-	m_Scene->ForEach<Renderable>([renderState](GameObject* go, Renderable* rend)
+	m_Scene->ForEach<Renderable>([renderState](ECS::GameObject* go, Renderable* rend)
 	{
 		auto& mtx = go->GetTransform()->GetLocalToWorldMatrix();
 		bgfx::setUniform(renderState->m_UniformPBRParams, rend->material->pbrparams);

@@ -20,9 +20,9 @@ enum class KeyAction
 	Released
 };
 
-class SingletonInput : public SingletonComponent
+class SingletonInput : public ECS::SingletonComponent
 {
-	friend class Scene;
+	friend class ECS::Scene;
 	friend class InputSystem;
 protected:
 	SingletonInput()
@@ -49,7 +49,7 @@ struct KeyEvent
 };
 
 
-class InputSystem : public ISystem
+class InputSystem : public ECS::ISystem
 {
 public:
 

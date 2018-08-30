@@ -4,7 +4,7 @@
 class Material;
 class Mesh;
 
-class Renderable : public Component
+class Renderable : public ECS::Component
 {
 	COMPONENT(Renderable);
 	

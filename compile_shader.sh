@@ -1,2 +1,2 @@
-/Users/yushroom/program/github/bgfx/.build/osx64_clang/bin/shadercDebug -i /Users/yushroom/program/github/bgfx/src --verbose -f ./shader/vs_cubes.sc -o ./shader/vs.bin --type vertex --platform osx
-/Users/yushroom/program/github/bgfx/.build/osx64_clang/bin/shadercDebug -i /Users/yushroom/program/github/bgfx/src --verbose -f ./shader/fs_cubes.sc -o ./shader/fs.bin --type fragment --platform osx
+/Users/yushroom/program/github/bgfx/.build/osx64_clang/bin/shadercDebug -i /Users/yushroom/program/github/bgfx/src -i /Users/yushroom/program/FishEngine/Engine/Shaders/include --verbose -f ./shader/PBR.sc -o ./shader/vs.bin --platform osx --type v --define VERTEX --profile 150
+/Users/yushroom/program/github/bgfx/.build/osx64_clang/bin/shadercDebug -i /Users/yushroom/program/github/bgfx/src -i /Users/yushroom/program/FishEngine/Engine/Shaders/include --verbose -f ./shader/PBR.sc -o ./shader/fs.bin --platform osx --type f --define FRAGMENT --profile 150

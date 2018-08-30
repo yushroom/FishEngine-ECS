@@ -3,12 +3,12 @@
 #include <sstream>
 #include <fstream>
 #include <cassert>
-#include <filesystem>
-namespace fs = std::experimental::filesystem;
+//#include <filesystem>
+//namespace fs = std::experimental::filesystem;
 
 std::string ReadFileAsString(const std::string &path)
 {
-	assert(fs::exists(path));
+//	assert(fs::exists(path));
 	std::ifstream is(path);
 	std::stringstream buffer;
 	buffer << is.rdbuf();

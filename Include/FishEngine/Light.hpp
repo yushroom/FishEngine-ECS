@@ -2,7 +2,7 @@
 #include "ECS.hpp"
 
 
-class Light : public Component
+class Light : public ECS::Component
 {
 	COMPONENT(Light);
 public:

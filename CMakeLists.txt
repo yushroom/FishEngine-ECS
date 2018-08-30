@@ -8,8 +8,6 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-#add_subdirectory("/Users/yushroom/program/github/ozz-animation" "ozz-animation")
-
 # glfw
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
@@ -19,71 +17,6 @@ set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 ADD_SUBDIRECTORY(./ThirdParty/glfw/)
 include_directories(./ThirdParty/glfw/include)
 SET_TARGET_PROPERTIES(glfw PROPERTIES FOLDER "ThirdParty")
-
-
-# file(GLOB_RECURSE SRCS ${CMAKE_CURRENT_LIST_DIR}/FishEngine/*.cpp)
-# file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_LIST_DIR}/FishEngine/*.hpp)
-
-# add_library(FishEngine ${SRCS} ${HEADERS})
-
-
-
-# # glew
-# if (MSVC)
-#     set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251" )
-#     add_definitions(-D_CRT_SECURE_NO_WARNINGS=1)
-#     include_directories(${CMAKE_CURRENT_LIST_DIR}/ThirdParty/glew/include)
-#     #set(BUILD_UTILS OFF CACHE BOOL "" FORCE)
-#     ADD_SUBDIRECTORY(${CMAKE_CURRENT_LIST_DIR}/ThirdParty/glew/build/cmake)
-
-#     # set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
-#     # set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-#     # set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /MTd")
-#     # set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /MT")
-#     SET_TARGET_PROPERTIES(glew PROPERTIES FOLDER "ThirdParty/glew")
-#     SET_TARGET_PROPERTIES(glew_s PROPERTIES FOLDER "ThirdParty/glew")
-# endif()
-
-# # bgfx
-# SET( BGFX_DIR "/Users/yushroom/program/github/bgfx")
-# include_directories( ${BGFX_DIR}/include)
-# SET( BGFX_LIB_DIR ${BGFX_DIR}/.build/osx64_clang/bin)
-# # SET( BGFX_LIB_DEBUG ${BGFX_LIB_DIR}/libbgfxDebug.a)
-# set(BGFX_LIB "")
-# foreach(x bgfx bx bimg)
-#     set(lib ${BGFX_LIB_DIR}/lib${x}Release.a)
-#     if (NOT EXISTS ${lib})
-#         message(FATAL_ERROR "bgfx lib ${lib} not found")
-#     endif()
-#     list(APPEND BGFX_LIB ${lib})
-# endforeach(x)
-# # SET( BGFX_LIB_RELEASE ${BGFX_LIB_DIR}/libbgfxRelease.a ${BGFX_LIB_DIR}/libbxRelease.a)
-# # SET( BGFX_LIB ${BGFX_LIB_RELEASE})
-# # if (NOT EXISTS ${BGFX_LIB_RELEASE})
-# #     message(FATAL_ERROR "bgfx lib not found")
-# # endif()
-
-
-# # Autodesk FBX sdk
-# # SET( FBXSDK_DIR "" CACHE PATH "Autodesk FBX SDK root directory" )
-# if (WIN32)
-#     SET( FBXSDK_DIR "D:\\library\\fbxsdk\\2018.1.1")
-# else()
-#     SET( FBXSDK_DIR "${CMAKE_CURRENT_LIST_DIR}/ThirdParty/FBX SDK/2019.0")
-# endif()
-# # SET( FBXSDK_DIR "${CMAKE_CURRENT_LIST_DIR}/ThirdParty/FBX SDK/2018.1.1")
-# include_directories( ${FBXSDK_DIR}/include )
-# IF (WIN32)
-#     SET( FBXSDK_LIB_DIR ${FBXSDK_DIR}/lib/vs2015/x64 )
-#     SET( FBXSDK_LIB_DEBUG ${FBXSDK_LIB_DIR}/debug/libfbxsdk-md.lib )
-#     SET( FBXSDK_LIB_RELEASE ${FBXSDK_LIB_DIR}/release/libfbxsdk-md.lib )
-#     SET( FBXSDK_LIB debug ${FBXSDK_LIB_DEBUG} optimized ${FBXSDK_LIB_RELEASE} )
-# ELSE()
-#     SET( FBXSDK_LIB_DIR ${FBXSDK_DIR}/lib/clang )
-#     # SET( FBXSDK_LIB_DEBUG ${FBXSDK_LIB_DIR}/debug/libfbxsdk.a )
-#     SET( FBXSDK_LIB_RELEASE ${FBXSDK_LIB_DIR}/release/libfbxsdk.a )
-#     SET( FBXSDK_LIB ${FBXSDK_LIB_RELEASE})
-# ENDIF()
 
 
 # # nVidia PhysX
@@ -244,23 +177,36 @@ AutoGroup(./Source/FishEngine Math)
 # AutoGroup(${CMAKE_CURRENT_LIST_DIR}/Include/FishEditor Serialization)
 # AutoGroup(${CMAKE_CURRENT_LIST_DIR}/Source/FishEditor Serialization)
 
-target_compile_definitions(FishEngine PRIVATE _ITERATOR_DEBUG_LEVEL=0)
+include_directories("./ThirdParty/tinygltf")
 
-# include_directories("/usr/local/Cellar/glfw/3.2.1/include")
+if (MSVC)
 include_directories("D:/program/bgfx/include")
 include_directories("D:/program/bimg/include")
 include_directories("D:/program/bx/include")
 include_directories("D:/program/bx/include/compat/msvc")
 include_directories("D:/program/bgfx/3rdparty")
-include_directories("./ThirdParty/tinygltf")
+else()
+include_directories("../github/bgfx/include")
+include_directories("../github/bimg/include")
+include_directories("../github/bx/include")
+include_directories("../github/bgfx/3rdparty")
+endif()
 
+
+target_link_libraries(FishEngine glfw)
+
+if (msvc)
+target_compile_definitions(FishEngine PRIVATE _ITERATOR_DEBUG_LEVEL=0)
 target_link_libraries(FishEngine debug D:/program/bgfx/.build/win64_vs2017/bin/bgfxDebug.lib optimized D:/program/bgfx/.build/win64_vs2017/bin/bgfxRelease.lib)
 target_link_libraries(FishEngine debug D:/program/bgfx/.build/win64_vs2017/bin/bxDebug.lib optimized D:/program/bgfx/.build/win64_vs2017/bin/bxRelease.lib)
 target_link_libraries(FishEngine debug D:/program/bgfx/.build/win64_vs2017/bin/bimgDebug.lib optimized D:/program/bgfx/.build/win64_vs2017/bin/bimgRelease.lib)
-target_link_libraries(FishEngine glfw)
+else()
+target_link_libraries(FishEngine /Users/yushroom/program/github/bgfx/.build/osx64_clang/bin/libbgfxDebug.a)
+target_link_libraries(FishEngine /Users/yushroom/program/github/bgfx/.build/osx64_clang/bin/libbxDebug.a)
+target_link_libraries(FishEngine /Users/yushroom/program/github/bgfx/.build/osx64_clang/bin/libbimgDebug.a)
+set_target_properties(FishEngine PROPERTIES LINK_FLAGS "-framework OpenGL -framework Cocoa -framework metal -framework QuartzCore")
+endif()
 
-#target_link_libraries(main ozz_animation)
-#set_target_properties(main PROPERTIES LINK_FLAGS "-lglfw -framework OpenGL -L/usr/local/Cellar/glfw/3.2.1/lib -L/Users/yushroom/program/github/bgfx/.build/osx64_clang/bin -lbgfxDebug -lbxDebug -lbimgDebug -lbimg_decodeDebug -framework Cocoa -framework metal -framework QuartzCore")
 
 include_directories("./Include")
 include_directories("./Include/FishEngine")
@@ -276,3 +222,11 @@ target_link_libraries(demo2 FishEngine)
 add_executable(modelViewer "./Examples/model_viewer.cpp")
 target_compile_definitions(modelViewer PRIVATE _ITERATOR_DEBUG_LEVEL=0)
 target_link_libraries(modelViewer FishEngine)
+
+if (msvc)
+    target_compile_definitions(demo1 PRIVATE _ITERATOR_DEBUG_LEVEL=0)
+    target_compile_definitions(demo2 PRIVATE _ITERATOR_DEBUG_LEVEL=0)
+else()
+    set_target_properties(demo1 PROPERTIES LINK_FLAGS "-framework OpenGL -framework Cocoa -framework metal -framework QuartzCore")
+    set_target_properties(demo2 PROPERTIES LINK_FLAGS "-framework OpenGL -framework Cocoa -framework metal -framework QuartzCore")
+endif()
