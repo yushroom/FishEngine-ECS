@@ -12,16 +12,15 @@
 
 const float PI = acosf(-1.0f);
 
-class FreeCameraController : public ISystem
+class FreeCameraController : public ECS::ISystem
 {
 public:
 	virtual void Update() override
 	{
 		Camera* cam = m_Scene->FindComponent<Camera>();
-		GameObject* go = m_Scene->GetGameObjectByID(cam->entityID);
-		Transform* t = go->GetTransform();
+		ECS::GameObject* go = m_Scene->GetGameObjectByID(cam->entityID);
+		ECS::Transform* t = go->GetTransform();
 
-		auto& lookAt = cam->lookAt;
 		auto& camraPos = t->position;
 
 		auto si = m_Scene->GetSingletonComponent<SingletonInput>();
@@ -30,7 +29,6 @@ public:
 		{
 			m_MousePos = si->GetMousePosition();
 			m_CameraPos = camraPos;
-			m_CameraTarget = lookAt;
 		}
 		else if (si->IsButtonHeld(KeyCode::MouseMiddleButton))
 		{
@@ -46,16 +44,18 @@ public:
 
 			camraPos.x = m_CameraPos.x - delta.x;
 			camraPos.y = m_CameraPos.y + delta.y;
-
-			lookAt.x = m_CameraTarget.x - delta.x;
-			lookAt.y = m_CameraTarget.y + delta.y;
 		}
 
-		m_Dictance = Vector3::Distance(cam->lookAt, camraPos);
+//		m_Dictance = Vector3::Distance(cam->lookAt, camraPos);
 
 		if (si->IsButtonPressed(KeyCode::MouseRightButton))
 		{
 			float m_Rad = -0.5f * PI;
+		}
+		
+		if (si->IsButtonHeld(KeyCode::MouseRightButton) && si->IsButtonHeld(KeyCode::LeftCommand))
+		{
+			printf("here\n");
 		}
 	}
 
@@ -78,18 +78,18 @@ public:
 		m_Shader = ShaderUtil::Compile("D:/program/FishEngine-ECS/shader/vs.bin", "D:/program/FishEngine-ECS/shader/fs.bin");
 		
 		{
-			EntityID goID = m_Scene->CreateGameObject();
+			ECS::EntityID goID = m_Scene->CreateGameObject();
 			auto camera = m_Scene->GameObjectAddComponent<Camera>(goID);
 			auto go = m_Scene->GetGameObjectByID(goID);
-			go->GetTransform()->position.Set(0, 0, 10);
+			go->GetTransform()->position.Set(0, 0, -10);
 		}
 		{
-			EntityID goID = m_Scene->CreateGameObject();
+			ECS::EntityID goID = m_Scene->CreateGameObject();
 			auto light = m_Scene->GameObjectAddComponent<Light>(goID);
 			light->direction.z = 1;
 		}
 		
-		EntityID goID = m_Scene->CreateGameObject();
+		ECS::EntityID goID = m_Scene->CreateGameObject();
 		Renderable* rend = m_Scene->GameObjectAddComponent<Renderable>(goID);
 		rend->mesh = Mesh::Sphere;
 

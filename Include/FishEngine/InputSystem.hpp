@@ -10,6 +10,14 @@ enum class KeyCode
 	MouseLeftButton,
 	MouseRightButton,
 	MouseMiddleButton,
+	RightShift,
+	LeftShift,
+	RightControl,
+	LeftControl,
+	RightAlt,
+	LeftAlt,
+	LeftCommand,
+	RightCommand,
 };
 
 enum class KeyAction
@@ -19,6 +27,22 @@ enum class KeyAction
 	Held,
 	Released
 };
+
+enum class Axis {
+	Vertical = 0,   // w, a, s, d and arrow keys
+	Horizontal,
+	Fire1,          // Control
+	Fire2,          // Option(Alt)
+	Fire3,          // Command
+	Jump,
+	MouseX,         // delta of mouse movement
+	MouseY,
+	MouseScrollWheel,
+	WindowShakeX,   // movement of the window
+	WindwoShakeY,
+	AxisCount,
+};
+
 
 class SingletonInput : public ECS::SingletonComponent
 {
@@ -35,9 +59,11 @@ public:
 	bool IsButtonReleased(KeyCode code) const;
 
 	Vector2 GetMousePosition() const { return m_MousePosition; }
-
+	float GetAxis(Axis axis) const { return m_Axis[(int)axis]; }
+	
 private:
 	KeyAction m_KeyPressed[256] = {KeyAction::Normal};
+	float m_Axis[(int)Axis::AxisCount] = {0};
 	Vector2 m_MousePosition;
 };
 
@@ -63,5 +89,6 @@ public:
 	void PostUpdate() override;
 
 	void SetMousePosition(float x, float y);
+	void UpdateAxis(Axis axis, float value);
 	void PostKeyEvent(const KeyEvent& e);
 };

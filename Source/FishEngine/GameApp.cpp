@@ -63,11 +63,26 @@ static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int act
 		e.action = KeyAction::Pressed;
 	else if (action == GLFW_RELEASE)
 		e.action = KeyAction::Released;
+	
 	if (key == GLFW_KEY_F1)
 		e.key = KeyCode::F1;
-	if (key == GLFW_KEY_ESCAPE)
+	else if (key == GLFW_KEY_ESCAPE)
 		e.key = KeyCode::ECS;
+	else if (key == GLFW_KEY_LEFT_ALT)
+		e.key = KeyCode::LeftAlt;
+	else if (key == GLFW_KEY_RIGHT_ALT)
+		e.key = KeyCode::RightAlt;
+	else if (key == GLFW_KEY_LEFT_CONTROL)
+		e.key = KeyCode::LeftControl;
+	else if (key == GLFW_KEY_RIGHT_CONTROL)
+		e.key = KeyCode::RightControl;
+	else if (key == GLFW_KEY_LEFT_SUPER)
+		e.key = KeyCode::LeftCommand;
+	else if (key == GLFW_KEY_RIGHT_SUPER)
+		e.key = KeyCode::RightCommand;
 	s->PostKeyEvent(e);
+	
+//	printf("mods: %d\n", mods);
 }
 
 static void glfw_mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -85,13 +100,14 @@ static void glfw_mouse_button_callback(GLFWwindow* window, int button, int actio
 		e.action = KeyAction::Pressed;
 	else if (action == GLFW_RELEASE)
 		e.action = KeyAction::Released;
-
+	
 	s->PostKeyEvent(e);
 }
 
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+void glfw_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-
+	auto s = mainApp->GetScene()->GetSystem<InputSystem>();
+	s->UpdateAxis(Axis::MouseScrollWheel, yoffset);
 }
 
 
@@ -127,6 +143,7 @@ void GameApp::Init()
 	glfwSetWindowSizeCallback(m_Window, glfw_window_size_callback);
 	glfwSetKeyCallback(m_Window, glfw_key_callback);
 	glfwSetMouseButtonCallback(m_Window, glfw_mouse_button_callback);
+	glfwSetScrollCallback(m_Window, glfw_scroll_callback);
 
 	glfwSwapInterval(1);
 	

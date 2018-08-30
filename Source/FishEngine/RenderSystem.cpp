@@ -58,7 +58,7 @@ void RenderSystem::Update()
 	if (camera == nullptr)
 		return;
 	float cameraPos[4];
-	float lookAt[3];
+	Matrix4x4 view;
 	{
 		auto go = m_Scene->GetGameObjectByID(camera->entityID);
 		auto& p = go->GetTransform()->position;
@@ -66,10 +66,7 @@ void RenderSystem::Update()
 		cameraPos[1] = p.y;
 		cameraPos[2] = p.z;
 		cameraPos[3] = 1.0f;
-
-		lookAt[0] = camera->lookAt.x;
-		lookAt[1] = camera->lookAt.y;
-		lookAt[2] = camera->lookAt.z;
+		view = go->GetTransform()->GetLocalToWorldMatrix().inverse().transpose();
 	}
 
 	auto renderState = m_Scene->GetSingletonComponent<SingletonRenderState>();
@@ -90,15 +87,17 @@ void RenderSystem::Update()
 	bgfx::setUniform(renderState->m_UniformBaseColor, BaseColor);
 	//bgfx::setUniform(renderState->m_UniformPBRParams, PBRParams);
 	
-	float view[16];
-	bx::mtxLookAt(view, cameraPos, lookAt);
+//	float lookAt[4] = {0, 0, 0, 0};
+//	float view[16];
+//	bx::mtxLookAt(view, cameraPos, lookAt);
+	
 	
 	float width = (float)GameApp::GetMainApp()->GetWidth();
 	float height = (float)GameApp::GetMainApp()->GetHeight();
 	float ratio = width / height;
 	float proj[16];
 	bx::mtxProj(proj, 60.0f, ratio, 0.1f, 100.0f, bgfx::getCaps()->homogeneousDepth);
-	bgfx::setViewTransform(0, view, proj);
+	bgfx::setViewTransform(0, view.data(), proj);
 	
 	
 	m_Scene->ForEach<Renderable>([renderState](ECS::GameObject* go, Renderable* rend)

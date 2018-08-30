@@ -40,13 +40,26 @@ void InputSystem::PostUpdate()
 		else if (action == KeyAction::Released)
 			action = KeyAction::Normal;
 	}
+	
+	for (auto& a : si->m_Axis)
+	{
+		a = 0.f;
+	}
 }
 
 void InputSystem::SetMousePosition(float x, float y)
 {
 	auto si = m_Scene->GetSingletonComponent<SingletonInput>();
-	si->m_MousePosition.x = x;
-	si->m_MousePosition.y = y;
+	auto& p1 = si->m_MousePosition;
+	si->m_Axis[(int)Axis::MouseX] = x - p1.x;
+	si->m_Axis[(int)Axis::MouseY] = y - p1.y;
+	p1.Set(x, y);
+}
+
+void InputSystem::UpdateAxis(Axis axis, float value)
+{
+	auto si = m_Scene->GetSingletonComponent<SingletonInput>();
+	si->m_Axis[(int)axis] = value;
 }
 
 void InputSystem::PostKeyEvent(const KeyEvent& e)

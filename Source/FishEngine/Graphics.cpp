@@ -15,7 +15,7 @@ void Graphics::DrawMesh(Mesh* mesh, const Matrix4x4& matrix, Material* material)
 	auto state = GameApp::GetMainApp()->GetScene()->GetSingletonComponent<SingletonRenderState>();
 	
 	// Set model matrix for rendering.
-	bgfx::setTransform(matrix.data());
+	bgfx::setTransform(matrix.transpose().data());
 	
 	mesh->Bind();
 	
