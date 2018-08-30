@@ -7,11 +7,15 @@
 #include <bx/file.h>
 #include <bx/pixelformat.h>
 
+#	if BX_PLATFORM_WINDOWS
 #define GLFW_EXPOSE_NATIVE_WIN32
+#	elif BX_PLATFORM_OSX
+#define GLFW_EXPOSE_NATIVE_COCOA
+#	endif
 #include <GLFW/glfw3native.h>
 
 #include "Mesh.hpp"
-#include "ECS.hpp"
+//#include "ECS.hpp"
 #include "TransformSystem.hpp"
 #include "RenderSystem.hpp"
 
@@ -85,7 +89,7 @@ void GameApp::Init()
 	glfwSwapInterval(1);
 	
 	/*RenderSystem::GetInstance().Init2(m_WindowWidth, m_WindowHeight);*/
-	m_Scene = new Scene();
+	m_Scene = new ECS::Scene();
 	RenderSystem* rs = new RenderSystem();
 	m_Scene->AddSystem(rs);
 

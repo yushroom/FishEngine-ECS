@@ -2,18 +2,18 @@
 #include "ECS.hpp"
 
 
-class TransformSystem : public ISystem
+class TransformSystem : public ECS::ISystem
 {
 public:
 	void Update() override
 	{
-		m_Scene->All([this](GameObject* go){
-			EntityID parentID = go->GetParentID();
+		m_Scene->All([this](ECS::GameObject* go){
+			ECS::EntityID parentID = go->GetParentID();
 			auto& pos = go->GetTransform()->position;
 			auto& mtx = go->GetTransform()->m_LocalToWorldMatrix;
 			if (parentID != 0)
 			{
-				GameObject* parent = m_Scene->GetGameObjectByID(parentID);
+				ECS::GameObject* parent = m_Scene->GetGameObjectByID(parentID);
 				auto& ppos = parent->GetTransform()->position;
 				float x = pos.x + ppos.x;
 				float y = pos.y + ppos.y;

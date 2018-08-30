@@ -10,6 +10,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 #add_subdirectory("/Users/yushroom/program/github/ozz-animation" "ozz-animation")
 
+
+file(GLOB SRCS ${CMAKE_CURRENT_LIST_DIR}/FishEngine/*.cpp)
+file(GLOB HEADERS ${CMAKE_CURRENT_LIST_DIR}/FishEngine/*.hpp)
+
+add_library(FishEngine ${SRCS} ${HEADERS})
+
 # glfw
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
@@ -21,14 +27,9 @@ include_directories(./ThirdParty/glfw/include)
 SET_TARGET_PROPERTIES(glfw PROPERTIES FOLDER "ThirdParty")
 
 
-file(GLOB SRCS ${CMAKE_CURRENT_LIST_DIR}/FishEngine/*.cpp)
-file(GLOB HEADERS ${CMAKE_CURRENT_LIST_DIR}/FishEngine/*.hpp)
-
-add_library(FishEngine ${SRCS} ${HEADERS})
-
+if (msvc)
 target_compile_definitions(FishEngine PRIVATE _ITERATOR_DEBUG_LEVEL=0)
 
-# include_directories("/usr/local/Cellar/glfw/3.2.1/include")
 include_directories("D:/program/bgfx/include")
 include_directories("D:/program/bimg/include")
 include_directories("D:/program/bx/include")
@@ -38,22 +39,39 @@ include_directories("D:/program/bgfx/3rdparty")
 target_link_libraries(FishEngine D:/program/bgfx/.build/win64_vs2017/bin/bgfxDebug.lib)
 target_link_libraries(FishEngine D:/program/bgfx/.build/win64_vs2017/bin/bxDebug.lib)
 target_link_libraries(FishEngine D:/program/bgfx/.build/win64_vs2017/bin/bimgDebug.lib)
+else()
+
+include_directories("../github/bgfx/include")
+include_directories("../github/bimg/include")
+include_directories("../github/bx/include")
+include_directories("../github/bgfx/3rdparty")
+
+target_link_libraries(FishEngine /Users/yushroom/program/github/bgfx/.build/osx64_clang/bin/libbgfxDebug.a)
+target_link_libraries(FishEngine /Users/yushroom/program/github/bgfx/.build/osx64_clang/bin/libbxDebug.a)
+target_link_libraries(FishEngine /Users/yushroom/program/github/bgfx/.build/osx64_clang/bin/libbimgDebug.a)
+
+# include_directories("/usr/local/Cellar/glfw/3.2.1/include")
+set_target_properties(FishEngine PROPERTIES LINK_FLAGS "-framework OpenGL -framework Cocoa -framework metal -framework QuartzCore")
+endif()
+
 target_link_libraries(FishEngine glfw)
 
 #target_link_libraries(main ozz_animation)
-#set_target_properties(main PROPERTIES LINK_FLAGS "-lglfw -framework OpenGL -L/usr/local/Cellar/glfw/3.2.1/lib -L/Users/yushroom/program/github/bgfx/.build/osx64_clang/bin -lbgfxDebug -lbxDebug -lbimgDebug -lbimg_decodeDebug -framework Cocoa -framework metal -framework QuartzCore")
-
 include_directories("./FishEngine")
 
-#link_directories("D:/program/bgfx/.build/win64_vs2017/bin")
-
 add_executable(demo1 "./Examples/demo1.cpp")
-target_compile_definitions(demo1 PRIVATE _ITERATOR_DEBUG_LEVEL=0)
 target_link_libraries(demo1 FishEngine)
 
 add_executable(demo2 "./Examples/demo2.cpp")
-target_compile_definitions(demo2 PRIVATE _ITERATOR_DEBUG_LEVEL=0)
 target_link_libraries(demo2 FishEngine)
+
+if (msvc)
+    target_compile_definitions(demo1 PRIVATE _ITERATOR_DEBUG_LEVEL=0)
+    target_compile_definitions(demo2 PRIVATE _ITERATOR_DEBUG_LEVEL=0)
+else()
+    set_target_properties(demo1 PROPERTIES LINK_FLAGS "-framework OpenGL -framework Cocoa -framework metal -framework QuartzCore")
+    set_target_properties(demo2 PROPERTIES LINK_FLAGS "-framework OpenGL -framework Cocoa -framework metal -framework QuartzCore")
+endif()
 
 # # glew
 # if (MSVC)

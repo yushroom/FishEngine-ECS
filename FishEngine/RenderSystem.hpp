@@ -2,9 +2,9 @@
 #include "ECS.hpp"
 #include <bgfx/bgfx.h>
 
-class SingletonRenderState : public SingletonComponent
+class SingletonRenderState : public ECS::SingletonComponent
 {
-	friend class Scene;
+	friend class ECS::Scene;
 	friend class RenderSystem;
 public:
 	uint64_t GetState() const { return m_State; }
@@ -22,7 +22,7 @@ private:
 };
 
 
-class RenderSystem : public ISystem
+class RenderSystem : public ECS::ISystem
 {
 public:
 	void OnAdded() override;

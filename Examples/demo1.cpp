@@ -8,7 +8,7 @@
 
 #include <GLFW/glfw3.h>
 
-class PBRData : public Component
+class PBRData : public ECS::Component
 {
 public:
 	float Metallic = 0;
@@ -22,14 +22,14 @@ class Demo1 : public GameApp
 public:
 	void Start() override
 	{
-		m_Shader = ShaderUtil::Compile("D:/program/FishEngine-ECS/shader/vs.bin", "D:/program/FishEngine-ECS/shader/fs.bin");
+		m_Shader = ShaderUtil::Compile("/Users/yushroom/program/FishEngine-ECS/shader/vs.bin", "/Users/yushroom/program/FishEngine-ECS/shader/fs.bin");
 		
 		{
-			EntityID goID = m_Scene->CreateGameObject();
+			ECS::EntityID goID = m_Scene->CreateGameObject();
 			m_Scene->GameObjectAddComponent<Camera>(goID);
 		}
 		{
-			EntityID goID = m_Scene->CreateGameObject();
+			ECS::EntityID goID = m_Scene->CreateGameObject();
 			m_Scene->GameObjectAddComponent<Light>(goID);
 		}
 		
@@ -37,7 +37,7 @@ public:
 		{
 			for (int x = 0; x < 11; ++x)
 			{
-				EntityID goID = m_Scene->CreateGameObject();
+				ECS::EntityID goID = m_Scene->CreateGameObject();
 				auto go = m_Scene->GetGameObjectByID(goID);
 				auto& pos = go->GetTransform()->position;
 				pos.x = -7.5f + x * 1.5f;

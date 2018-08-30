@@ -1,7 +1,7 @@
 #pragma once
 #include "ECS.hpp"
 
-class Camera : public Component
+class Camera : public ECS::Component
 {
 	COMPONENT(Camera);
 	

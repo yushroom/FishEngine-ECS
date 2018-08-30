@@ -3,7 +3,10 @@
 #include "ClassDef.hpp"
 
 struct GLFWwindow;
-class Scene;
+namespace ECS
+{
+	class Scene;
+}
 
 class GameApp : public NonCopyable
 {
@@ -23,12 +26,12 @@ public:
 	int GetWidth() const { return m_WindowWidth; }
 	int GetHeight() const { return m_WindowHeight; }
 
-	Scene* GetScene() const { return m_Scene; }
+	ECS::Scene* GetScene() const { return m_Scene; }
 
 protected:
 	GLFWwindow * 	m_Window 		= nullptr;
 	int 			m_WindowWidth 	= 640;
 	int 			m_WindowHeight 	= 480;
 
-	Scene* m_Scene = nullptr;
+	ECS::Scene* m_Scene = nullptr;
 };
