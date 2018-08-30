@@ -57,10 +57,10 @@ public:
 	Vector3 scale;
 	Quaternion rotation;
 
-	float* GetLocalToWorldMatrix() { return m_LocalToWorldMatrix; }
+	const Matrix4x4& GetLocalToWorldMatrix() const { return m_LocalToWorldMatrix; }
 
 protected:
-	Matrix m_LocalToWorldMatrix = {
+	Matrix4x4 m_LocalToWorldMatrix = {
 		1, 0, 0, 0,
 		0, 1, 0, 0,
 		0, 0, 1, 0,

@@ -254,9 +254,9 @@ include_directories("D:/program/bx/include/compat/msvc")
 include_directories("D:/program/bgfx/3rdparty")
 include_directories("./ThirdParty/tinygltf")
 
-target_link_libraries(FishEngine D:/program/bgfx/.build/win64_vs2017/bin/bgfxDebug.lib)
-target_link_libraries(FishEngine D:/program/bgfx/.build/win64_vs2017/bin/bxDebug.lib)
-target_link_libraries(FishEngine D:/program/bgfx/.build/win64_vs2017/bin/bimgDebug.lib)
+target_link_libraries(FishEngine debug D:/program/bgfx/.build/win64_vs2017/bin/bgfxDebug.lib optimized D:/program/bgfx/.build/win64_vs2017/bin/bgfxRelease.lib)
+target_link_libraries(FishEngine debug D:/program/bgfx/.build/win64_vs2017/bin/bxDebug.lib optimized D:/program/bgfx/.build/win64_vs2017/bin/bxRelease.lib)
+target_link_libraries(FishEngine debug D:/program/bgfx/.build/win64_vs2017/bin/bimgDebug.lib optimized D:/program/bgfx/.build/win64_vs2017/bin/bimgRelease.lib)
 target_link_libraries(FishEngine glfw)
 
 #target_link_libraries(main ozz_animation)

@@ -7,7 +7,7 @@
 
 #include "GameApp.hpp"
 
-void Graphics::DrawMesh(Mesh* mesh, Matrix matrix, Material* material)
+void Graphics::DrawMesh(Mesh* mesh, const Matrix4x4& matrix, Material* material)
 {
 	if (mesh == nullptr || material == nullptr)
 		return;
@@ -15,7 +15,7 @@ void Graphics::DrawMesh(Mesh* mesh, Matrix matrix, Material* material)
 	auto state = GameApp::GetMainApp()->GetScene()->GetSingletonComponent<SingletonRenderState>();
 	
 	// Set model matrix for rendering.
-	bgfx::setTransform(matrix);
+	bgfx::setTransform(matrix.data());
 	
 	mesh->Bind();
 	

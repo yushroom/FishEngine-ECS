@@ -103,7 +103,7 @@ void RenderSystem::Update()
 	
 	m_Scene->ForEach<Renderable>([renderState](GameObject* go, Renderable* rend)
 	{
-		float* mtx = go->GetTransform()->GetLocalToWorldMatrix();
+		auto& mtx = go->GetTransform()->GetLocalToWorldMatrix();
 		bgfx::setUniform(renderState->m_UniformPBRParams, rend->material->pbrparams);
 		Graphics::DrawMesh(rend->mesh, mtx, rend->material);
 	});

@@ -38,7 +38,7 @@ void Mesh::StaticInit()
 	Sphere = MeshUtil::FromTextFile(ReadFileAsString(R"(D:\program\FishEngine-Experiment\Assets\Models\Sphere.txt)"));
 
 	//const char* test_path = R"(C:\Users\yuyunkang\AppData\Local\Temp\DefaultCompany\Unity\Unity2Skfb\Unity2Skfb.gltf)";
-	const char* test_path = R"(C:\Users\yuyunkang\AppData\Local\Packages\Microsoft.Microsoft3DViewer_8wekyb3d8bbwe\TempState\Assets\T-Rex.glb)";
+	const char* test_path = R"(D:\program\FishEngine-ECS\Assets\T-Rex.glb)";
 	Sphere = MeshUtil::FromGLTF(test_path);
 }
 

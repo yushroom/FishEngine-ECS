@@ -17,15 +17,15 @@ public:
 				auto& ppos = parent->GetTransform()->position;
 				float x = pos.x + ppos.x;
 				float y = pos.y + ppos.y;
-				mtx[12] = x;
-				mtx[13] = y;
-				mtx[14] = 0.0f;
+				mtx[3][0] = x;
+				mtx[3][1] = y;
+				mtx[3][2] = 0.0f;
 			}
 			else
 			{
-				mtx[12] = pos.x;
-				mtx[13] = pos.y;
-				mtx[14] = 0.0f;
+				mtx[3][0] = pos.x;
+				mtx[3][1] = pos.y;
+				mtx[3][2] = 0.0f;
 			}
 		});
 	}
