@@ -21,44 +21,12 @@ include_directories(./ThirdParty/glfw/include)
 SET_TARGET_PROPERTIES(glfw PROPERTIES FOLDER "ThirdParty")
 
 
-file(GLOB SRCS ${CMAKE_CURRENT_LIST_DIR}/FishEngine/*.cpp)
-file(GLOB HEADERS ${CMAKE_CURRENT_LIST_DIR}/FishEngine/*.hpp)
+# file(GLOB_RECURSE SRCS ${CMAKE_CURRENT_LIST_DIR}/FishEngine/*.cpp)
+# file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_LIST_DIR}/FishEngine/*.hpp)
 
-add_library(FishEngine ${SRCS} ${HEADERS})
+# add_library(FishEngine ${SRCS} ${HEADERS})
 
-target_compile_definitions(FishEngine PRIVATE _ITERATOR_DEBUG_LEVEL=0)
 
-# include_directories("/usr/local/Cellar/glfw/3.2.1/include")
-include_directories("D:/program/bgfx/include")
-include_directories("D:/program/bimg/include")
-include_directories("D:/program/bx/include")
-include_directories("D:/program/bx/include/compat/msvc")
-include_directories("D:/program/bgfx/3rdparty")
-include_directories("./ThirdParty/tinygltf")
-
-target_link_libraries(FishEngine D:/program/bgfx/.build/win64_vs2017/bin/bgfxDebug.lib)
-target_link_libraries(FishEngine D:/program/bgfx/.build/win64_vs2017/bin/bxDebug.lib)
-target_link_libraries(FishEngine D:/program/bgfx/.build/win64_vs2017/bin/bimgDebug.lib)
-target_link_libraries(FishEngine glfw)
-
-#target_link_libraries(main ozz_animation)
-#set_target_properties(main PROPERTIES LINK_FLAGS "-lglfw -framework OpenGL -L/usr/local/Cellar/glfw/3.2.1/lib -L/Users/yushroom/program/github/bgfx/.build/osx64_clang/bin -lbgfxDebug -lbxDebug -lbimgDebug -lbimg_decodeDebug -framework Cocoa -framework metal -framework QuartzCore")
-
-include_directories("./FishEngine")
-
-#link_directories("D:/program/bgfx/.build/win64_vs2017/bin")
-
-add_executable(demo1 "./Examples/demo1.cpp")
-target_compile_definitions(demo1 PRIVATE _ITERATOR_DEBUG_LEVEL=0)
-target_link_libraries(demo1 FishEngine)
-
-add_executable(demo2 "./Examples/demo2.cpp")
-target_compile_definitions(demo2 PRIVATE _ITERATOR_DEBUG_LEVEL=0)
-target_link_libraries(demo2 FishEngine)
-
-add_executable(modelViewer "./Examples/model_viewer.cpp")
-target_compile_definitions(modelViewer PRIVATE _ITERATOR_DEBUG_LEVEL=0)
-target_link_libraries(modelViewer FishEngine)
 
 # # glew
 # if (MSVC)
@@ -187,12 +155,12 @@ target_link_libraries(modelViewer FishEngine)
 # SET_TARGET_PROPERTIES(format PROPERTIES FOLDER "ThirdParty/yaml-cpp")
 
 
-# macro(AutoGroup root_dir)
-# 	foreach(group ${ARGN})
-# 		file(GLOB_RECURSE files ${root_dir}/${group}/*.hpp ${root_dir}/${group}/*.inl ${root_dir}/${group}/*.cpp)
-# 		source_group(${group} FILES ${files})
-# 	endforeach(group)
-# endmacro()
+macro(AutoGroup root_dir)
+	foreach(group ${ARGN})
+		file(GLOB_RECURSE files ${root_dir}/${group}/*.hpp ${root_dir}/${group}/*.inl ${root_dir}/${group}/*.cpp)
+		source_group(${group} FILES ${files})
+	endforeach(group)
+endmacro()
 
 # include_directories(${CMAKE_CURRENT_LIST_DIR}/Include/)
 
@@ -231,9 +199,9 @@ target_link_libraries(modelViewer FishEngine)
 # # source_group("extensions" FILES ${EXTENSIONS})
 # add_library(FishGUI ${SRCS} ${HEADERS})
 
-# file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_LIST_DIR}/Include/FishEngine/*.hpp ${CMAKE_CURRENT_LIST_DIR}/Include/FishEngine/*.inl)
-# file(GLOB_RECURSE SRCS ${CMAKE_CURRENT_LIST_DIR}/Source/FishEngine/*.cpp)
-# add_library(FishEngine ${HEADERS} ${SRCS})
+file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_LIST_DIR}/Include/FishEngine/*.hpp ${CMAKE_CURRENT_LIST_DIR}/Include/FishEngine/*.inl)
+file(GLOB_RECURSE SRCS ${CMAKE_CURRENT_LIST_DIR}/Source/FishEngine/*.cpp)
+add_library(FishEngine ${HEADERS} ${SRCS})
 
 # file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_LIST_DIR}/Include/FishEditor/*.hpp ${CMAKE_CURRENT_LIST_DIR}/Include/FishEditor/*.inl ${CMAKE_CURRENT_LIST_DIR}/Source/FishEditor/*.hpp)
 # file(GLOB_RECURSE SRCS ${CMAKE_CURRENT_LIST_DIR}/Source/FishEditor/*.cpp)
@@ -268,9 +236,43 @@ target_link_libraries(modelViewer FishEngine)
 
 # add_subdirectory(./Test)
 
+AutoGroup(./Include/FishEngine Math)
+AutoGroup(./Source/FishEngine Math)
 
 # AutoGroup(${CMAKE_CURRENT_LIST_DIR}/Include/FishEngine Util Math Render Internal Component UI System Physics Serialization Animation)
 # AutoGroup(${CMAKE_CURRENT_LIST_DIR}/Source/FishEngine Math Render Component UI System Physics Serialization Animation)
 # AutoGroup(${CMAKE_CURRENT_LIST_DIR}/Include/FishEditor Serialization)
 # AutoGroup(${CMAKE_CURRENT_LIST_DIR}/Source/FishEditor Serialization)
 
+target_compile_definitions(FishEngine PRIVATE _ITERATOR_DEBUG_LEVEL=0)
+
+# include_directories("/usr/local/Cellar/glfw/3.2.1/include")
+include_directories("D:/program/bgfx/include")
+include_directories("D:/program/bimg/include")
+include_directories("D:/program/bx/include")
+include_directories("D:/program/bx/include/compat/msvc")
+include_directories("D:/program/bgfx/3rdparty")
+include_directories("./ThirdParty/tinygltf")
+
+target_link_libraries(FishEngine D:/program/bgfx/.build/win64_vs2017/bin/bgfxDebug.lib)
+target_link_libraries(FishEngine D:/program/bgfx/.build/win64_vs2017/bin/bxDebug.lib)
+target_link_libraries(FishEngine D:/program/bgfx/.build/win64_vs2017/bin/bimgDebug.lib)
+target_link_libraries(FishEngine glfw)
+
+#target_link_libraries(main ozz_animation)
+#set_target_properties(main PROPERTIES LINK_FLAGS "-lglfw -framework OpenGL -L/usr/local/Cellar/glfw/3.2.1/lib -L/Users/yushroom/program/github/bgfx/.build/osx64_clang/bin -lbgfxDebug -lbxDebug -lbimgDebug -lbimg_decodeDebug -framework Cocoa -framework metal -framework QuartzCore")
+
+include_directories("./Include")
+include_directories("./Include/FishEngine")
+
+add_executable(demo1 "./Examples/demo1.cpp")
+target_compile_definitions(demo1 PRIVATE _ITERATOR_DEBUG_LEVEL=0)
+target_link_libraries(demo1 FishEngine)
+
+add_executable(demo2 "./Examples/demo2.cpp")
+target_compile_definitions(demo2 PRIVATE _ITERATOR_DEBUG_LEVEL=0)
+target_link_libraries(demo2 FishEngine)
+
+add_executable(modelViewer "./Examples/model_viewer.cpp")
+target_compile_definitions(modelViewer PRIVATE _ITERATOR_DEBUG_LEVEL=0)
+target_link_libraries(modelViewer FishEngine)
