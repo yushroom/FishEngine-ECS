@@ -27,14 +27,11 @@ public:
 	
 	inline static Mesh* Cube = nullptr;
 	inline static Mesh* Sphere = nullptr;
+	inline static Mesh* Bunny = nullptr;
 	
 	static void StaticInit();
 
-	void Bind()
-	{
-		bgfx::setVertexBuffer(0, m_VertexBuffer);
-		bgfx::setIndexBuffer(m_IndexBuffer);
-	}
+	void Bind();
 
 private:
 	uint32_t m_vertexCount = 0;
@@ -56,4 +53,5 @@ class MeshUtil : public Static
 {
 public:
 	static Mesh* FromTextFile(const String & str);
+	static Mesh* FromGLTF(const char* filePath);
 };

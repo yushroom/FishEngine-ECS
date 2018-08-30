@@ -26,7 +26,7 @@ void RenderSystem::OnAdded()
 	init.resolution.height = 480;
 	init.resolution.reset = BGFX_RESET_VSYNC;
 	bgfx::init(init);
-	bgfx::setDebug(BGFX_DEBUG_STATS);
+	//bgfx::setDebug(BGFX_DEBUG_STATS);
 	bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
 
 	auto state = m_Scene->AddSingletonComponent<SingletonRenderState>();
@@ -57,27 +57,41 @@ void RenderSystem::Update()
 	Camera* camera = m_Scene->FindComponent<Camera>();
 	if (camera == nullptr)
 		return;
+	float cameraPos[4];
+	float lookAt[3];
+	{
+		auto go = m_Scene->GetGameObjectByID(camera->entityID);
+		auto& p = go->GetTransform()->position;
+		cameraPos[0] = p.x;
+		cameraPos[1] = p.y;
+		cameraPos[2] = p.z;
+		cameraPos[3] = 1.0f;
+
+		lookAt[0] = camera->lookAt.x;
+		lookAt[1] = camera->lookAt.y;
+		lookAt[2] = camera->lookAt.z;
+	}
 
 	auto renderState = m_Scene->GetSingletonComponent<SingletonRenderState>();
 
-	bgfx::setUniform(renderState->m_UniformCameraPos, camera->eye);
+	bgfx::setUniform(renderState->m_UniformCameraPos, cameraPos);
 
 	Light* light = m_Scene->FindComponent<Light>();
 	if (light != nullptr)
 	{
-		Vector3 lightPos = { 0, 0, -1 };
-		Vector3 d = Vector3::Normalize(lightPos);
-		//Vector3 d = Vector3::Normalize(light->direction);
+		//Vector3 lightPos = { 0, 0, -1 };
+		//Vector3 d = Vector3::Normalize(lightPos);
+		Vector3 d = Vector3::Normalize(light->direction);
 		bgfx::setUniform(renderState->m_UniformLightDir, &d);
 	}
 
 	float BaseColor[4] = { 1, 1, 1, 1 };
-	float PBRParams[] = { 0, 0.5, 0.5, 0 };
+	//float PBRParams[] = { 0, 0.5, 0.5, 0 };
 	bgfx::setUniform(renderState->m_UniformBaseColor, BaseColor);
 	//bgfx::setUniform(renderState->m_UniformPBRParams, PBRParams);
 	
 	float view[16];
-	bx::mtxLookAt(view, camera->eye, camera->at);
+	bx::mtxLookAt(view, cameraPos, lookAt);
 	
 	float width = (float)GameApp::GetMainApp()->GetWidth();
 	float height = (float)GameApp::GetMainApp()->GetHeight();

@@ -14,6 +14,7 @@
 #include "ECS.hpp"
 #include "TransformSystem.hpp"
 #include "RenderSystem.hpp"
+#include "InputSystem.hpp"
 
 static void* glfwNativeWindowHandle(GLFWwindow* _window)
 {
@@ -45,9 +46,48 @@ static void glfwSetWindow(GLFWwindow* _window)
 
 static GameApp* mainApp = nullptr;
 
-static void glfwWindowSizeCallback(GLFWwindow* window, int width, int height)
+static void glfw_window_size_callback(GLFWwindow* window, int width, int height)
 {
 	mainApp->Resize(width, height);
+}
+
+static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	auto s = mainApp->GetScene()->GetSystem<InputSystem>();
+	KeyEvent e;
+	if (action == GLFW_PRESS)
+		e.action = KeyAction::Pressed;
+	else if (action == GLFW_RELEASE)
+		e.action = KeyAction::Released;
+	if (key == GLFW_KEY_F1)
+		e.key = KeyCode::F1;
+	if (key == GLFW_KEY_ESCAPE)
+		e.key = KeyCode::ECS;
+	s->PostKeyEvent(e);
+}
+
+static void glfw_mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+	auto s = mainApp->GetScene()->GetSystem<InputSystem>();
+	KeyEvent e;
+	if (button == GLFW_MOUSE_BUTTON_LEFT)
+		e.key = KeyCode::MouseLeftButton;
+	else if (button == GLFW_MOUSE_BUTTON_RIGHT)
+		e.key = KeyCode::MouseRightButton;
+	else if (button == GLFW_MOUSE_BUTTON_MIDDLE)
+		e.key = KeyCode::MouseMiddleButton;
+
+	if (action == GLFW_PRESS)
+		e.action = KeyAction::Pressed;
+	else if (action == GLFW_RELEASE)
+		e.action = KeyAction::Released;
+
+	s->PostKeyEvent(e);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+
 }
 
 
@@ -80,7 +120,9 @@ void GameApp::Init()
 	//bgfx::glfwSetWindow(window);
 	glfwSetWindow(m_Window);
 
-	glfwSetWindowSizeCallback(m_Window, glfwWindowSizeCallback);
+	glfwSetWindowSizeCallback(m_Window, glfw_window_size_callback);
+	glfwSetKeyCallback(m_Window, glfw_key_callback);
+	glfwSetMouseButtonCallback(m_Window, glfw_mouse_button_callback);
 
 	glfwSwapInterval(1);
 	
@@ -88,6 +130,8 @@ void GameApp::Init()
 	m_Scene = new Scene();
 	RenderSystem* rs = new RenderSystem();
 	m_Scene->AddSystem(rs);
+
+	m_Scene->AddSystem(new InputSystem());
 
 	Mesh::StaticInit();
 
@@ -106,16 +150,33 @@ void GameApp::Run()
 	{
 		//glfwWaitEvents();
 
+		auto si = m_Scene->GetSingletonComponent<SingletonInput>();
+		if (si->IsButtonPressed(KeyCode::ECS))
+			glfwSetWindowShouldClose(m_Window, 1);
+
+		if (si->IsButtonPressed(KeyCode::F1))
+		{
+			bgfx::setDebug(BGFX_DEBUG_STATS);
+		}
+		else if (si->IsButtonReleased(KeyCode::F1))
+		{
+			bgfx::setDebug(BGFX_DEBUG_TEXT);
+		}
+
+		double cursor_x = 0, cursor_y = 0;
+		glfwGetCursorPos(m_Window, &cursor_x, &cursor_y);
+		m_Scene->GetSystem<InputSystem>()->SetMousePosition(cursor_x, cursor_y);
+
 		// Set view 0 default viewport.
 		bgfx::setViewRect(0, 0, 0, uint16_t(m_WindowWidth), uint16_t(m_WindowHeight) );
 		
 		Update();
 		m_Scene->Update();
+		m_Scene->PostUpdate();
 
 		// Advance to next frame. Rendering thread will be kicked to
 		// process submitted rendering primitives.
 		bgfx::frame();
-
 
 		/* Swap front and back buffers */
 		//glfwSwapBuffers(m_Window);

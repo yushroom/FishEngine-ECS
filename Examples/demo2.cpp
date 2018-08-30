@@ -50,6 +50,8 @@ public:
 		{
 			EntityID goID = m_Scene->CreateGameObject();
 			m_Scene->GameObjectAddComponent<Camera>(goID);
+			auto go = m_Scene->GetGameObjectByID(goID);
+			go->GetTransform()->position.Set(0, 0, -10);
 		}
 		{
 			EntityID goID = m_Scene->CreateGameObject();

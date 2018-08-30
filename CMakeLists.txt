@@ -34,6 +34,7 @@ include_directories("D:/program/bimg/include")
 include_directories("D:/program/bx/include")
 include_directories("D:/program/bx/include/compat/msvc")
 include_directories("D:/program/bgfx/3rdparty")
+include_directories("./ThirdParty/tinygltf")
 
 target_link_libraries(FishEngine D:/program/bgfx/.build/win64_vs2017/bin/bgfxDebug.lib)
 target_link_libraries(FishEngine D:/program/bgfx/.build/win64_vs2017/bin/bxDebug.lib)
@@ -54,6 +55,10 @@ target_link_libraries(demo1 FishEngine)
 add_executable(demo2 "./Examples/demo2.cpp")
 target_compile_definitions(demo2 PRIVATE _ITERATOR_DEBUG_LEVEL=0)
 target_link_libraries(demo2 FishEngine)
+
+add_executable(modelViewer "./Examples/model_viewer.cpp")
+target_compile_definitions(modelViewer PRIVATE _ITERATOR_DEBUG_LEVEL=0)
+target_link_libraries(modelViewer FishEngine)
 
 # # glew
 # if (MSVC)

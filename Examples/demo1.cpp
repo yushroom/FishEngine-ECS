@@ -8,14 +8,6 @@
 
 #include <GLFW/glfw3.h>
 
-class PBRData : public Component
-{
-public:
-	float Metallic = 0;
-	float Roughness = 0;
-	float Specular = 0;
-	float pad;
-};
 
 class Demo1 : public GameApp
 {
@@ -27,6 +19,8 @@ public:
 		{
 			EntityID goID = m_Scene->CreateGameObject();
 			m_Scene->GameObjectAddComponent<Camera>(goID);
+			auto go = m_Scene->GetGameObjectByID(goID);
+			go->GetTransform()->position.Set(0, 0, -15);
 		}
 		{
 			EntityID goID = m_Scene->CreateGameObject();

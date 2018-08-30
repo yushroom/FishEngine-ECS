@@ -100,6 +100,7 @@ public:
 	virtual void OnAdded() {}
 	virtual void Start() {}
 	virtual void Update() = 0;
+	virtual void PostUpdate() {};
 
 protected:
 	Scene * m_Scene = nullptr;
@@ -272,6 +273,14 @@ public:
 		for (ISystem* s : m_Systems)
 		{
 			s->Update();
+		}
+	}
+
+	void PostUpdate()
+	{
+		for (ISystem* s : m_Systems)
+		{
+			s->PostUpdate();
 		}
 	}
 	
