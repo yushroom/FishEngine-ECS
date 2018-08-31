@@ -86,10 +86,6 @@ void RenderSystem::Draw()
 	bgfx::setUniform(renderState->m_UniformBaseColor, BaseColor);
 	//bgfx::setUniform(renderState->m_UniformPBRParams, PBRParams);
 	
-//	float lookAt[4] = {0, 0, 0, 0};
-//	float view[16];
-//	bx::mtxLookAt(view, cameraPos, lookAt);
-	
 	float width = (float)GameApp::GetMainApp()->GetWidth();
 	float height = (float)GameApp::GetMainApp()->GetHeight();
 	float ratio = width / height;
@@ -100,7 +96,7 @@ void RenderSystem::Draw()
 	// draw skybox first
 	auto old_state = renderState->m_State;
 	renderState->m_State = BGFX_STATE_CULL_CW | BGFX_STATE_WRITE_MASK | BGFX_STATE_DEPTH_TEST_LESS;
-	m_Scene->ForEach<Skybox>([cameraPos, renderState](ECS::GameObject* go, Skybox* skybox)
+	m_Scene->ForEach<Skybox>([cameraPos](ECS::GameObject* go, Skybox* skybox)
 	{
 		auto mat = Matrix4x4::TRS(Vector3(cameraPos[0], cameraPos[1], cameraPos[2]), Quaternion::identity, Vector3::one*100);
 		Graphics::DrawMesh(Mesh::Sphere, mat, skybox->m_skyboxMaterial);
@@ -111,7 +107,6 @@ void RenderSystem::Draw()
 	m_Scene->ForEach<Renderable>([renderState](ECS::GameObject* go, Renderable* rend)
 	{
 		auto& mtx = go->GetTransform()->GetLocalToWorldMatrix();
-		bgfx::setUniform(renderState->m_UniformPBRParams, rend->material->pbrparams);
 		Graphics::DrawMesh(rend->mesh, mtx, rend->material);
 	});
 }

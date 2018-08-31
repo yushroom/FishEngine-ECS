@@ -35,24 +35,14 @@ static bgfx::ShaderHandle loadShader(bx::FileReaderI* _reader, const char* _name
 }
 
 
-bgfx::ProgramHandle loadProgram(bx::FileReaderI* _reader, const char* _vsName, const char* _fsName)
+bgfx::ProgramHandle loadProgram(bx::FileReaderI* _reader, const char* _vsName, const char* _fsName, bgfx::ShaderHandle & vsh, bgfx::ShaderHandle & fsh)
 {
-	bgfx::ShaderHandle vsh = loadShader(_reader, _vsName);
-	bgfx::ShaderHandle fsh = BGFX_INVALID_HANDLE;
+	vsh = loadShader(_reader, _vsName);
+	fsh = BGFX_INVALID_HANDLE;
 	if (NULL != _fsName)
 	{
 		fsh = loadShader(_reader, _fsName);
 	}
-
-	bgfx::UniformHandle uniforms[16];
-	int count = bgfx::getShaderUniforms(vsh, uniforms, 16);
-	for (int i = 0; i < count; ++i)
-	{
-		bgfx::UniformInfo info;
-		bgfx::getUniformInfo(uniforms[i], info);
-		printf("%d: %s\n", i, info.name);
-	}
-
 	
 	return bgfx::createProgram(vsh, fsh, true /* destroy shaders when program is destroyed */);
 }
@@ -63,7 +53,16 @@ static bx::FileReader s_fileReader;
 Shader* ShaderUtil::Compile(const char* vs_path, const char* fs_path)
 {
 	Shader* s = new Shader();
-	s->m_Program = loadProgram(&s_fileReader, vs_path, fs_path);
+	s->m_Program = loadProgram(&s_fileReader, vs_path, fs_path, s->m_VertexShdaer, s->m_FragmentShader);
+	
+	bgfx::UniformHandle uniforms[16];
+	int count = bgfx::getShaderUniforms(s->m_FragmentShader, uniforms, 16);
+	for (int i = 0; i < count; ++i)
+	{
+		bgfx::UniformInfo info;
+		bgfx::getUniformInfo(uniforms[i], info);
+		printf("%d: %s\n", i, info.name);
+	}
 	return s;
 }
 

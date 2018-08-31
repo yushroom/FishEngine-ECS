@@ -205,6 +205,7 @@ else()
 target_link_libraries(FishEngine /Users/yushroom/program/github/bgfx/.build/osx64_clang/bin/libbgfxDebug.a)
 target_link_libraries(FishEngine /Users/yushroom/program/github/bgfx/.build/osx64_clang/bin/libbxDebug.a)
 target_link_libraries(FishEngine /Users/yushroom/program/github/bgfx/.build/osx64_clang/bin/libbimgDebug.a)
+target_link_libraries(FishEngine /Users/yushroom/program/github/bgfx/.build/osx64_clang/bin/libbimg_decodeDebug.a)
 set_target_properties(FishEngine PROPERTIES LINK_FLAGS "-framework OpenGL -framework Cocoa -framework metal -framework QuartzCore")
 endif()
 

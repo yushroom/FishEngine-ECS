@@ -22,6 +22,8 @@ void Graphics::DrawMesh(Mesh* mesh, const Matrix4x4& matrix, Material* material)
 	// Set render states.
 	bgfx::setState(state->GetState());
 	
+	material->BindUniforms();
+	
 	// Submit primitive for rendering to view 0.
-	bgfx::submit(0, material->m_Shader->GetProgram());
+	bgfx::submit(0, material->GetShader()->GetProgram());
 }

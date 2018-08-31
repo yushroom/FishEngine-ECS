@@ -73,7 +73,11 @@ static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int act
 	
 	auto s = mainApp->GetScene()->GetSystem<InputSystem>();
 
-	if (key == GLFW_KEY_F1)
+	if (key >= GLFW_KEY_0 && key <= GLFW_KEY_9)
+		e.key = KeyCode(key);
+	else if(key >= GLFW_KEY_A && key <= GLFW_KEY_Z)
+		e.key = KeyCode(key);
+	else if (key == GLFW_KEY_F1)
 		e.key = KeyCode::F1;
 	else if (key == GLFW_KEY_ESCAPE)
 		e.key = KeyCode::ECS;

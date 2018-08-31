@@ -12,9 +12,7 @@ void FreeCameraSystem::Update()
 void FreeCameraSystem::UpdateCameraTransform(SingletonInput* input, ECS::GameObject* cameraGO, FreeCamera* data)
 {
 	ECS::Transform* t = cameraGO->GetTransform();
-
-	auto& camraPos = t->position;
-
+	
 	bool alt = input->IsButtonHeld(KeyCode::LeftAlt) || input->IsButtonHeld(KeyCode::RightAlt);
 	bool ctrl = input->IsButtonHeld(KeyCode::LeftControl) || input->IsButtonHeld(KeyCode::RightControl);
 	bool cmd = input->IsButtonHeld(KeyCode::LeftCommand) || input->IsButtonHeld(KeyCode::RightCommand);
@@ -76,6 +74,12 @@ void FreeCameraSystem::UpdateCameraTransform(SingletonInput* input, ECS::GameObj
 			deltaZ = fabsf(x) > fabsf(y) ? x : -y;
 		}
 		t->Translate(deltaZ*forward);
+	}
+	
+	if (input->IsButtonPressed(KeyCode::R))
+	{
+		t->position = {0, 0, -15};
+		t->rotation = Quaternion::identity;
 	}
 }
 

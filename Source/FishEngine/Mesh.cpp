@@ -34,8 +34,8 @@ void Mesh::StaticInit()
 {
 	PUNTVertex::init();
 	
-	Cube = MeshUtil::FromTextFile(ReadFileAsString(R"(D:\program\FishEngine-Experiment\Assets\Models\Cube.txt)"));
-	Sphere = MeshUtil::FromTextFile(ReadFileAsString(R"(D:\program\FishEngine-Experiment\Assets\Models\Sphere.txt)"));
+	Cube = MeshUtil::FromTextFile(ReadFileAsString("/Users/yushroom/program/FishEngine-Experiment/Assets/Models/Cube.txt"));
+	Sphere = MeshUtil::FromTextFile(ReadFileAsString("/Users/yushroom/program/FishEngine-Experiment/Assets/Models/Sphere.txt"));
 
 	//const char* test_path = R"(C:\Users\yuyunkang\AppData\Local\Temp\DefaultCompany\Unity\Unity2Skfb\Unity2Skfb.gltf)";
 	//const char* test_path = R"(D:\program\FishEngine-ECS\Assets\T-Rex.glb)";

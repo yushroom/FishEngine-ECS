@@ -12,7 +12,9 @@
 union Params
 {
 	struct { float m_glossiness, m_reflectivity, m_exposure, m_bgType; };
-	float floats[4];
+	Vector4 floats;
+	
+	Params() : floats() {}
 };
 
 
@@ -24,27 +26,23 @@ public:
 
 		//m_Shader = ShaderUtil::Compile("/Users/yushroom/program/FishEngine-ECS/shader/vs.bin", "/Users/yushroom/program/FishEngine-ECS/shader/fs.bin");
 		{
-			auto vs = "D:/program/FishEngine-ECS/shader/PBR_vs.bin";
-			auto fs = "D:/program/FishEngine-ECS/shader/PBR_fs.bin";
+			auto vs = "/Users/yushroom/program/FishEngine-ECS/Shaders/runtime//PBR_vs.bin";
+			auto fs = "/Users/yushroom/program/FishEngine-ECS/Shaders/runtime/PBR_fs.bin";
 			m_Shader = ShaderUtil::Compile(vs, fs);
 		}
 
 		{
-			auto vs = "D:/program/FishEngine-ECS/shader/Skybox_vs.bin";
-			auto fs = "D:/program/FishEngine-ECS/shader/Skybox_fs.bin";
+			auto vs = "/Users/yushroom/program/FishEngine-ECS/Shaders/runtime/Skybox_vs.bin";
+			auto fs = "/Users/yushroom/program/FishEngine-ECS/Shaders/runtime/Skybox_fs.bin";
 			m_SkyboxShader = ShaderUtil::Compile(vs, fs);
 		}
 
 		{
-			const char* path = R"(D:\program\bgfx\examples\runtime\textures\bolonga_lod.dds)";
-			m_tex = TextureUtils::LoadTexture(path, BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP | BGFX_TEXTURE_W_CLAMP);
-			const char* filePath = R"(D:\program\bgfx\examples\runtime\textures\bolonga_irr.dds)";
-			m_texIrr = TextureUtils::LoadTexture(filePath, BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP | BGFX_TEXTURE_W_CLAMP);
+			const char* path = "/Users/yushroom/program/github/bgfx/examples/runtime/textures/bolonga_lod.dds";
+			m_tex = TextureUtils::LoadTexture(path, BGFX_SAMPLER_U_CLAMP|BGFX_SAMPLER_V_CLAMP|BGFX_SAMPLER_W_CLAMP);
+			const char* filePath = "/Users/yushroom/program/github/bgfx/examples/runtime/textures/bolonga_irr.dds";
+			m_texIrr = TextureUtils::LoadTexture(filePath, BGFX_SAMPLER_U_CLAMP|BGFX_SAMPLER_V_CLAMP|BGFX_SAMPLER_W_CLAMP);
 		}
-
-		s_texCube = bgfx::createUniform("s_texCube", bgfx::UniformType::Int1);
-		s_texCubeIrr = bgfx::createUniform("s_texCubeIrr", bgfx::UniformType::Int1);
-		u_params = bgfx::createUniform("u_params", bgfx::UniformType::Vec4);
 
 		m_params.m_exposure = 0.0f;
 		m_params.m_bgType = 1.0f;
@@ -57,7 +55,10 @@ public:
 			m_Scene->GameObjectAddComponent<FreeCamera>(goID);
 			Skybox* skybox = m_Scene->GameObjectAddComponent<Skybox>(goID);
 			Material* skyboxMat = new Material();
-			skyboxMat->m_Shader = m_SkyboxShader;
+			skyboxMat->SetVector("u_params", m_params.floats);
+			skyboxMat->SetTexture("s_texCube", m_tex);
+			skyboxMat->SetTexture("s_texCubeIrr", m_texIrr);
+			skyboxMat->SetShader(m_SkyboxShader);
 			skybox->m_skyboxMaterial = skyboxMat;
 		}
 		{
@@ -79,9 +80,10 @@ public:
 				rend->mesh = Mesh::Sphere;
 
 				Material* mat = new Material();
-				mat->m_Shader = m_Shader;
-				mat->pbrparams[0] = x * 0.1f;
-				mat->pbrparams[1] = y * 0.1f;
+				mat->SetShader(m_Shader);
+				Vector4 pbrparams(x*0.1f, y*0.1f, 0, 0);
+				mat->SetVector("BaseColor", Vector4::one);
+				mat->SetVector("PBRParams", pbrparams);
 				rend->material = mat;
 			}
 		}
@@ -91,19 +93,13 @@ public:
 	
 	void Update() override
 	{
-		bgfx::setUniform(u_params, m_params.floats);
-		bgfx::setTexture(0, s_texCube, m_tex);
-		bgfx::setTexture(1, s_texCubeIrr, m_texIrr);
 	}
 
 private:
 	Shader* m_Shader = nullptr;
 	Shader* m_SkyboxShader = nullptr;
-	bgfx::UniformHandle s_texCube;
-	bgfx::UniformHandle s_texCubeIrr;
 	bgfx::TextureHandle m_tex;
 	bgfx::TextureHandle m_texIrr;
-	bgfx::UniformHandle u_params;
 	Params m_params;
 };
 

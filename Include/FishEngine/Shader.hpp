@@ -13,8 +13,10 @@ public:
 	
 	bgfx::ProgramHandle& GetProgram() { return m_Program; }
 	
-protected:
+public:
 	bgfx::ProgramHandle m_Program;
+	bgfx::ShaderHandle m_VertexShdaer;
+	bgfx::ShaderHandle m_FragmentShader;
 };
 
 

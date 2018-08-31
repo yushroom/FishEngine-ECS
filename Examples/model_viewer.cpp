@@ -14,7 +14,7 @@ class ModelViewer : public GameApp
 public:
 	void Start() override
 	{
-		m_Shader = ShaderUtil::Compile("D:/program/FishEngine-ECS/shader/vs.bin", "D:/program/FishEngine-ECS/shader/fs.bin");
+		m_Shader = ShaderUtil::Compile("/Users/yushroom/program/FishEngine-ECS/shader/vs.bin", "/Users/yushroom/program/FishEngine-ECS/shader/fs.bin");
 		
 		const char* test_path = R"(D:\program\FishEngine-ECS\Assets\T-Rex.glb)";
 		Mesh* trex = MeshUtil::FromGLTF(test_path);
