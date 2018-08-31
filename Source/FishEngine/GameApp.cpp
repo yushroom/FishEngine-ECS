@@ -19,6 +19,7 @@
 #include "TransformSystem.hpp"
 #include "RenderSystem.hpp"
 #include "InputSystem.hpp"
+#include "Screen.hpp"
 
 static void* glfwNativeWindowHandle(GLFWwindow* _window)
 {
@@ -57,13 +58,21 @@ static void glfw_window_size_callback(GLFWwindow* window, int width, int height)
 
 static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	auto s = mainApp->GetScene()->GetSystem<InputSystem>();
+	if (key == GLFW_KEY_UNKNOWN)
+		return;
+
 	KeyEvent e;
 	if (action == GLFW_PRESS)
 		e.action = KeyAction::Pressed;
 	else if (action == GLFW_RELEASE)
 		e.action = KeyAction::Released;
+	else if (action == GLFW_REPEAT)
+		e.action = KeyAction::Held;
+	else
+		return;
 	
+	auto s = mainApp->GetScene()->GetSystem<InputSystem>();
+
 	if (key == GLFW_KEY_F1)
 		e.key = KeyCode::F1;
 	else if (key == GLFW_KEY_ESCAPE)
@@ -82,7 +91,13 @@ static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int act
 		e.key = KeyCode::RightCommand;
 	s->PostKeyEvent(e);
 	
-//	printf("mods: %d\n", mods);
+	//if (key == GLFW_KEY_LEFT_ALT)
+	//{
+	//	if (action == GLFW_PRESS)
+	//		printf("left alt pressed\n");
+	//	else if (action == GLFW_RELEASE)
+	//		printf("left alt released\n");
+	//}
 }
 
 static void glfw_mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -186,6 +201,8 @@ void GameApp::Run()
 
 		double cursor_x = 0, cursor_y = 0;
 		glfwGetCursorPos(m_Window, &cursor_x, &cursor_y);
+		cursor_x /= m_WindowWidth;
+		cursor_y /= m_WindowHeight;
 		m_Scene->GetSystem<InputSystem>()->SetMousePosition(cursor_x, cursor_y);
 
 		// Set view 0 default viewport.
@@ -215,6 +232,10 @@ void GameApp::Resize(int width, int height)
 {
 	m_WindowWidth = width;
 	m_WindowHeight = height;
+
+	Screen::width = width;
+	Screen::height = height;
+
 	auto rs = m_Scene->GetSystem<RenderSystem>();
 	rs->Resize(width, height);
 }

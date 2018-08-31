@@ -195,7 +195,7 @@ endif()
 
 target_link_libraries(FishEngine glfw)
 
-if (msvc)
+if (MSVC)
 target_compile_definitions(FishEngine PRIVATE _ITERATOR_DEBUG_LEVEL=0)
 target_link_libraries(FishEngine debug D:/program/bgfx/.build/win64_vs2017/bin/bgfxDebug.lib optimized D:/program/bgfx/.build/win64_vs2017/bin/bgfxRelease.lib)
 target_link_libraries(FishEngine debug D:/program/bgfx/.build/win64_vs2017/bin/bxDebug.lib optimized D:/program/bgfx/.build/win64_vs2017/bin/bxRelease.lib)
@@ -223,7 +223,7 @@ add_executable(modelViewer "./Examples/model_viewer.cpp")
 target_compile_definitions(modelViewer PRIVATE _ITERATOR_DEBUG_LEVEL=0)
 target_link_libraries(modelViewer FishEngine)
 
-if (msvc)
+if (MSVC)
     target_compile_definitions(demo1 PRIVATE _ITERATOR_DEBUG_LEVEL=0)
     target_compile_definitions(demo2 PRIVATE _ITERATOR_DEBUG_LEVEL=0)
 else()
