@@ -165,13 +165,17 @@ void GameApp::Init()
 	/*RenderSystem::GetInstance().Init2(m_WindowWidth, m_WindowHeight);*/
 	m_Scene = new ECS::Scene();
 	RenderSystem* rs = new RenderSystem();
+	rs->m_Priority = 1000;
 	m_Scene->AddSystem(rs);
 
 	m_Scene->AddSystem(new InputSystem());
 
 	Mesh::StaticInit();
 
-	m_Scene->AddSystem(new TransformSystem());
+	
+	auto s = new TransformSystem();
+	s->m_Priority = 999;
+	m_Scene->AddSystem(s);
 
 	Resize(m_WindowWidth, m_WindowHeight);
 }
@@ -212,6 +216,9 @@ void GameApp::Run()
 		
 		Update();
 		m_Scene->Update();
+
+		m_Scene->GetSystem<RenderSystem>()->Draw();
+
 		m_Scene->PostUpdate();
 
 		// Advance to next frame. Rendering thread will be kicked to

@@ -5,6 +5,7 @@
 #include "FishEngine/GameApp.hpp"
 #include "FishEngine/Graphics.hpp"
 #include "FishEngine/Material.hpp"
+#include <FishEngine/Mesh.hpp>
 
 #include <bx/math.h>
 
@@ -32,9 +33,7 @@ void RenderSystem::OnAdded()
 	auto state = m_Scene->AddSingletonComponent<SingletonRenderState>();
 
 	state->m_State = 0
-		| BGFX_STATE_WRITE_R
-		| BGFX_STATE_WRITE_G
-		| BGFX_STATE_WRITE_B
+		| BGFX_STATE_WRITE_RGB
 		| BGFX_STATE_WRITE_A
 		| BGFX_STATE_WRITE_Z
 		| BGFX_STATE_DEPTH_TEST_LESS
@@ -48,7 +47,7 @@ void RenderSystem::Start()
 	
 }
 
-void RenderSystem::Update()
+void RenderSystem::Draw()
 {
 	// This dummy draw call is here to make sure that view 0 is cleared
 	// if no other draw calls are submitted to view 0.
@@ -91,7 +90,6 @@ void RenderSystem::Update()
 //	float view[16];
 //	bx::mtxLookAt(view, cameraPos, lookAt);
 	
-	
 	float width = (float)GameApp::GetMainApp()->GetWidth();
 	float height = (float)GameApp::GetMainApp()->GetHeight();
 	float ratio = width / height;
@@ -99,7 +97,17 @@ void RenderSystem::Update()
 	bx::mtxProj(proj, 60.0f, ratio, 0.1f, 100.0f, bgfx::getCaps()->homogeneousDepth);
 	bgfx::setViewTransform(0, view.data(), proj);
 	
-	
+	// draw skybox first
+	auto old_state = renderState->m_State;
+	renderState->m_State = BGFX_STATE_CULL_CW | BGFX_STATE_WRITE_MASK | BGFX_STATE_DEPTH_TEST_LESS;
+	m_Scene->ForEach<Skybox>([cameraPos, renderState](ECS::GameObject* go, Skybox* skybox)
+	{
+		auto mat = Matrix4x4::TRS(Vector3(cameraPos[0], cameraPos[1], cameraPos[2]), Quaternion::identity, Vector3::one*100);
+		Graphics::DrawMesh(Mesh::Sphere, mat, skybox->m_skyboxMaterial);
+	});
+	renderState->m_State = old_state;
+
+
 	m_Scene->ForEach<Renderable>([renderState](ECS::GameObject* go, Renderable* rend)
 	{
 		auto& mtx = go->GetTransform()->GetLocalToWorldMatrix();

@@ -1,11 +1,12 @@
 #pragma once
 
-#include "../ClassDef.hpp"
+#include "ClassDef.hpp"
+#include <bgfx/bgfx.h>
 
-#include <bgfx/bgfx.hpp>
+
 
 class TextureUtils : public Static
 {
 public:
-	static 
-}
+	static bgfx::TextureHandle LoadTexture(const char* path, uint32_t _flags);
+};

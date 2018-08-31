@@ -12,3 +12,11 @@ public:
 	Material* material = nullptr;
 	Mesh* mesh = nullptr;
 };
+
+
+class Skybox : public ECS::Component
+{
+	COMPONENT(Skybox);
+public:
+	Material * m_skyboxMaterial = nullptr;
+};

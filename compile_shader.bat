@@ -1,2 +1,4 @@
-..\bgfx\.build\win64_vs2017\bin\shadercDebug.exe -i ..\bgfx\src -i D:\program\FishEngine\Engine\Shaders\include  --verbose -f .\shader\PBR.sc -o .\shader\vs.bin --type vertex --define VERTEX --platform windows --profile 430
-..\bgfx\.build\win64_vs2017\bin\shadercDebug.exe -i ..\bgfx\src -i D:\program\FishEngine\Engine\Shaders\include --verbose -f .\shader\PBR.sc -o .\shader\fs.bin --type fragment --define FRAGMENT --platform windows --profile 430
+..\bgfx\.build\win64_vs2017\bin\shadercDebug.exe -i ..\bgfx\src -i D:\program\FishEngine\Engine\Shaders\include  --verbose -f .\shader\PBR.sc -o .\shader\PBR_vs.bin --type vertex --define VERTEX --platform windows --profile 430
+..\bgfx\.build\win64_vs2017\bin\shadercDebug.exe -i ..\bgfx\src -i D:\program\FishEngine\Engine\Shaders\include --verbose -f .\shader\PBR.sc -o .\shader\PBR_fs.bin --type fragment --define FRAGMENT --platform windows --profile 430
+..\bgfx\.build\win64_vs2017\bin\shadercDebug.exe -i ..\bgfx\src -i D:\program\FishEngine\Engine\Shaders\include  --verbose -f .\shader\Skybox.sc -o .\shader\Skybox_vs.bin --type vertex --define VERTEX --platform linux -p 120
+..\bgfx\.build\win64_vs2017\bin\shadercDebug.exe -i ..\bgfx\src -i D:\program\FishEngine\Engine\Shaders\include --verbose -f .\shader\Skybox.sc -o .\shader\Skybox_fs.bin --type fragment --define FRAGMENT --platform linux -p 120

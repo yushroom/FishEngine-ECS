@@ -27,6 +27,8 @@ class RenderSystem : public ECS::ISystem
 public:
 	void OnAdded() override;
 	void Start() override;
-	void Update() override;
+	void Update() override {}
 	void Resize(int width, int height);
+
+	void Draw();
 };

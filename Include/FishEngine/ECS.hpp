@@ -135,6 +135,8 @@ public:
 	virtual void Update() = 0;
 	virtual void PostUpdate() {};
 
+	int m_Priority = 0;
+
 protected:
 	Scene * m_Scene = nullptr;
 };
@@ -198,20 +200,26 @@ public:
 	template<class T>
 	void ForEach(std::function<void(GameObject*, T*)> func)
 	{
-		for (auto& pair : m_GameObjects)
+		for (T* t : T::components)
 		{
-			T* t = nullptr;
-			GameObject* go = pair.second;
-			for (Component* comp : go->components)
-			{
-				if (t == nullptr)
-					t = comp->As<T>();
-			}
-			if (t != nullptr)
-			{
-				func(go, t);
-			}
+			GameObject* go = GetGameObjectByID(t->entityID);
+			func(go, t);
 		}
+
+		//for (auto& pair : m_GameObjects)
+		//{
+		//	T* t = nullptr;
+		//	GameObject* go = pair.second;
+		//	for (Component* comp : go->components)
+		//	{
+		//		if (t == nullptr)
+		//			t = comp->As<T>();
+		//	}
+		//	if (t != nullptr)
+		//	{
+		//		func(go, t);
+		//	}
+		//}
 	}
 	
 	
@@ -295,6 +303,10 @@ public:
 
 	void Start()
 	{
+		std::sort(m_Systems.begin(), m_Systems.end(), [](ISystem* a, ISystem* b) {
+			return a->m_Priority < b->m_Priority;
+		});
+
 		for (ISystem* s : m_Systems)
 		{
 			s->Start();
