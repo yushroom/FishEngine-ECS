@@ -1,7 +1,7 @@
-#include <FishEngine/FreeCamera.hpp>
-#include <FishEngine/InputSystem.hpp>
+#include <FishEngine/Systems/FreeCameraSystem.hpp>
+#include <FishEngine/Components/SingletonInput.hpp>
 
-void FreeCameraController::Update()
+void FreeCameraSystem::Update()
 {
 	SingletonInput* input = m_Scene->GetSingletonComponent<SingletonInput>();
 	m_Scene->ForEach<FreeCamera>([this, input](ECS::GameObject* go, FreeCamera* data) {
@@ -9,7 +9,7 @@ void FreeCameraController::Update()
 	});
 }
 
-void FreeCameraController::UpdateCameraTransform(SingletonInput* input, ECS::GameObject* cameraGO, FreeCamera* data)
+void FreeCameraSystem::UpdateCameraTransform(SingletonInput* input, ECS::GameObject* cameraGO, FreeCamera* data)
 {
 	ECS::Transform* t = cameraGO->GetTransform();
 

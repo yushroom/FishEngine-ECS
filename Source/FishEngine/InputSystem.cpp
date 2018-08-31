@@ -1,4 +1,4 @@
-#include "InputSystem.hpp"
+#include <FishEngine/Systems/InputSystem.hpp>
 
 bool SingletonInput::IsButtonPressed(KeyCode code) const
 {

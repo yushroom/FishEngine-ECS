@@ -1,11 +1,11 @@
-#include "Graphics.hpp"
+#include "FishEngine/Graphics.hpp"
 
-#include "RenderSystem.hpp"
-#include "Engine.hpp"
-#include "Mesh.hpp"
-#include "Material.hpp"
+#include <FishEngine/Systems/RenderSystem.hpp>
+#include "FishEngine/Engine.hpp"
+#include "FishEngine/Mesh.hpp"
+#include "FishEngine/Material.hpp"
 
-#include "GameApp.hpp"
+#include "FishEngine/GameApp.hpp"
 
 void Graphics::DrawMesh(Mesh* mesh, const Matrix4x4& matrix, Material* material)
 {

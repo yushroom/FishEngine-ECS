@@ -1,4 +1,4 @@
-#include "Mesh.hpp"
+#include <FishEngine/Mesh.hpp>
 
 #include <sstream>
 #include <fstream>

@@ -1,5 +1,5 @@
 #pragma once
-#include "ECS.hpp"
+#include "FishEngine/ECS.hpp"
 #include <bgfx/bgfx.h>
 
 class SingletonRenderState : public ECS::SingletonComponent

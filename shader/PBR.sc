@@ -20,6 +20,8 @@ void main()
 
 $input v_position, v_normal, v_uv, v_tangent
 
+// #define _AMBIENT_IBL 1
+
 uniform vec4 lightDir;
 uniform vec4 BaseColor;
 uniform vec4 PBRParams;
@@ -28,6 +30,7 @@ uniform vec4 CameraPos;
 const vec3 LightColor = vec3(1, 1, 1);
 
 #include <ShadingModels.inc>
+#include <Ambient.inc>
 
 void main()
 {
@@ -47,6 +50,29 @@ void main()
 	outColor.rgb = PI * LightColor.rgb * NoL * StandardShading(DiffuseColor, SpecularColor, vec3(Roughness), vec3(1), L, V, N);
 	//outColor.rgb = vec3(NoL);
 	//outColor.rgb = N * 0.5 + 0.5;
+
+#ifdef _AMBIENT_IBL
+	float3 R0 = 2 * dot( V, N ) * N - V;
+	float a = Square( Roughness );
+	float3 R = lerp( N, R0, (1 - a) * ( sqrt(1 - a) + a ) );
+
+	float3 NonSpecularContribution = vec3(0);
+	float3 SpecularContribution = vec3(0);
+
+	float AbsoluteDiffuseMip = AmbientCubemapMipAdjust.z;
+	//float3 DiffuseLookup =  TextureCubeSampleLevel(AmbientCubemap, AmbientCubemapSampler, N, AbsoluteDiffuseMip).rgb;
+	float3 DiffuseLookup = textureLod(AmbientCubemap, N, AbsoluteDiffuseMip).rgb;
+	NonSpecularContribution += DiffuseColor * DiffuseLookup;
+
+	float Mip = ComputeCubemapMipFromRoughness(Roughness, AmbientCubemapMipAdjust.w);
+	float3 SampleColor = textureLod(AmbientCubemap, R, Mip).rgb;
+	SpecularContribution += SampleColor * EnvBRDFApprox(SpecularColor, Roughness, NoV);
+	//SpecularContribution += SampleColor * EnvBRDF(SpecularColor, Roughness, NoV);
+
+	outColor.rgb += SpecularContribution + NonSpecularContribution;
+	//outColor.rgb += SpecularContribution;
+	//outColor.rgb += NonSpecularContribution;
+#endif
 
 	gl_FragColor = outColor;
 }

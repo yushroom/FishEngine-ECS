@@ -1,10 +1,10 @@
-#include "RenderSystem.hpp"
-#include "Camera.hpp"
-#include "Light.hpp"
-#include "Renderable.hpp"
-#include "GameApp.hpp"
-#include "Graphics.hpp"
-#include "Material.hpp"
+#include "FishEngine/Systems/RenderSystem.hpp"
+#include "FishEngine/Components/Camera.hpp"
+#include "FishEngine/Components/Light.hpp"
+#include "FishEngine/Components/Renderable.hpp"
+#include "FishEngine/GameApp.hpp"
+#include "FishEngine/Graphics.hpp"
+#include "FishEngine/Material.hpp"
 
 #include <bx/math.h>
 

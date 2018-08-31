@@ -1,5 +1,6 @@
 #pragma once
-#include "ECS.hpp"
+
+#include "../ECS.hpp"
 
 enum class KeyCode
 {
@@ -60,35 +61,9 @@ public:
 
 	Vector2 GetMousePosition() const { return m_MousePosition; }
 	float GetAxis(Axis axis) const { return m_Axis[(int)axis]; }
-	
+
 private:
-	KeyAction m_KeyPressed[256] = {KeyAction::Normal};
-	float m_Axis[(int)Axis::AxisCount] = {0};
+	KeyAction m_KeyPressed[256] = { KeyAction::Normal };
+	float m_Axis[(int)Axis::AxisCount] = { 0 };
 	Vector2 m_MousePosition;
-};
-
-
-struct KeyEvent
-{
-	KeyCode key = KeyCode::None;
-	KeyAction action = KeyAction::Normal;
-};
-
-
-class InputSystem : public ECS::ISystem
-{
-public:
-
-	void OnAdded() override;
-
-	void Start() override
-	{
-	}
-
-	void Update() override;
-	void PostUpdate() override;
-
-	void SetMousePosition(float x, float y);
-	void UpdateAxis(Axis axis, float value);
-	void PostKeyEvent(const KeyEvent& e);
 };

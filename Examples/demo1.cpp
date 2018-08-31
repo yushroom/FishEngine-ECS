@@ -1,18 +1,15 @@
-#include <Material.hpp>
-#include <Mesh.hpp>
-#include <GameApp.hpp>
-#include <ECS.hpp>
-#include <Camera.hpp>
-#include <Light.hpp>
-#include <Renderable.hpp>
-
-#include <GLFW/glfw3.h>
-#include <InputSystem.hpp>
-
-#include <FreeCamera.hpp>
+#include <FishEngine/Material.hpp>
+#include <FishEngine/Mesh.hpp>
+#include <FishEngine/GameApp.hpp>
+#include <FishEngine/ECS.hpp>
+#include <FishEngine/Components/Camera.hpp>
+#include <FishEngine/Components/Light.hpp>
+#include <FishEngine/Components/Renderable.hpp>
+#include <FishEngine/Systems/FreeCameraSystem.hpp>
+#include <FishEngine/Components/SingletonInput.hpp>
 
 
-class Demo1 : public GameApp
+class ModelViewer : public GameApp
 {
 public:
 	void Start() override
@@ -53,9 +50,7 @@ public:
 			}
 		}
 		
-		m_Scene->AddSystem(new FreeCameraController());
-
-		m_Scene->Start();
+		m_Scene->AddSystem(new FreeCameraSystem());
 	}
 	
 private:
@@ -65,7 +60,7 @@ private:
 
 int main(void)
 {
-	Demo1 demo;
+	ModelViewer demo;
 	demo.Run();
 	return 0;
 }

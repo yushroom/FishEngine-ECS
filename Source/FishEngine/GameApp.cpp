@@ -1,4 +1,10 @@
-#include "GameApp.hpp"
+#include <FishEngine/GameApp.hpp>
+#include "FishEngine/Mesh.hpp"
+//#include "ECS.hpp"
+#include "FishEngine/Systems/TransformSystem.hpp"
+#include "FishEngine/Systems/RenderSystem.hpp"
+#include "FishEngine/Systems/InputSystem.hpp"
+#include "FishEngine/Screen.hpp"
 
 #include <GLFW/glfw3.h>
 #include <bgfx/bgfx.h>
@@ -14,12 +20,6 @@
 #	endif
 #include <GLFW/glfw3native.h>
 
-#include "Mesh.hpp"
-//#include "ECS.hpp"
-#include "TransformSystem.hpp"
-#include "RenderSystem.hpp"
-#include "InputSystem.hpp"
-#include "Screen.hpp"
 
 static void* glfwNativeWindowHandle(GLFWwindow* _window)
 {
@@ -181,6 +181,8 @@ void GameApp::Run()
 {
 	Init();
 	Start();
+
+	m_Scene->Start();
 	
 	while (!glfwWindowShouldClose(m_Window))
 	{

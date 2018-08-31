@@ -169,7 +169,7 @@ add_library(FishEngine ${HEADERS} ${SRCS})
 
 # add_subdirectory(./Test)
 
-AutoGroup(./Include/FishEngine Math)
+AutoGroup(./Include/FishEngine Math Systems Components)
 AutoGroup(./Source/FishEngine Math)
 
 # AutoGroup(${CMAKE_CURRENT_LIST_DIR}/Include/FishEngine Util Math Render Internal Component UI System Physics Serialization Animation)
@@ -209,7 +209,6 @@ endif()
 
 
 include_directories("./Include")
-include_directories("./Include/FishEngine")
 
 add_executable(demo1 "./Examples/demo1.cpp")
 target_compile_definitions(demo1 PRIVATE _ITERATOR_DEBUG_LEVEL=0)

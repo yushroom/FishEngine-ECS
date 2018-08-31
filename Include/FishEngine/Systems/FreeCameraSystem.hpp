@@ -1,20 +1,11 @@
 #pragma once
 
-#include "ECS.hpp"
-
-class FreeCamera : public ECS::Component
-{
-	COMPONENT(FreeCamera);
-public:
-	bool m_LookAtMode = false;
-	float m_RotateSpeed = 200;
-	float m_DragSpeed = 20;
-	Vector3 m_OrbitCenter = Vector3::zero;
-};
+#include <FishEngine/ECS.hpp>
+#include <FishEngine/Components/FreeCamera.hpp>
 
 class SingletonInput;
 
-class FreeCameraController : public ECS::ISystem
+class FreeCameraSystem : public ECS::ISystem
 {
 public:
 	

@@ -1,43 +1,46 @@
-#include <Material.hpp>
-#include <Mesh.hpp>
-#include <GameApp.hpp>
-#include <ECS.hpp>
-#include <Camera.hpp>
-#include <Light.hpp>
-#include <Renderable.hpp>
+#include <FishEngine/Material.hpp>
+#include <FishEngine/Mesh.hpp>
+#include <FishEngine/GameApp.hpp>
+#include <FishEngine/ECS.hpp>
+#include <FishEngine/Components/Camera.hpp>
+#include <FishEngine/Components/Light.hpp>
+#include <FishEngine/Components/Renderable.hpp>
+#include <FishEngine/Systems/FreeCameraSystem.hpp>
+#include <FishEngine/Components/SingletonInput.hpp>
 
-#include <GLFW/glfw3.h>
-
+#include <glfw/glfw3.h>
 
 const double PI = std::acos(-1);
 
-class Rotator : public Component
+class Rotator : public ECS::Component
 {
 	COMPONENT(Rotator)
 public:
 	float speed = 2.f;
 	Vector3 center;
+	Vector3 axis = { 0, 0, 1 };
 };
 
-class RotatorSystem : public ISystem
+class RotatorSystem : public ECS::ISystem
 {
 public:
 	void Update() override
 	{
 		double time = glfwGetTime();
-		m_Scene->ForEach<Rotator>([time](GameObject* go, Rotator* rot){
-			float rad = rot->speed * time;
-			float x = 5.0f * cosf(rad);
-			float y = 5.0f * sinf(rad);
-			auto& pos = go->GetTransform()->position;
-			pos.x = x;
-			pos.y = y;
+		m_Scene->ForEach<Rotator>([this, time](ECS::GameObject* go, Rotator* rot){
+			auto t = go->GetTransform();
+			auto pid = go->GetParentID();
+			if (pid != 0)
+			{
+				auto parent = m_Scene->GetGameObjectByID(pid);
+				t->RotateAround(Vector3::zero, rot->axis, rot->speed);
+			}
 		});
 	}
 };
 
 
-class Demo1 : public GameApp
+class ModelViewer : public GameApp
 {
 public:
 	void Start() override
@@ -48,18 +51,21 @@ public:
 		mat->m_Shader = m_Shader;
 		
 		{
-			EntityID goID = m_Scene->CreateGameObject();
+			auto goID = m_Scene->CreateGameObject();
 			m_Scene->GameObjectAddComponent<Camera>(goID);
 			auto go = m_Scene->GetGameObjectByID(goID);
-			go->GetTransform()->position.Set(0, 0, -10);
+			go->GetTransform()->position.Set(0, 0, -15);
+			m_Scene->GameObjectAddComponent<FreeCamera>(goID);
 		}
 		{
-			EntityID goID = m_Scene->CreateGameObject();
+			auto goID = m_Scene->CreateGameObject();
 			m_Scene->GameObjectAddComponent<Light>(goID);
 		}
 		
-		auto CreateRot = [&](bool AddRot = true){
-			EntityID id = m_Scene->CreateGameObject();
+		auto CreateRot = [&](Vector3 position, bool AddRot = true){
+			auto id = m_Scene->CreateGameObject();
+			auto go = m_Scene->GetGameObjectByID(id);
+			go->GetTransform()->position = position;
 			if (AddRot)
 			{
 				m_Scene->GameObjectAddComponent<Rotator>(id);
@@ -70,14 +76,14 @@ public:
 			return id;
 		};
 		
-		auto sun = CreateRot(false);
-		auto earth = CreateRot();
-		auto moon = CreateRot();
+		auto sun = CreateRot({0, 0, 0}, false);
+		auto earth = CreateRot({5, 0, 0});
+		auto moon = CreateRot({2, 0, 0});
 		m_Scene->GameObjectSetParent(earth, sun);
 		m_Scene->GameObjectSetParent(moon, earth);
 		m_Scene->AddSystem(new RotatorSystem());
 
-		m_Scene->Start();
+		m_Scene->AddSystem(new FreeCameraSystem());
 	}
 	
 private:
@@ -87,7 +93,7 @@ private:
 
 int main(void)
 {
-	Demo1 demo;
+	ModelViewer demo;
 	demo.Run();
 	return 0;
 }
