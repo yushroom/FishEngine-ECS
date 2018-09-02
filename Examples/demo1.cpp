@@ -2,12 +2,15 @@
 #include <FishEngine/Mesh.hpp>
 #include <FishEngine/GameApp.hpp>
 #include <FishEngine/ECS.hpp>
+#include <FishEngine/Components/Transform.hpp>
 #include <FishEngine/Components/Camera.hpp>
 #include <FishEngine/Components/Light.hpp>
 #include <FishEngine/Components/Renderable.hpp>
 #include <FishEngine/Systems/FreeCameraSystem.hpp>
 #include <FishEngine/Components/SingletonInput.hpp>
 #include <FishEngine/Texture.hpp>
+
+#include <imgui/imgui.h>
 
 union Params
 {
@@ -26,7 +29,7 @@ public:
 
 		//m_Shader = ShaderUtil::Compile("/Users/yushroom/program/FishEngine-ECS/shader/vs.bin", "/Users/yushroom/program/FishEngine-ECS/shader/fs.bin");
 		{
-			auto vs = "/Users/yushroom/program/FishEngine-ECS/Shaders/runtime//PBR_vs.bin";
+			auto vs = "/Users/yushroom/program/FishEngine-ECS/Shaders/runtime/PBR_vs.bin";
 			auto fs = "/Users/yushroom/program/FishEngine-ECS/Shaders/runtime/PBR_fs.bin";
 			m_Shader = ShaderUtil::Compile(vs, fs);
 		}
@@ -38,11 +41,15 @@ public:
 		}
 
 		{
-			const char* path = "/Users/yushroom/program/github/bgfx/examples/runtime/textures/bolonga_lod.dds";
-			m_tex = TextureUtils::LoadTexture(path, BGFX_SAMPLER_U_CLAMP|BGFX_SAMPLER_V_CLAMP|BGFX_SAMPLER_W_CLAMP);
-			const char* filePath = "/Users/yushroom/program/github/bgfx/examples/runtime/textures/bolonga_irr.dds";
-			m_texIrr = TextureUtils::LoadTexture(filePath, BGFX_SAMPLER_U_CLAMP|BGFX_SAMPLER_V_CLAMP|BGFX_SAMPLER_W_CLAMP);
+			const char* path = "/Users/yushroom/program/FishEngine-ECS/Assets/Textures/uffizi_cross_128_filtered.dds";
+			m_tex_filtered = TextureUtils::LoadTexture(path, BGFX_SAMPLER_U_CLAMP|BGFX_SAMPLER_V_CLAMP|BGFX_SAMPLER_W_CLAMP);
 		}
+//		{
+//			const char* path = "/Users/yushroom/program/FishEngine/Example/PBR/Assets/uffizi_cross.dds";
+//			m_tex = TextureUtils::LoadTexture(path, BGFX_SAMPLER_U_CLAMP|BGFX_SAMPLER_V_CLAMP|BGFX_SAMPLER_W_CLAMP);
+//		}
+//			const char* filePath = "/Users/yushroom/program/github/bgfx/examples/runtime/textures/bolonga_irr.dds";
+//			m_texIrr = TextureUtils::LoadTexture(filePath, BGFX_SAMPLER_U_CLAMP|BGFX_SAMPLER_V_CLAMP|BGFX_SAMPLER_W_CLAMP);
 
 		m_params.m_exposure = 0.0f;
 		m_params.m_bgType = 1.0f;
@@ -56,8 +63,8 @@ public:
 			Skybox* skybox = m_Scene->GameObjectAddComponent<Skybox>(goID);
 			Material* skyboxMat = new Material();
 			skyboxMat->SetVector("u_params", m_params.floats);
-			skyboxMat->SetTexture("s_texCube", m_tex);
-			skyboxMat->SetTexture("s_texCubeIrr", m_texIrr);
+			skyboxMat->SetTexture("s_texCube", m_tex_filtered);
+//			skyboxMat->SetTexture("s_texCubeIrr", m_texIrr);
 			skyboxMat->SetShader(m_SkyboxShader);
 			skybox->m_skyboxMaterial = skyboxMat;
 		}
@@ -84,6 +91,7 @@ public:
 				Vector4 pbrparams(x*0.1f, y*0.1f, 0, 0);
 				mat->SetVector("BaseColor", Vector4::one);
 				mat->SetVector("PBRParams", pbrparams);
+				mat->SetTexture("AmbientCubemap", m_tex_filtered);
 				rend->material = mat;
 			}
 		}
@@ -98,8 +106,8 @@ public:
 private:
 	Shader* m_Shader = nullptr;
 	Shader* m_SkyboxShader = nullptr;
-	bgfx::TextureHandle m_tex;
-	bgfx::TextureHandle m_texIrr;
+//	bgfx::TextureHandle m_tex;
+	bgfx::TextureHandle m_tex_filtered;
 	Params m_params;
 };
 

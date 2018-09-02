@@ -1,5 +1,6 @@
 #pragma once
-#include "FishEngine/ECS.hpp"
+#include <FishEngine/ECS.hpp>
+#include <FishEngine/Components/Transform.hpp>
 
 
 class TransformSystem : public ECS::ISystem
@@ -9,7 +10,7 @@ public:
 	{
 		m_Scene->All([this](ECS::GameObject* go){
 			auto parentID = go->GetParentID();
-			ECS::Transform* t = go->GetTransform();
+			Transform* t = go->GetTransform();
 			t->m_LocalToWorldMatrix = Matrix4x4::TRS(t->position, t->rotation, t->scale);
 			if (parentID != 0)
 			{

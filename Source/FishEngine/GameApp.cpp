@@ -144,7 +144,7 @@ void GameApp::Init()
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
 	/* Create a windowed mode window and its OpenGL context */
-	m_Window = glfwCreateWindow(m_WindowWidth, m_WindowHeight, "Hello World", NULL, NULL);
+	m_Window = glfwCreateWindow(m_WindowWidth, m_WindowHeight, "FishEngine", NULL, NULL);
 	if (!m_Window)
 	{
 		glfwTerminate();
@@ -216,6 +216,7 @@ void GameApp::Run()
 		m_Scene->GetSystem<InputSystem>()->SetMousePosition(cursor_x, cursor_y);
 
 		// Set view 0 default viewport.
+//		bgfx::setViewRect(0, 0, 0, uint16_t(m_WindowWidth*2), uint16_t(m_WindowHeight*2) );
 		bgfx::setViewRect(0, 0, 0, uint16_t(m_WindowWidth), uint16_t(m_WindowHeight) );
 		
 		Update();

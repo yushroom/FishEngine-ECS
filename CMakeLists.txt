@@ -132,6 +132,9 @@ endmacro()
 # # source_group("extensions" FILES ${EXTENSIONS})
 # add_library(FishGUI ${SRCS} ${HEADERS})
 
+
+
+
 file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_LIST_DIR}/Include/FishEngine/*.hpp ${CMAKE_CURRENT_LIST_DIR}/Include/FishEngine/*.inl)
 file(GLOB_RECURSE SRCS ${CMAKE_CURRENT_LIST_DIR}/Source/FishEngine/*.cpp)
 add_library(FishEngine ${HEADERS} ${SRCS})
@@ -185,15 +188,22 @@ include_directories("D:/program/bimg/include")
 include_directories("D:/program/bx/include")
 include_directories("D:/program/bx/include/compat/msvc")
 include_directories("D:/program/bgfx/3rdparty")
+include_directories("D:/program/bgfx/examples/common")
 else()
 include_directories("../github/bgfx/include")
 include_directories("../github/bimg/include")
 include_directories("../github/bx/include")
 include_directories("../github/bgfx/3rdparty")
+include_directories("../github/bgfx/examples/common")
 endif()
+
+file(GLOB_RECURSE IMGUI_HEADERS "../github/bgfx/3rdparty/dear-imgui/*.h" "../github/bgfx/examples/common/imgui/*.h")
+file(GLOB_RECURSE IMGUI_SRCS "../github/bgfx/3rdparty/dear-imgui/*.cpp" "../github/bgfx/examples/common/imgui/*.cpp")
+add_library(imgui ${IMGUI_HEADERS} ${IMGUI_SRCS})
 
 
 target_link_libraries(FishEngine glfw)
+target_link_libraries(FishEngine imgui)
 
 if (MSVC)
 target_compile_definitions(FishEngine PRIVATE _ITERATOR_DEBUG_LEVEL=0)
@@ -213,21 +223,19 @@ endif()
 include_directories("./Include")
 
 add_executable(demo1 "./Examples/demo1.cpp")
-target_compile_definitions(demo1 PRIVATE _ITERATOR_DEBUG_LEVEL=0)
 target_link_libraries(demo1 FishEngine)
 
 add_executable(demo2 "./Examples/demo2.cpp")
-target_compile_definitions(demo2 PRIVATE _ITERATOR_DEBUG_LEVEL=0)
 target_link_libraries(demo2 FishEngine)
 
 add_executable(modelViewer "./Examples/model_viewer.cpp")
-target_compile_definitions(modelViewer PRIVATE _ITERATOR_DEBUG_LEVEL=0)
 target_link_libraries(modelViewer FishEngine)
 
 if (MSVC)
     target_compile_definitions(demo1 PRIVATE _ITERATOR_DEBUG_LEVEL=0)
     target_compile_definitions(demo2 PRIVATE _ITERATOR_DEBUG_LEVEL=0)
+    target_compile_definitions(modelViewer PRIVATE _ITERATOR_DEBUG_LEVEL=0)
 else()
-    set_target_properties(demo1 PROPERTIES LINK_FLAGS "-framework OpenGL -framework Cocoa -framework metal -framework QuartzCore")
-    set_target_properties(demo2 PROPERTIES LINK_FLAGS "-framework OpenGL -framework Cocoa -framework metal -framework QuartzCore")
+    # set_target_properties(demo1 PROPERTIES LINK_FLAGS "-framework OpenGL -framework Cocoa -framework metal -framework QuartzCore")
+    # set_target_properties(demo2 PROPERTIES LINK_FLAGS "-framework OpenGL -framework Cocoa -framework metal -framework QuartzCore")
 endif()

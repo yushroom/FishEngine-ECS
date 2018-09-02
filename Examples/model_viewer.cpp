@@ -2,6 +2,7 @@
 #include <FishEngine/Mesh.hpp>
 #include <FishEngine/GameApp.hpp>
 #include <FishEngine/ECS.hpp>
+#include <FishEngine/Components/Transform.hpp>
 #include <FishEngine/Components/Camera.hpp>
 #include <FishEngine/Components/Light.hpp>
 #include <FishEngine/Components/Renderable.hpp>
@@ -14,9 +15,11 @@ class ModelViewer : public GameApp
 public:
 	void Start() override
 	{
-		m_Shader = ShaderUtil::Compile("/Users/yushroom/program/FishEngine-ECS/shader/vs.bin", "/Users/yushroom/program/FishEngine-ECS/shader/fs.bin");
+		auto vs = "/Users/yushroom/program/FishEngine-ECS/Shaders/runtime/PBR_vs.bin";
+		auto fs = "/Users/yushroom/program/FishEngine-ECS/Shaders/runtime/PBR_fs.bin";
+		m_Shader = ShaderUtil::Compile(vs, fs);
 		
-		const char* test_path = R"(D:\program\FishEngine-ECS\Assets\T-Rex.glb)";
+		const char* test_path = "/Users/yushroom/program/FishEngine-ECS/Assets/Models/T-Rex.glb";
 		Mesh* trex = MeshUtil::FromGLTF(test_path);
 
 		{
@@ -37,9 +40,10 @@ public:
 		rend->mesh = trex;
 
 		Material* mat = new Material();
-		mat->m_Shader = m_Shader;
-		mat->pbrparams[0] = 0;
-		mat->pbrparams[1] = 0.5f;
+		mat->SetShader(m_Shader);
+		Vector4 pbrparams(0, 0.5f, 0, 0);
+		mat->SetVector("BaseColor", Vector4::one);
+		mat->SetVector("PBRParams", pbrparams);
 		rend->material = mat;
 
 		m_Scene->AddSystem(new FreeCameraSystem());

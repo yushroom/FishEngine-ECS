@@ -54,15 +54,15 @@ Shader* ShaderUtil::Compile(const char* vs_path, const char* fs_path)
 {
 	Shader* s = new Shader();
 	s->m_Program = loadProgram(&s_fileReader, vs_path, fs_path, s->m_VertexShdaer, s->m_FragmentShader);
-	
-	bgfx::UniformHandle uniforms[16];
-	int count = bgfx::getShaderUniforms(s->m_FragmentShader, uniforms, 16);
-	for (int i = 0; i < count; ++i)
-	{
-		bgfx::UniformInfo info;
-		bgfx::getUniformInfo(uniforms[i], info);
-		printf("%d: %s\n", i, info.name);
-	}
+//	
+//	bgfx::UniformHandle uniforms[16];
+//	int count = bgfx::getShaderUniforms(s->m_FragmentShader, uniforms, 16);
+//	for (int i = 0; i < count; ++i)
+//	{
+//		bgfx::UniformInfo info;
+//		bgfx::getUniformInfo(uniforms[i], info);
+//		printf("%d: %s\n", i, info.name);
+//	}
 	return s;
 }
 

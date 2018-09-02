@@ -1,4 +1,5 @@
 #include <FishEngine/Systems/FreeCameraSystem.hpp>
+#include <FishEngine/Components/Transform.hpp>
 #include <FishEngine/Components/SingletonInput.hpp>
 
 void FreeCameraSystem::Update()
@@ -11,7 +12,7 @@ void FreeCameraSystem::Update()
 
 void FreeCameraSystem::UpdateCameraTransform(SingletonInput* input, ECS::GameObject* cameraGO, FreeCamera* data)
 {
-	ECS::Transform* t = cameraGO->GetTransform();
+	Transform* t = cameraGO->GetTransform();
 	
 	bool alt = input->IsButtonHeld(KeyCode::LeftAlt) || input->IsButtonHeld(KeyCode::RightAlt);
 	bool ctrl = input->IsButtonHeld(KeyCode::LeftControl) || input->IsButtonHeld(KeyCode::RightControl);

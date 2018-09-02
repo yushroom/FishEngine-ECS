@@ -7,343 +7,274 @@
 #include "Engine.hpp"
 #include "Object.hpp"
 
+class Transform;
 class TransformSystem;
 
 namespace ECS
 {
 
-class Scene;
+	class Scene;
 
-using EntityID = uint32_t;
+	using EntityID = uint32_t;
 
-class Component
-{
-public:
-	EntityID entityID;
-	
-	virtual std::type_index GetTypeIndex() = 0;
-	
-	template<class T>
-	bool Is() const
+	class Component
 	{
-		const T* t = dynamic_cast<const T*>(this);
-		return t != nullptr;
-	}
-	
-	template<class T>
-	T* As()
-	{
-		return dynamic_cast<T*>(this);
-	}
-	
-protected:
-	Component() = default;
-};
-
-
-#define COMPONENT(T)                            \
-protected:                                      \
-	T() = default;                              \
-private:                                        \
-	friend class ECS::Scene;                    \
-	inline static std::vector<T*> components;   \
-	std::type_index GetTypeIndex() override     \
-	{ return std::type_index(typeid(T)); }      \
-	static T* Create() { T* t = new T(); components.push_back(t); return t; }               \
-
-
-
-class Transform : public Component
-{
-	COMPONENT(Transform);
-	friend class ::TransformSystem;
-public:
-	Vector3 position = {0, 0, 0};
-	Vector3 scale = {1, 1, 1};
-	Quaternion rotation;
-
-	const Matrix4x4& GetLocalToWorldMatrix() const { return m_LocalToWorldMatrix; }
-	
-	Quaternion GetRotation() const { return m_LocalToWorldMatrix.ToRotation(); }
-	Vector3 GetUp() const { return GetRotation() * Vector3::up; }
-	Vector3 GetRight() const { return GetRotation() * Vector3::right; }
-	Vector3 GetForward() const { return GetRotation() * Vector3::forward; }
-	
-	Vector3 TransformDirection(const Vector3& direction) const
-	{
-		return m_LocalToWorldMatrix.MultiplyVector(direction);
-	}
-	
-	void Translate(const Vector3& translation)
-	{
-		position += TransformDirection(translation);
-	}
-	
-	void RotateAround(const Vector3& point, const Vector3& axis, float angle)
-	{
-		// step1: update position
-		auto vector = this->position;
-		auto rot = Quaternion::AngleAxis(angle, axis);
-		Vector3 vector2 = vector - point;
-		vector2 = rot * vector2;
-		vector = point + vector2;
-		position = vector;
+	public:
+		EntityID entityID;
 		
-		// step2: update rotation
-		rotation = rot * rotation;
-	}
-
-protected:
-	Matrix4x4 m_LocalToWorldMatrix = {
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1,
+		virtual std::type_index GetTypeIndex() = 0;
+		
+		template<class T>
+		bool Is() const
+		{
+			const T* t = dynamic_cast<const T*>(this);
+			return t != nullptr;
+		}
+		
+		template<class T>
+		T* As()
+		{
+			return dynamic_cast<T*>(this);
+		}
+		
+	protected:
+		Component() = default;
 	};
-};
 
 
-class GameObject : public Object
-{
-	friend class Scene;
-public:
+	#define COMPONENT(T)                            \
+	protected:                                      \
+		T() = default;                              \
+	private:                                        \
+		friend class ECS::Scene;                    \
+		inline static std::vector<T*> components;   \
+		std::type_index GetTypeIndex() override     \
+		{ return std::type_index(typeid(T)); }      \
+		static T* Create() { T* t = new T(); components.push_back(t); return t; }               \
 
-	EntityID GetID() const { return ID; }
+
 	
-	Transform* GetTransform() const { return m_Transform; }
-	EntityID GetParentID() const { return parentID; }
-	
-protected:
-	GameObject(EntityID entityID, Scene* scene);
 
-protected:
-	std::vector<Component*> components;
-	Transform* m_Transform = nullptr;
-	EntityID parentID = 0;
-	int rootOrder = 0;		// index in parent's children array
-private:
-	EntityID ID;
-};
-
-
-class ISystem
-{
-	friend Scene;
-public:
-	virtual void OnAdded() {}
-	virtual void Start() {}
-	virtual void Update() = 0;
-	virtual void PostUpdate() {};
-
-	int m_Priority = 0;
-
-protected:
-	Scene * m_Scene = nullptr;
-};
-
-
-class SingletonComponent
-{
-	friend Scene;
-protected:
-	SingletonComponent() = default;
-};
-
-
-class Scene
-{
-public:
-	EntityID CreateGameObject()
+	class GameObject : public Object
 	{
-		m_LastEntityID++;
-		EntityID id = m_LastEntityID;
-		GameObject* go = new GameObject(id, this);
-		m_GameObjects[id] = go;
-		go->m_Transform = GameObjectAddComponent<Transform>(go);
-		return id;
-	}
-	
-	template<class T>
-	T* GameObjectAddComponent(GameObject* go)
+		friend class Scene;
+	public:
+
+		EntityID GetID() const { return ID; }
+		
+		Transform* GetTransform() const { return m_Transform; }
+		EntityID GetParentID() const { return m_ParentID; }
+		
+	protected:
+		GameObject(EntityID entityID, Scene* scene);
+
+	protected:
+		std::vector<Component*> m_Components;
+		Transform* m_Transform = nullptr;
+		EntityID m_ParentID = 0;
+		int m_RootOrder = 0;		// index in parent's children array
+	private:
+		EntityID ID;
+	};
+
+
+	class ISystem
 	{
-		T* comp = T::Create();
-		go->components.push_back(comp);
-		comp->entityID = go->ID;
-		return comp;
-	}
-	
-	template<class T>
-	T* GameObjectAddComponent(EntityID id)
+		friend Scene;
+	public:
+		virtual void OnAdded() {}
+		virtual void Start() {}
+		virtual void Update() = 0;
+		virtual void PostUpdate() {};
+
+		int m_Priority = 0;
+
+	protected:
+		Scene * m_Scene = nullptr;
+	};
+
+
+	class SingletonComponent
 	{
-		T* comp = T::Create();
-		auto go = m_GameObjects[id];
-		go->components.push_back(comp);
-		comp->entityID = id;
-		return comp;
-	}
-	
-	void GameObjectSetParent(EntityID child, EntityID parent)
+		friend Scene;
+	protected:
+		SingletonComponent() = default;
+	};
+
+
+	class Scene
 	{
-		auto c = GetGameObjectByID(child);
-//		auto p = GetGameObjectByID(parent);
-		c->parentID = parent;
-	}
-	
-	void All(std::function<void(GameObject*)> func)
-	{
-		for (auto& pair : m_GameObjects)
+	public:
+		EntityID CreateGameObject();
+		
+		template<class T>
+		T* GameObjectAddComponent(GameObject* go)
 		{
-			func(pair.second);
+			T* comp = T::Create();
+			go->m_Components.push_back(comp);
+			comp->entityID = go->ID;
+			return comp;
 		}
-	}
-	
-	template<class T>
-	void ForEach(std::function<void(GameObject*, T*)> func)
-	{
-		for (T* t : T::components)
+		
+		template<class T>
+		T* GameObjectAddComponent(EntityID id)
 		{
-			GameObject* go = GetGameObjectByID(t->entityID);
-			func(go, t);
+			T* comp = T::Create();
+			auto go = m_GameObjects[id];
+			go->m_Components.push_back(comp);
+			comp->entityID = id;
+			return comp;
 		}
-
-		//for (auto& pair : m_GameObjects)
-		//{
-		//	T* t = nullptr;
-		//	GameObject* go = pair.second;
-		//	for (Component* comp : go->components)
-		//	{
-		//		if (t == nullptr)
-		//			t = comp->As<T>();
-		//	}
-		//	if (t != nullptr)
-		//	{
-		//		func(go, t);
-		//	}
-		//}
-	}
-	
-	
-	template<class T1, class T2>
-	void ForEach(std::function<void(GameObject*, T1*, T2*)> func)
-	{
-		for (auto& pair : m_GameObjects)
+		
+		void GameObjectSetParent(EntityID child, EntityID parent)
 		{
-			T1* t1 = nullptr;
-			T2* t2 = nullptr;
-			GameObject* go = pair.second;
-			for (Component* comp : go->components)
+			auto c = GetGameObjectByID(child);
+	//		auto p = GetGameObjectByID(parent);
+			c->m_ParentID = parent;
+		}
+		
+		void All(std::function<void(GameObject*)> func)
+		{
+			for (auto& pair : m_GameObjects)
 			{
-				if (comp->Is<T1>())
-				{
-					t1 = (T1*)comp;
-				}
-				else if (comp->Is<T2>())
-				{
-					t2 = (T2*)comp;
-				}
-			}
-			if (t1 != nullptr && t2 != nullptr)
-			{
-				func(go, t1, t2);
+				func(pair.second);
 			}
 		}
-	}
-	
-	
-	template<class T>
-	T* FindComponent() const
-	{
-		if (T::components.empty())
+		
+		template<class T>
+		void ForEach(std::function<void(GameObject*, T*)> func)
+		{
+			for (T* t : T::components)
+			{
+				GameObject* go = GetGameObjectByID(t->entityID);
+				func(go, t);
+			}
+		}
+		
+		
+		template<class T1, class T2>
+		void ForEach(std::function<void(GameObject*, T1*, T2*)> func)
+		{
+			for (auto& pair : m_GameObjects)
+			{
+				T1* t1 = nullptr;
+				T2* t2 = nullptr;
+				GameObject* go = pair.second;
+				for (Component* comp : go->m_Components)
+				{
+					if (t1 != nullptr && comp->Is<T1>())
+					{
+						t1 = (T1*)comp;
+					}
+					else if (t2 != nullptr && comp->Is<T2>())
+					{
+						t2 = (T2*)comp;
+					}
+					
+					if (t1 != nullptr && t2 != nullptr)
+					{
+						func(go, t1, t2);
+						return;
+					}
+				}
+			}
+		}
+		
+		
+		template<class T>
+		T* FindComponent() const
+		{
+			if (T::components.empty())
+				return nullptr;
+			return T::components.front();
+		}
+
+		template<class T>
+		T* AddSingletonComponent()
+		{
+			auto typeidx = std::type_index(typeid(T));
+			auto it = m_SingletonComponents.find(typeidx);
+			if (it != m_SingletonComponents.end())
+			{
+				abort();
+			}
+
+			T* t = new T();
+			m_SingletonComponents[typeidx] = t;
+			return t;
+		}
+
+		template<class T>
+		T* GetSingletonComponent()
+		{
+			auto it = m_SingletonComponents.find(std::type_index(typeid(T)));
+			if (it == m_SingletonComponents.end())
+				return nullptr;
+			return (T*)it->second;
+		}
+		
+		void AddSystem(ISystem* system)
+		{
+			m_Systems.push_back(system);
+			system->m_Scene = this;
+			system->OnAdded();
+		}
+
+		template<class T>
+		T* GetSystem()
+		{
+			for (ISystem* s : m_Systems)
+			{
+				T* t = dynamic_cast<T*>(s);
+				if (t != nullptr)
+					return t;
+			}
 			return nullptr;
-		return T::components.front();
-	}
-
-	template<class T>
-	T* AddSingletonComponent()
-	{
-		auto typeidx = std::type_index(typeid(T));
-		auto it = m_SingletonComponents.find(typeidx);
-		if (it != m_SingletonComponents.end())
-		{
-			abort();
 		}
 
-		T* t = new T();
-		m_SingletonComponents[typeidx] = t;
-		return t;
-	}
-
-	template<class T>
-	T* GetSingletonComponent()
-	{
-		auto it = m_SingletonComponents.find(std::type_index(typeid(T)));
-		if (it == m_SingletonComponents.end())
-			return nullptr;
-		return (T*)it->second;
-	}
-	
-	void AddSystem(ISystem* system)
-	{
-		m_Systems.push_back(system);
-		system->m_Scene = this;
-		system->OnAdded();
-	}
-
-	template<class T>
-	T* GetSystem()
-	{
-		for (ISystem* s : m_Systems)
+		void Start()
 		{
-			T* t = dynamic_cast<T*>(s);
-			if (t != nullptr)
-				return t;
-		}
-		return nullptr;
-	}
+			std::sort(m_Systems.begin(), m_Systems.end(), [](ISystem* a, ISystem* b) {
+				return a->m_Priority < b->m_Priority;
+			});
 
-	void Start()
-	{
-		std::sort(m_Systems.begin(), m_Systems.end(), [](ISystem* a, ISystem* b) {
-			return a->m_Priority < b->m_Priority;
-		});
+			for (ISystem* s : m_Systems)
+			{
+				s->Start();
+			}
+		}
+		
+		void Update()
+		{
+			for (ISystem* s : m_Systems)
+			{
+				s->Update();
+			}
+		}
 
-		for (ISystem* s : m_Systems)
+		void PostUpdate()
 		{
-			s->Start();
+			for (ISystem* s : m_Systems)
+			{
+				s->PostUpdate();
+			}
 		}
-	}
-	
-	void Update()
-	{
-		for (ISystem* s : m_Systems)
+		
+		GameObject* GetGameObjectByID(EntityID id)
 		{
-			s->Update();
+			auto it = m_GameObjects.find(id);
+			if (it == m_GameObjects.end())
+				return nullptr;
+			return it->second;
 		}
-	}
-
-	void PostUpdate()
-	{
-		for (ISystem* s : m_Systems)
-		{
-			s->PostUpdate();
-		}
-	}
-	
-	GameObject* GetGameObjectByID(EntityID id)
-	{
-		auto it = m_GameObjects.find(id);
-		if (it == m_GameObjects.end())
-			return nullptr;
-		return it->second;
-	}
-	
-protected:
-	std::unordered_map<EntityID, GameObject*> m_GameObjects;
-	std::vector<ISystem*> m_Systems;
-	std::unordered_map<std::type_index, SingletonComponent*> m_SingletonComponents;
-	
-private:
-	EntityID m_LastEntityID = 0;
-};
+		
+	protected:
+		std::unordered_map<EntityID, GameObject*> m_GameObjects;
+		std::vector<ISystem*> m_Systems;
+		std::unordered_map<std::type_index, SingletonComponent*> m_SingletonComponents;
+		
+	private:
+		EntityID m_LastEntityID = 0;
+	};
 
 } // namespace ECS

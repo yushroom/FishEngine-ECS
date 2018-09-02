@@ -20,7 +20,7 @@ void main()
 
 $input v_position, v_normal, v_uv, v_tangent
 
-// #define _AMBIENT_IBL 1
+#define _AMBIENT_IBL 1
 
 uniform vec4 lightDir;
 uniform vec4 BaseColor;

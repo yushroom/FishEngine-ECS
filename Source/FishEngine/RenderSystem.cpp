@@ -1,4 +1,5 @@
 #include "FishEngine/Systems/RenderSystem.hpp"
+#include <FishEngine/Components/Transform.hpp>
 #include "FishEngine/Components/Camera.hpp"
 #include "FishEngine/Components/Light.hpp"
 #include "FishEngine/Components/Renderable.hpp"
@@ -9,12 +10,11 @@
 
 #include <bx/math.h>
 
+#include <imgui/imgui.h>
 
 SingletonRenderState::SingletonRenderState()
 {
 	m_UniformLightDir = bgfx::createUniform("lightDir", bgfx::UniformType::Vec4);
-	m_UniformBaseColor = bgfx::createUniform("BaseColor", bgfx::UniformType::Vec4);
-	m_UniformPBRParams = bgfx::createUniform("PBRParams", bgfx::UniformType::Vec4);
 	m_UniformCameraPos = bgfx::createUniform("CameraPos", bgfx::UniformType::Vec4);
 }
 
@@ -25,9 +25,9 @@ void RenderSystem::OnAdded()
 	init.type = bgfx::RendererType::Enum::OpenGL;
 	init.resolution.width = 640;
 	init.resolution.height = 480;
-	init.resolution.reset = BGFX_RESET_VSYNC;
+	init.resolution.reset = BGFX_RESET_VSYNC | BGFX_RESET_MSAA_X2;
 	bgfx::init(init);
-	//bgfx::setDebug(BGFX_DEBUG_STATS);
+//	bgfx::setDebug(BGFX_DEBUG_STATS);
 	bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
 
 	auto state = m_Scene->AddSingletonComponent<SingletonRenderState>();
@@ -40,6 +40,8 @@ void RenderSystem::OnAdded()
 		| BGFX_STATE_CULL_CCW
 		| BGFX_STATE_MSAA
 		;
+	
+	imguiCreate();
 }
 
 void RenderSystem::Start()
@@ -47,11 +49,16 @@ void RenderSystem::Start()
 	
 }
 
+#include <FishEngine/Components/SingletonInput.hpp>
+#include <FishEngine/Screen.hpp>
+
 void RenderSystem::Draw()
 {
 	// This dummy draw call is here to make sure that view 0 is cleared
 	// if no other draw calls are submitted to view 0.
-	bgfx::touch(0);
+	//bgfx::touch(0);
+	
+
 
 	Camera* camera = m_Scene->FindComponent<Camera>();
 	if (camera == nullptr)
@@ -80,11 +87,7 @@ void RenderSystem::Draw()
 		Vector3 d = Vector3::Normalize(light->direction);
 		bgfx::setUniform(renderState->m_UniformLightDir, &d);
 	}
-
-	float BaseColor[4] = { 1, 1, 1, 1 };
-	//float PBRParams[] = { 0, 0.5, 0.5, 0 };
-	bgfx::setUniform(renderState->m_UniformBaseColor, BaseColor);
-	//bgfx::setUniform(renderState->m_UniformPBRParams, PBRParams);
+	
 	
 	float width = (float)GameApp::GetMainApp()->GetWidth();
 	float height = (float)GameApp::GetMainApp()->GetHeight();
@@ -103,15 +106,34 @@ void RenderSystem::Draw()
 	});
 	renderState->m_State = old_state;
 
-
-	m_Scene->ForEach<Renderable>([renderState](ECS::GameObject* go, Renderable* rend)
+	m_Scene->ForEach<Renderable>([](ECS::GameObject* go, Renderable* rend)
 	{
 		auto& mtx = go->GetTransform()->GetLocalToWorldMatrix();
 		Graphics::DrawMesh(rend->mesh, mtx, rend->material);
 	});
+	
+#if 0
+	//printf("============here==========\n\n");
+	auto input = m_Scene->GetSingletonComponent<SingletonInput>();
+	Vector2 mousePos = input->GetMousePosition();
+	auto mouseBtns =
+	(input->IsButtonPressed(KeyCode::MouseLeftButton) ? IMGUI_MBUT_LEFT : 0) |
+	(input->IsButtonPressed(KeyCode::MouseRightButton) ? IMGUI_MBUT_RIGHT : 0) |
+	(input->IsButtonPressed(KeyCode::MouseMiddleButton) ? IMGUI_MBUT_MIDDLE : 0);
+	
+	ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(100, 100), ImGuiCond_FirstUseEver);
+	imguiBeginFrame(mousePos.x, mousePos.y, mouseBtns, input->GetAxis(Axis::MouseScrollWheel), Screen::width, Screen::height);
+	ImGui::Begin("Hierarchy", NULL, 0);
+	ImGui::Text("Environment light:");
+	ImGui::End();
+	imguiEndFrame();
+#endif
 }
+
 
 void RenderSystem::Resize(int width, int height)
 {
+//	bgfx::reset(width*2, height*2, BGFX_RESET_VSYNC | BGFX_RESET_HIDPI);
 	bgfx::reset(width, height, BGFX_RESET_VSYNC);
 }
