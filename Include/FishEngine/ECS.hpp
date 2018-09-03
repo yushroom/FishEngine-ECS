@@ -130,8 +130,7 @@ namespace ECS
 		template<class T>
 		T* GameObjectAddComponent(EntityID id)
 		{
-			GameObjectAddComponent(GetGameObjectByID(id));
-			return comp;
+			return GameObjectAddComponent<T>(GetGameObjectByID(id));
 		}
 		
 	//	void GameObjectSetParent(EntityID child, EntityID parent)

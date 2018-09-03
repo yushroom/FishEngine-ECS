@@ -3,8 +3,11 @@
 #include <sstream>
 #include <fstream>
 #include <cassert>
+#include <FishEngine/Assets.hpp>
 //#include <filesystem>
 //namespace fs = std::experimental::filesystem;
+
+#include <FishEngine/Texture.hpp>
 
 std::string ReadFileAsString(const std::string &path)
 {
@@ -28,8 +31,6 @@ void PUNTVertex::init()
 }
 
 bgfx::VertexDecl PUNTVertex::ms_decl;
-
-#define FISHENGINE_ROOT "D:\\program\\FishEngine-ECS\\"
 
 
 void Mesh::StaticInit()
@@ -116,8 +117,8 @@ Mesh* MeshUtil::FromGLTF(const char* filePath)
 	std::string err;
 	std::string warn;
 
-	//bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, filePath);
-	bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, filePath); // for binary glTF(.glb) 
+//	bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, filePath);
+	bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, filePath); // for binary glTF(.glb)
 
 	if (!warn.empty()) {
 		printf("Warn: %s\n", warn.c_str());
@@ -218,8 +219,9 @@ Mesh* MeshUtil::FromGLTF(const char* filePath)
 
 	auto ptr = indices_buffer.data.data();
 	ptr += indices_bufferView.byteOffset + indices_accessor.byteOffset;
+	auto byteLen = size * indices_accessor.count;
 
-	assert(indices_bufferView.byteLength == size * indices_accessor.count);
+	assert(indices_bufferView.byteLength >= size * indices_accessor.count);
 	assert(size == 2);
 
 	//if (indices_accessor.componentType == 5123)
@@ -239,8 +241,12 @@ Mesh* MeshUtil::FromGLTF(const char* filePath)
 	//}
 
 	mesh->m_IndexBuffer = bgfx::createIndexBuffer(
-		bgfx::copy(ptr, indices_bufferView.byteLength)
+		bgfx::copy(ptr, byteLen)
 	);
+	
+//	auto& img = model.images[0].image;
+////	auto tex = TextureUtils::LoadTextureFromMemory(img.data(), img.size());
+//	auto tex = loadTexture2(img.data(), img.size(), "from/gltf", BGFX_TEXTURE_NONE, nullptr, nullptr);
 
 	return mesh;
 }

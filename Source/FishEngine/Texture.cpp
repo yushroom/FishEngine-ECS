@@ -51,13 +51,20 @@ static void imageReleaseCb(void* _ptr, void* _userData)
 }
 
 
-bgfx::TextureHandle loadTexture(bx::FileReaderI* _reader, const char* _filePath, uint32_t _flags, uint8_t _skip, bgfx::TextureInfo* _info, bimg::Orientation::Enum* _orientation)
-{
-	BX_UNUSED(_skip);
-	bgfx::TextureHandle handle = BGFX_INVALID_HANDLE;
 
-	uint32_t size;
-	void* data = load(_reader, &s_allocator, _filePath, &size);
+bgfx::TextureHandle loadTexture2(void* data, uint32_t size,
+								const char* _filePath,
+								uint32_t _flags,
+//								uint8_t _skip,
+								bgfx::TextureInfo* _info,
+								bimg::Orientation::Enum* _orientation
+								)
+{
+//	BX_UNUSED(_skip);
+	bgfx::TextureHandle handle = BGFX_INVALID_HANDLE;
+//
+//	uint32_t size;
+//	void* data = load(_reader, &s_allocator, _filePath, &size);
 	if (NULL != data)
 	{
 		bimg::ImageContainer* imageContainer = bimg::imageParse(&s_allocator, data, size);
@@ -136,6 +143,19 @@ bgfx::TextureHandle loadTexture(bx::FileReaderI* _reader, const char* _filePath,
 
 	return handle;
 }
+
+
+bgfx::TextureHandle loadTexture(bx::FileReaderI* _reader, const char* _filePath, uint32_t _flags, uint8_t _skip, bgfx::TextureInfo* _info, bimg::Orientation::Enum* _orientation)
+{
+	BX_UNUSED(_skip);
+	//	bgfx::TextureHandle handle = BGFX_INVALID_HANDLE;
+	
+	uint32_t size;
+	void* data = load(_reader, &s_allocator, _filePath, &size);
+	
+	return loadTexture2(data, size, _filePath, _flags, _info, _orientation);
+}
+
 
 static bx::FileReader s_fileReader;
 

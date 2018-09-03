@@ -35,8 +35,10 @@ class PickingSystem : public ECS::ISystem
 public:
 	void OnAdded() override
 	{
+		auto vs = FISHENGINE_ROOT "ThirdParty\\bgfx\\examples\\runtime\\shaders\\glsl\\vs_picking_shaded.bin";
+		auto fs = FISHENGINE_ROOT "ThirdParty\\bgfx\\examples\\runtime\\shaders\\glsl\\fs_picking_id.bin";
 		// Set up ID buffer, which has a color target and depth buffer
-		m_idProgram = ShaderUtil::Compile(R"(D:\program\FishEngine-ECS\ThirdParty\bgfx\examples\runtime\shaders\glsl\vs_picking_shaded.bin)", R"(D:\program\FishEngine-ECS\ThirdParty\bgfx\examples\runtime\shaders\glsl\fs_picking_id.bin)");
+		m_idProgram = ShaderUtil::Compile(vs, fs);
 		m_pickingRT = bgfx::createTexture2D(ID_DIM, ID_DIM, false, 1, bgfx::TextureFormat::RGBA8, 0
 			| BGFX_TEXTURE_RT
 			| BGFX_SAMPLER_MIN_POINT
@@ -143,7 +145,7 @@ public:
 };
 
 
-class ModelViewer : public GameApp
+class demo1 : public GameApp
 {
 public:
 	void Start() override
@@ -226,7 +228,7 @@ private:
 
 int main(void)
 {
-	ModelViewer demo;
+	demo1 demo;
 	demo.Run();
 	return 0;
 }

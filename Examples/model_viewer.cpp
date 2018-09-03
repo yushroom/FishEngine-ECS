@@ -31,12 +31,12 @@ public:
 		{
 			auto go = m_Scene->CreateGameObject();
 			auto light = m_Scene->GameObjectAddComponent<Light>(go);
-			light->direction.z = 1;
 		}
 		
 		auto go = m_Scene->CreateGameObject();
 		Renderable* rend = m_Scene->GameObjectAddComponent<Renderable>(go);
 		rend->mesh = trex;
+//		go->GetTransform()->scale *= 100;
 
 		Material* mat = new Material();
 		mat->SetShader(m_Shader);

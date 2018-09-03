@@ -76,9 +76,8 @@ void RenderSystem::Draw()
 	Light* light = m_Scene->FindComponent<Light>();
 	if (light != nullptr)
 	{
-		//Vector3 lightPos = { 0, 0, -1 };
-		//Vector3 d = Vector3::Normalize(lightPos);
-		Vector3 d = Vector3::Normalize(light->direction);
+		Vector3 lightDir = -m_Scene->GetGameObjectByID(light->entityID)->GetTransform()->GetForward();
+		Vector3 d = Vector3::Normalize(lightDir);
 		bgfx::setUniform(renderState->m_UniformLightDir, &d);
 	}
 	
