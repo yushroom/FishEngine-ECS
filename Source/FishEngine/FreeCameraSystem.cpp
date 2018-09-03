@@ -42,14 +42,15 @@ void FreeCameraSystem::UpdateCameraTransform(SingletonInput* input, ECS::GameObj
 	else if (right)
 	{
 		type = ControlType::Rotate;
-		rotateCenter = t->position;
+		rotateCenter = t->GetPosition();
 	}
 
 	if (type == ControlType::Move)
 	{
 		float x = data->m_DragSpeed * input->GetAxis(Axis::MouseX);
 		float y = data->m_DragSpeed * input->GetAxis(Axis::MouseY);
-		t->Translate({ -x, y, 0 });
+		Vector3 translation = -x * t->GetRight() + y * t->GetUp();
+		t->Translate(translation, Space::World);
 	}
 	else if (type == ControlType::Rotate || type == ControlType::Orbit)
 	{
@@ -74,13 +75,13 @@ void FreeCameraSystem::UpdateCameraTransform(SingletonInput* input, ECS::GameObj
 			float y = data->m_DragSpeed * input->GetAxis(Axis::MouseY);
 			deltaZ = fabsf(x) > fabsf(y) ? x : -y;
 		}
-		t->Translate(deltaZ*forward);
+		t->Translate(deltaZ*forward, Space::World);
 	}
 	
 	if (input->IsButtonPressed(KeyCode::R))
 	{
-		t->position = {0, 0, -15};
-		t->rotation = Quaternion::identity;
+		t->SetLocalPosition(0, 0, -15);
+		t->SetLocalRotation(Quaternion::identity);
 	}
 }
 

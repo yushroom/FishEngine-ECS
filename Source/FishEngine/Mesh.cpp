@@ -29,17 +29,15 @@ void PUNTVertex::init()
 
 bgfx::VertexDecl PUNTVertex::ms_decl;
 
+#define FISHENGINE_ROOT "D:\\program\\FishEngine-ECS\\"
+
 
 void Mesh::StaticInit()
 {
 	PUNTVertex::init();
 	
-	Cube = MeshUtil::FromTextFile(ReadFileAsString("/Users/yushroom/program/FishEngine-Experiment/Assets/Models/Cube.txt"));
-	Sphere = MeshUtil::FromTextFile(ReadFileAsString("/Users/yushroom/program/FishEngine-Experiment/Assets/Models/Sphere.txt"));
-
-	//const char* test_path = R"(C:\Users\yuyunkang\AppData\Local\Temp\DefaultCompany\Unity\Unity2Skfb\Unity2Skfb.gltf)";
-	//const char* test_path = R"(D:\program\FishEngine-ECS\Assets\T-Rex.glb)";
-	//Sphere = MeshUtil::FromGLTF(test_path);
+	Cube = MeshUtil::FromTextFile(ReadFileAsString(FISHENGINE_ROOT "Assets/Models/Cube.txt"));
+	Sphere = MeshUtil::FromTextFile(ReadFileAsString(FISHENGINE_ROOT "Assets/Models/Sphere.txt"));
 }
 
 
@@ -54,41 +52,10 @@ Mesh* MeshUtil::FromTextFile(const String & str)
 	std::istringstream is(str);
 	auto mesh = new Mesh();
 	is >> mesh->m_vertexCount >> mesh->m_triangleCount;
-	//mesh->m_vertices.resize(mesh->m_vertexCount);
-	//mesh->m_normals.resize(mesh->m_vertexCount);
-	//mesh->m_uv.resize(mesh->m_vertexCount);
-	//mesh->m_tangents.resize(mesh->m_vertexCount);
-	//mesh->m_triangles.resize(mesh->m_triangleCount * 3);
+
 	mesh->vertices.resize(mesh->m_vertexCount);
 	mesh->indices.resize(mesh->m_triangleCount * 3);
 
-
-	//float vx, vy, vz;
-	//Vector3 vmin(Mathf::Infinity, Mathf::Infinity, Mathf::Infinity);
-	//Vector3 vmax(Mathf::NegativeInfinity, Mathf::NegativeInfinity, Mathf::NegativeInfinity);
-	//for (uint32_t i = 0; i < mesh->m_vertexCount; ++i)
-	//{
-	//	is >> vx >> vy >> vz;
-	//	if (vmin.x > vx) vmin.x = vx;
-	//	if (vmin.y > vy) vmin.y = vy;
-	//	if (vmin.z > vz) vmin.z = vz;
-	//	if (vmax.x < vx) vmax.x = vx;
-	//	if (vmax.y < vy) vmax.y = vy;
-	//	if (vmax.z < vz) vmax.z = vz;
-	//	auto & v = mesh->m_vertices[i];
-	//	v.x = vx;
-	//	v.y = vy;
-	//	v.z = vz;
-	//}
-	//mesh->m_bounds.SetMinMax(vmin, vmax);
-	//for (auto & f : mesh->m_normals)
-	//	is >> f.x >> f.y >> f.z;
-	//for (auto & f : mesh->m_uv)
-	//	is >> f.x >> f.y;
-	//for (auto & f : mesh->m_tangents)
-	//	is >> f.x >> f.y >> f.z;
-	//for (auto & f : mesh->m_triangles)
-	//	is >> f;
 	for (auto & v : mesh->vertices)
 		is >> v.position.x >> v.position.y >> v.position.z;
 	for (auto & v : mesh->vertices)

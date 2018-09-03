@@ -54,12 +54,6 @@ void RenderSystem::Start()
 
 void RenderSystem::Draw()
 {
-	// This dummy draw call is here to make sure that view 0 is cleared
-	// if no other draw calls are submitted to view 0.
-	//bgfx::touch(0);
-	
-
-
 	Camera* camera = m_Scene->FindComponent<Camera>();
 	if (camera == nullptr)
 		return;
@@ -67,7 +61,7 @@ void RenderSystem::Draw()
 	Matrix4x4 view;
 	{
 		auto go = m_Scene->GetGameObjectByID(camera->entityID);
-		auto& p = go->GetTransform()->position;
+		auto p = go->GetTransform()->GetPosition();
 		cameraPos[0] = p.x;
 		cameraPos[1] = p.y;
 		cameraPos[2] = p.z;
@@ -93,8 +87,9 @@ void RenderSystem::Draw()
 	float height = (float)GameApp::GetMainApp()->GetHeight();
 	float ratio = width / height;
 	float proj[16];
-	bx::mtxProj(proj, 60.0f, ratio, 0.1f, 100.0f, bgfx::getCaps()->homogeneousDepth);
+	bx::mtxProj(proj, 60.0f, ratio, camera->m_NearClipPlane, camera->m_FarClipPlane, bgfx::getCaps()->homogeneousDepth);
 	bgfx::setViewTransform(0, view.data(), proj);
+	bgfx::setViewTransform(1, view.data(), proj);
 	
 	// draw skybox first
 	auto old_state = renderState->m_State;

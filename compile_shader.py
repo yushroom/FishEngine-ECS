@@ -3,14 +3,18 @@ import os
 
 shader_src_dir = "./Shaders"
 out_dir = './Shaders/runtime'
-shaderc = "../github/bgfx/.build/osx64_clang/bin/shadercDebug"
+# shaderc = "./ThirdParty/bgfx/.build/osx64_clang/bin/shadercDebug"
+shaderc = "./ThirdParty/bgfx/.build/win64_vs2017/bin/shadercDebug.exe"
 
-include_paths = ["../github/bgfx/src", "./Shaders/include"]
+include_paths = ["./ThirdParty/bgfx/src", "./Shaders/include"]
 
 headers = ' '.join(['-i ' + x for x in include_paths])
 
 platform = 'osx'
-profile = 150
+profile = '150'
+
+if not os.path.exists(out_dir):
+	os.mkdir(out_dir)
 
 for shader_file in glob(os.path.join(shader_src_dir, "*.shader")):
     print(f'compile {shader_file}...')
@@ -19,7 +23,8 @@ for shader_file in glob(os.path.join(shader_src_dir, "*.shader")):
     for ext, shader_type, define in [('_vs.bin', 'vertex', 'VERTEX'), ('_fs.bin', 'fragment', 'FRAGMENT')]:
         compiled_shader_file = os.path.join(out_dir, bn + ext)
         cmd = f"{shaderc} {headers} --verbose -f {shader_file} -o {compiled_shader_file} --platform {platform} --type {shader_type} --define {define} --profile {profile}"
-        # print(cmd)
+        cmd = cmd.replace('/', '\\')
+        print(cmd)
         os.system(cmd)
 
 # /Users/yushroom/program/github/bgfx/.build/osx64_clang/bin/shadercDebug -i /Users/yushroom/program/github/bgfx/src -i /Users/yushroom/program/FishEngine/Engine/Shaders/include 

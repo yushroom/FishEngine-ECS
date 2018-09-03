@@ -14,6 +14,7 @@ namespace ECS
 {
 
 	class Scene;
+	class GameObject;
 
 	using EntityID = uint32_t;
 
@@ -36,9 +37,14 @@ namespace ECS
 		{
 			return dynamic_cast<T*>(this);
 		}
+
+		inline Transform* GetTransform() const;
 		
 	protected:
 		Component() = default;
+
+		// temp
+		GameObject* m_GameObject = nullptr;
 	};
 
 
@@ -63,16 +69,19 @@ namespace ECS
 		EntityID GetID() const { return ID; }
 		
 		Transform* GetTransform() const { return m_Transform; }
-		EntityID GetParentID() const { return m_ParentID; }
+		//EntityID GetParentID() const { return m_ParentID; }
 		
+		Scene* GetScene() { return m_Scene; }
+
 	protected:
 		GameObject(EntityID entityID, Scene* scene);
 
 	protected:
 		std::vector<Component*> m_Components;
 		Transform* m_Transform = nullptr;
-		EntityID m_ParentID = 0;
-		int m_RootOrder = 0;		// index in parent's children array
+		//EntityID m_ParentID = 0;
+		//int m_RootOrder = 0;		// index in parent's children array
+		Scene* m_Scene = nullptr;
 	private:
 		EntityID ID;
 	};
@@ -105,7 +114,8 @@ namespace ECS
 	class Scene
 	{
 	public:
-		EntityID CreateGameObject();
+		//EntityID CreateGameObject();
+		GameObject* CreateGameObject();
 		
 		template<class T>
 		T* GameObjectAddComponent(GameObject* go)
@@ -113,25 +123,23 @@ namespace ECS
 			T* comp = T::Create();
 			go->m_Components.push_back(comp);
 			comp->entityID = go->ID;
+			comp->m_GameObject = go;
 			return comp;
 		}
 		
 		template<class T>
 		T* GameObjectAddComponent(EntityID id)
 		{
-			T* comp = T::Create();
-			auto go = m_GameObjects[id];
-			go->m_Components.push_back(comp);
-			comp->entityID = id;
+			GameObjectAddComponent(GetGameObjectByID(id));
 			return comp;
 		}
 		
-		void GameObjectSetParent(EntityID child, EntityID parent)
-		{
-			auto c = GetGameObjectByID(child);
-	//		auto p = GetGameObjectByID(parent);
-			c->m_ParentID = parent;
-		}
+	//	void GameObjectSetParent(EntityID child, EntityID parent)
+	//	{
+	//		auto c = GetGameObjectByID(child);
+	////		auto p = GetGameObjectByID(parent);
+	//		c->m_ParentID = parent;
+	//	}
 		
 		void All(std::function<void(GameObject*)> func)
 		{
@@ -267,6 +275,13 @@ namespace ECS
 				return nullptr;
 			return it->second;
 		}
+
+
+		bool m_Cleaning = false;
+		std::vector<Transform*> m_RootTransforms;
+		const auto& GetRootTransforms() { return m_RootTransforms; }
+		void AddRootTransform(Transform* t);
+		void RemoveRootTransform(Transform* t);
 		
 	protected:
 		std::unordered_map<EntityID, GameObject*> m_GameObjects;
@@ -276,5 +291,13 @@ namespace ECS
 	private:
 		EntityID m_LastEntityID = 0;
 	};
+
+
+	// inline
+
+	Transform* ECS::Component::GetTransform() const
+	{
+		return m_GameObject->GetTransform();
+	}
 
 } // namespace ECS

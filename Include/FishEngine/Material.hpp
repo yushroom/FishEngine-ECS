@@ -46,10 +46,12 @@ public:
 	
 	void SetVector(const std::string& name, const Vector4& value)
 	{
+		assert(m_UniformInfos.find(name) != m_UniformInfos.end());
 		m_MaterialProperties.vec4s[name] = value;
 	}
 	void SetTexture(const std::string& name, bgfx::TextureHandle value)
 	{
+		assert(m_UniformInfos.find(name) != m_UniformInfos.end());
 		m_MaterialProperties.textures[name] = value;
 	}
 	

@@ -8,15 +8,14 @@ class TransformSystem : public ECS::ISystem
 public:
 	void Update() override
 	{
-		m_Scene->All([this](ECS::GameObject* go){
-			auto parentID = go->GetParentID();
-			Transform* t = go->GetTransform();
-			t->m_LocalToWorldMatrix = Matrix4x4::TRS(t->position, t->rotation, t->scale);
-			if (parentID != 0)
-			{
-				ECS::GameObject* parent = m_Scene->GetGameObjectByID(parentID);
-				t->m_LocalToWorldMatrix = parent->GetTransform()->GetLocalToWorldMatrix() * t->m_LocalToWorldMatrix;
-			}
-		});
+	//	m_Scene->All([this](ECS::GameObject* go){
+	//		Transform* t = go->GetTransform();
+	//		Transform* parent = t->GetParent();
+	//		t->m_LocalToWorldMatrix = Matrix4x4::TRS(t->m_, t->rotation, t->scale);
+	//		if (parent != nullptr)
+	//		{
+	//			t->m_LocalToWorldMatrix = parent->GetLocalToWorldMatrix() * t->m_LocalToWorldMatrix;
+	//		}
+	//	});
 	}
 };

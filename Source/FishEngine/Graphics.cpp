@@ -7,7 +7,7 @@
 
 #include "FishEngine/GameApp.hpp"
 
-void Graphics::DrawMesh(Mesh* mesh, const Matrix4x4& matrix, Material* material)
+void Graphics::DrawMesh(Mesh* mesh, const Matrix4x4& matrix, Material* material, bgfx::ViewId id)
 {
 	if (mesh == nullptr || material == nullptr)
 		return;
@@ -25,5 +25,5 @@ void Graphics::DrawMesh(Mesh* mesh, const Matrix4x4& matrix, Material* material)
 	material->BindUniforms();
 	
 	// Submit primitive for rendering to view 0.
-	bgfx::submit(0, material->GetShader()->GetProgram());
+	bgfx::submit(id, material->GetShader()->GetProgram());
 }

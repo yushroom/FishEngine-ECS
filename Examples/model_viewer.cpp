@@ -8,35 +8,34 @@
 #include <FishEngine/Components/Renderable.hpp>
 #include <FishEngine/Systems/FreeCameraSystem.hpp>
 #include <FishEngine/Components/SingletonInput.hpp>
-
+#include <FishEngine/Assets.hpp>
 
 class ModelViewer : public GameApp
 {
 public:
 	void Start() override
 	{
-		auto vs = "/Users/yushroom/program/FishEngine-ECS/Shaders/runtime/PBR_vs.bin";
-		auto fs = "/Users/yushroom/program/FishEngine-ECS/Shaders/runtime/PBR_fs.bin";
+		auto vs = FISHENGINE_ROOT "Shaders/runtime/PBR_vs.bin";
+		auto fs = FISHENGINE_ROOT "Shaders/runtime/PBR_fs.bin";
 		m_Shader = ShaderUtil::Compile(vs, fs);
 		
-		const char* test_path = "/Users/yushroom/program/FishEngine-ECS/Assets/Models/T-Rex.glb";
+		const char* test_path = FISHENGINE_ROOT "Assets/Models/T-Rex.glb";
 		Mesh* trex = MeshUtil::FromGLTF(test_path);
 
 		{
-			ECS::EntityID goID = m_Scene->CreateGameObject();
-			auto camera = m_Scene->GameObjectAddComponent<Camera>(goID);
-			auto go = m_Scene->GetGameObjectByID(goID);
-			go->GetTransform()->position.Set(0, 0, -10);
-			m_Scene->GameObjectAddComponent<FreeCamera>(goID);
+			auto go = m_Scene->CreateGameObject();
+			m_Scene->GameObjectAddComponent<Camera>(go);
+			go->GetTransform()->SetLocalPosition(0, 1, -10);
+			m_Scene->GameObjectAddComponent<FreeCamera>(go);
 		}
 		{
-			ECS::EntityID goID = m_Scene->CreateGameObject();
-			auto light = m_Scene->GameObjectAddComponent<Light>(goID);
+			auto go = m_Scene->CreateGameObject();
+			auto light = m_Scene->GameObjectAddComponent<Light>(go);
 			light->direction.z = 1;
 		}
 		
-		ECS::EntityID goID = m_Scene->CreateGameObject();
-		Renderable* rend = m_Scene->GameObjectAddComponent<Renderable>(goID);
+		auto go = m_Scene->CreateGameObject();
+		Renderable* rend = m_Scene->GameObjectAddComponent<Renderable>(go);
 		rend->mesh = trex;
 
 		Material* mat = new Material();
