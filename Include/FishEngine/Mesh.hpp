@@ -33,7 +33,8 @@ public:
 
 	void Bind();
 
-private:
+//private:
+public:
 	uint32_t m_vertexCount = 0;
 	uint32_t m_triangleCount = 0;
 	int						m_subMeshCount = 1;
@@ -48,10 +49,33 @@ private:
 	std::vector<uint16_t> indices;
 };
 
+namespace ECS
+{
+	class GameObject;
+	class Scene;
+}
+
 
 class MeshUtil : public Static
 {
 public:
 	static Mesh* FromTextFile(const String & str);
-	static Mesh* FromGLTF(const char* filePath);
+	
 };
+
+#include <tiny_gltf.h>
+
+struct Model
+{
+	std::vector<ECS::GameObject*> nodes;
+	std::vector<Mesh*> meshes;
+	tinygltf::Model gltfModel;
+};
+
+
+class ModelUtil : public Static
+{
+public:
+	static Model FromGLTF(const char* filePath, ECS::Scene* scene);
+};
+
