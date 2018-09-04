@@ -42,6 +42,13 @@ public:
 				}
 			}
 		});
+
+		m_Scene->ForEach<Renderable>([](ECS::GameObject* go, Renderable* r) {
+			auto mesh = r->mesh;
+			if (mesh->IsSkinned())
+			{
+			}
+		});
 	}
 };
 

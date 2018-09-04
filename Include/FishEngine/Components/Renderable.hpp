@@ -1,5 +1,6 @@
 #pragma once
 #include "FishEngine/ECS.hpp"
+#include <FishEngine/Mesh.hpp>
 
 class Material;
 class Mesh;
@@ -11,6 +12,7 @@ class Renderable : public ECS::Component
 public:
 	Material* material = nullptr;
 	Mesh* mesh = nullptr;
+	Skin* skin = nullptr;
 };
 
 

@@ -100,8 +100,8 @@ void GetVector3(
 	const tinygltf::Accessor& accessor
 )
 {
-	int offset = accessor.byteOffset + bufferView.byteOffset;
-	int stride = bufferView.byteStride == 0 ? sizeof(Vector3) : bufferView.byteStride;
+	size_t offset = accessor.byteOffset + bufferView.byteOffset;
+	size_t stride = bufferView.byteStride == 0 ? sizeof(Vector3) : bufferView.byteStride;
 	offset += stride * idx;
 	auto ptr = buffer.data.data() + offset;
 	memcpy(&v, ptr, sizeof(Vector3));
@@ -130,7 +130,7 @@ void LoadBuffer(const tinygltf::Model& model, int accessorID, std::vector<float>
 		abort();
 	out_buffer.resize(accessor.count * s);
 	
-	int offset = accessor.byteOffset + bufferView.byteOffset;
+	size_t offset = accessor.byteOffset + bufferView.byteOffset;
 	auto ptr = buffer.data.data() + offset;
 	memcpy(out_buffer.data(), ptr, accessor.count * s * sizeof(float));
 }
@@ -151,7 +151,7 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 		else if (pair.first == "JOINTS_0")
 			withJoints = true;
 		else if (pair.first == "WEIGHTS_0")
-			withJoints = true;
+			withWeights = true;
 	}
 	
 	int id = primitive.attributes["POSITION"];
@@ -202,10 +202,43 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 
 	if (withJoints)
 	{
+		mesh->joints.resize(mesh->m_vertexCount);
 		id = primitive.attributes["JOINTS_0"];
 		auto& accessor = model.accessors[id];
-		auto& 
+		auto& bufferView = model.bufferViews[accessor.bufferView];
+		auto& buffer = model.buffers[bufferView.buffer];
+
+		assert(accessor.componentType == 5123);		// unsigned short
+		assert(accessor.count == mesh->m_vertexCount);
+
+		int offset = accessor.byteOffset + bufferView.byteOffset;
+		auto ptr = buffer.data.data() + offset;
+		auto p = (unsigned short*)ptr;
+		for (int i = 0; i < accessor.count; ++i)
+		{
+			mesh->joints[i].x = *p; ++p;
+			mesh->joints[i].y = *p; ++p;
+			mesh->joints[i].z = *p; ++p;
+			mesh->joints[i].w = *p; ++p;
+		}
 	}
+
+	if (withWeights)
+	{
+		mesh->weights.resize(mesh->m_vertexCount);
+		id = primitive.attributes["WEIGHTS_0"];
+		auto& accessor = model.accessors[id];
+		auto& bufferView = model.bufferViews[accessor.bufferView];
+		auto& buffer = model.buffers[bufferView.buffer];
+
+		assert(accessor.componentType == 5126);		// float
+		assert(accessor.count == mesh->m_vertexCount);
+
+		int offset = accessor.byteOffset + bufferView.byteOffset;
+		auto ptr = buffer.data.data() + offset;
+		memcpy(mesh->weights.data(), ptr, accessor.count * 4 * sizeof(float));
+	}
+	
 	
 	//assert(mesh->indices.size() * sizeof())
 	//memcpy(mesh->indices.data(), ptr, indices_bufferView.byteLength);
@@ -313,12 +346,24 @@ void ImportSkin(Skin* skin, const tinygltf::Skin& gltf_skin, const tinygltf::Mod
 	if (gltf_skin.skeleton > 0)
 		skin->root = gos[gltf_skin.skeleton];
 	skin->joints.reserve(gltf_skin.joints.size());
+	skin->inverseBindMatrices.resize(gltf_skin.joints.size());
 	for (int id : gltf_skin.joints)
 	{
 		skin->joints.push_back(gos[id]);
 	}
 	auto& accessor = model.accessors[gltf_skin.inverseBindMatrices];
 	assert(accessor.type == TINYGLTF_TYPE_MAT4);
+	auto& bufferView = model.bufferViews[accessor.bufferView];
+	auto& buffer = model.buffers[bufferView.buffer];
+
+	assert(accessor.componentType == 5126);		// float
+
+	int offset = accessor.byteOffset + bufferView.byteOffset;
+	auto ptr = buffer.data.data() + offset;
+	memcpy(skin->inverseBindMatrices.data(), ptr, accessor.count * 16 * sizeof(float));
+
+	for (auto& m : skin->inverseBindMatrices)
+		m = m.transpose();
 }
 
 Model ModelUtil::FromGLTF(const char* filePath, ECS::Scene* scene)
@@ -346,6 +391,8 @@ Model ModelUtil::FromGLTF(const char* filePath, ECS::Scene* scene)
 		abort();
 	}
 
+	model.rootGameObject = scene->CreateGameObject();
+
 	// load all meshes
 	for (int i = 0; i < gltf_model.meshes.size(); ++i)
 	{
@@ -360,11 +407,6 @@ Model ModelUtil::FromGLTF(const char* filePath, ECS::Scene* scene)
 	{
 		auto go = scene->CreateGameObject();
 		model.nodes.push_back(go);
-		if (node.mesh >= 0)
-		{
-			Renderable* r = scene->GameObjectAddComponent<Renderable>(go);
-			r->mesh = model.meshes[node.mesh];
-		}
 
 		go->m_Name = node.name;
 
@@ -407,13 +449,49 @@ Model ModelUtil::FromGLTF(const char* filePath, ECS::Scene* scene)
 		}
 	}
 
+	// load animations
+	if (gltf_model.animations.size() > 0)
+	{
+		auto& anim = gltf_model.animations[0];
+		Animation* animation = scene->GameObjectAddComponent<Animation>(model.rootGameObject);
+		ImportAnimator(animation, anim, gltf_model, model.nodes);
+	}
+
+	// load skins
+	if (gltf_model.skins.size() > 0)
+	{
+		model.skins.reserve(gltf_model.skins.size());
+		for (auto& gltf_skin : gltf_model.skins)
+		{
+			Skin* skin = new Skin();
+			model.skins.push_back(skin);
+			ImportSkin(skin, gltf_skin, gltf_model, model.nodes);
+		}
+	}
+
+
+	for (int i = 0; i < gltf_model.nodes.size(); ++i)
+	{
+		auto& node = gltf_model.nodes[i];
+		auto go = model.nodes[i];
+		if (node.mesh >= 0)
+		{
+			Renderable* r = scene->GameObjectAddComponent<Renderable>(go);
+			r->mesh = model.meshes[node.mesh];
+
+			if (node.skin >= 0)
+			{
+				r->skin = model.skins[node.skin];
+			}
+		}
+	}
 
 //	auto& img = model.images[0].image;
 ////	auto tex = TextureUtils::LoadTextureFromMemory(img.data(), img.size());
 //	auto tex = loadTexture2(img.data(), img.size(), "from/gltf", BGFX_TEXTURE_NONE, nullptr, nullptr);
 
 	// set transform parent
-	model.rootGameObject = scene->CreateGameObject();
+	
 	auto& defaultScene = gltf_model.scenes[gltf_model.defaultScene];
 	for (int nodeID = 0; nodeID < gltf_model.nodes.size(); ++nodeID)
 	{
@@ -432,19 +510,6 @@ Model ModelUtil::FromGLTF(const char* filePath, ECS::Scene* scene)
 		go->GetTransform()->SetParent(rootT);
 	}
 
-	if (gltf_model.animations.size() > 0)
-	{
-		auto& anim = gltf_model.animations[0];
-		Animation* animation = scene->GameObjectAddComponent<Animation>(model.rootGameObject);
-		ImportAnimator(animation, anim, gltf_model, model.nodes);
-	}
-
-	if (gltf_model.skins.size() > 0)
-	{
-		auto& gltf_skin = gltf_model.skins[0];
-		Skin* skin = scene->GameObjectAddComponent<Skin>(model.rootGameObject);	// TODO
-		ImportSkin(skin, gltf_skin, gltf_model, model.nodes);
-	}
 
 	return model;
 }

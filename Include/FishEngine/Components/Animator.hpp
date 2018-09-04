@@ -88,13 +88,3 @@ public:
 	std::vector<AnimationCurve> curves;
 	float length = 0;
 };
-
-class Skin : public ECS::Component
-{
-	COMPONENT(Skin);
-public:
-	std::vector<Matrix4x4> inverseBindMatrices;
-	ECS::GameObject* root = nullptr;
-	std::vector<ECS::GameObject*> joints;
-	std::string name;
-};

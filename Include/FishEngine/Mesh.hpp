@@ -32,14 +32,16 @@ public:
 	std::vector<FishEngine::Int4> joints;
 	std::vector<Vector4> weights;
 
-	
+
 	inline static Mesh* Cube = nullptr;
 	inline static Mesh* Sphere = nullptr;
 	inline static Mesh* Bunny = nullptr;
-	
+
 	static void StaticInit();
 
 	void Bind();
+
+	bool IsSkinned() const { return joints.size() > 0; }
 
 //private:
 public:
@@ -73,11 +75,22 @@ public:
 
 #include <tiny_gltf.h>
 
+class Skin
+{
+	//COMPONENT(Skin);
+public:
+	std::vector<Matrix4x4> inverseBindMatrices;
+	ECS::GameObject* root = nullptr;
+	std::vector<ECS::GameObject*> joints;
+	std::string name;
+};
+
 struct Model
 {
 	ECS::GameObject* rootGameObject = nullptr;
 	std::vector<ECS::GameObject*> nodes;
 	std::vector<Mesh*> meshes;
+	std::vector<Skin*> skins;
 	tinygltf::Model gltfModel;
 };
 
