@@ -16,6 +16,7 @@ SingletonRenderState::SingletonRenderState()
 {
 	m_UniformLightDir = bgfx::createUniform("lightDir", bgfx::UniformType::Vec4);
 	m_UniformCameraPos = bgfx::createUniform("CameraPos", bgfx::UniformType::Vec4);
+	m_UniformJointMatrix = bgfx::createUniform("u_jontMatrix", bgfx::UniformType::Vec4, 128);
 }
 
 
@@ -100,10 +101,57 @@ void RenderSystem::Draw()
 	});
 	renderState->m_State = old_state;
 
-	m_Scene->ForEach<Renderable>([](ECS::GameObject* go, Renderable* rend)
+//	m_Scene->ForEach<Renderable>([](ECS::GameObject* go, Renderable* rend)
+//	{
+//		auto& mtx = go->GetTransform()->GetLocalToWorldMatrix();
+//		Graphics::DrawMesh(rend->mesh, mtx, rend->material);
+//	});
+	
+	Matrix4x4 u_jointMatrix[64];
+	
+	m_Scene->ForEach<Renderable>([&u_jointMatrix](ECS::GameObject* go, Renderable* r)
 	{
+		auto mesh = r->mesh;
+		if (mesh->IsSkinned())
+		{
+			auto worldToObject = r->skin->root->GetTransform()->GetWorldToLocalMatrix();
+//			auto worldToObject = Matrix4x4::identity;
+			for (int i = 0; i < r->skin->joints.size(); ++i)
+			{
+				u_jointMatrix[i] =  worldToObject *
+									r->skin->joints[i]->GetTransform()->GetLocalToWorldMatrix() *
+									r->skin->inverseBindMatrices[i];
+			}
+			
+			// cpu skinning
+			mesh->m_DynamicVertices = mesh->vertices;
+			for (int i = 0; i < mesh->vertices.size(); ++i)
+			{
+				const Vector4& a_weight = mesh->weights[i];
+				const auto& a_joint = mesh->joints[i];
+				Matrix4x4 skinMatrix = a_weight.x * u_jointMatrix[a_joint.x];
+				skinMatrix += a_weight.y * u_jointMatrix[a_joint.y];
+				skinMatrix += a_weight.z * u_jointMatrix[a_joint.z];
+				skinMatrix += a_weight.w * u_jointMatrix[a_joint.w];
+				auto& dv = mesh->m_DynamicVertices[i];
+				auto& v = mesh->vertices[i];
+				dv.position = skinMatrix.MultiplyPoint3x4(v.position);
+				dv.normal = skinMatrix.MultiplyVector(v.normal);
+			}
+			
+			auto mem = bgfx::makeRef(mesh->m_DynamicVertices.data(), sizeof(PUNTVertex)*mesh->vertices.size());
+			if (!bgfx::isValid(mesh->m_DynamicVertexBuffer))
+			{
+				mesh->m_DynamicVertexBuffer = bgfx::createDynamicVertexBuffer(mem, PUNTVertex::ms_decl);
+			}
+			else
+			{
+				bgfx::update(mesh->m_DynamicVertexBuffer, 0, mem);
+			}
+		}
+		
 		auto& mtx = go->GetTransform()->GetLocalToWorldMatrix();
-		Graphics::DrawMesh(rend->mesh, mtx, rend->material);
+		Graphics::DrawMesh(r->mesh, mtx, r->material);
 	});
 	
 #if 0

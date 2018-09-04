@@ -101,6 +101,7 @@ namespace FishEngine
 		void             operator+=(const Matrix4x4& rhs);	// element-wise +
 		void             operator*=(const Matrix4x4& rhs);
 		friend Matrix4x4 operator* (const Matrix4x4& lhs, const float rhs);
+		friend Matrix4x4 operator* (const float lhs, const Matrix4x4& rhs);
 		friend Matrix4x4 operator* (const Matrix4x4& lhs, const Matrix4x4& rhs);
 		friend Vector4   operator* (const Matrix4x4& lhs, const Vector4&   rhs);
 		friend bool      operator==(const Matrix4x4& lhs, const Matrix4x4& rhs);

@@ -23,7 +23,8 @@ public:
 	void Update() override
 	{
 		float time = glfwGetTime();
-		m_Scene->ForEach<Animation>([time](ECS::GameObject* go, Animation* animation) {
+		m_Scene->ForEach<Animation>([time](ECS::GameObject* go, Animation* animation)
+		{
 			float tt = time;
 			while (tt > animation->length)
 				tt -= animation->length;
@@ -40,13 +41,11 @@ public:
 					Quaternion q = curve.SampleQuat(tt, Quaternion::identity);
 					t->SetLocalRotation(q);
 				}
-			}
-		});
-
-		m_Scene->ForEach<Renderable>([](ECS::GameObject* go, Renderable* r) {
-			auto mesh = r->mesh;
-			if (mesh->IsSkinned())
-			{
+				else if (curve.type == AnimationCurveType::Scale)
+				{
+					Vector3 s = curve.SampleVector3(tt, Vector3::one);
+					t->SetLocalScale(s);
+				}
 			}
 		});
 	}
@@ -61,14 +60,15 @@ public:
 		auto fs = FISHENGINE_ROOT "Shaders/runtime/PBR_fs.bin";
 		m_Shader = ShaderUtil::Compile(vs, fs);
 
-		//const char* test_path = FISHENGINE_ROOT "Assets/Models/T-Rex.glb";
-		auto test_path = R"(D:\program\glTF-Sample-Models\2.0\CesiumMan\glTF-Binary\CesiumMan.glb)";
+		const char* test_path = FISHENGINE_ROOT "Assets/Models/T-Rex.glb";
+//		auto test_path = R"(D:\program\glTF-Sample-Models\2.0\CesiumMan\glTF-Binary\CesiumMan.glb)";
+//		auto test_path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/RiggedSimple/glTF-Binary/RiggedSimple.glb";
 		Model model = ModelUtil::FromGLTF(test_path, m_Scene);
 
 		{
 			auto go = m_Scene->CreateGameObject();
 			m_Scene->GameObjectAddComponent<Camera>(go);
-			go->GetTransform()->SetLocalPosition(0, 1, -10);
+			go->GetTransform()->SetLocalPosition(0, 0, -5);
 			m_Scene->GameObjectAddComponent<FreeCamera>(go);
 		}
 		{
@@ -101,7 +101,7 @@ public:
 		}
 
 		model.rootGameObject->GetTransform()->SetLocalEulerAngles(-90, -90, 0);
-		//model.rootGameObject->GetTransform()->SetLocalScale(100);
+//		model.rootGameObject->GetTransform()->SetLocalScale(100);
 
 		m_Scene->AddSystem(new FreeCameraSystem());
 		m_Scene->AddSystem(new AnimationSystem());

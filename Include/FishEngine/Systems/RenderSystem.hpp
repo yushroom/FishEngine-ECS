@@ -16,6 +16,7 @@ protected:
 private:
 	bgfx::UniformHandle m_UniformLightDir;
 	bgfx::UniformHandle m_UniformCameraPos;
+	bgfx::UniformHandle m_UniformJointMatrix;
 	uint64_t m_State = 0;
 };
 

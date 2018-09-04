@@ -178,6 +178,11 @@ namespace FishEngine
 		}
 		return ret;
 	}
+	
+	inline Matrix4x4 operator* (const float lhs, const Matrix4x4& rhs)
+	{
+		return rhs * lhs;
+	}
 
 
 	inline void Matrix4x4::operator*=(const Matrix4x4& rhs)

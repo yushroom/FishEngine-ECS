@@ -28,6 +28,10 @@ class Mesh : public Object
 public:
 	bgfx::IndexBufferHandle m_IndexBuffer;
 	bgfx::VertexBufferHandle m_VertexBuffer;
+	
+	// for cpu skinning
+	bgfx::DynamicVertexBufferHandle m_DynamicVertexBuffer = BGFX_INVALID_HANDLE;
+	std::vector<PUNTVertex> m_DynamicVertices;
 
 	std::vector<FishEngine::Int4> joints;
 	std::vector<Vector4> weights;

@@ -44,7 +44,10 @@ void Mesh::StaticInit()
 
 void Mesh::Bind()
 {
-	bgfx::setVertexBuffer(0, m_VertexBuffer);
+	if (IsSkinned())
+		bgfx::setVertexBuffer(0, m_DynamicVertexBuffer);
+	else
+		bgfx::setVertexBuffer(0, m_VertexBuffer);
 	bgfx::setIndexBuffer(m_IndexBuffer);
 }
 
@@ -208,18 +211,36 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 		auto& bufferView = model.bufferViews[accessor.bufferView];
 		auto& buffer = model.buffers[bufferView.buffer];
 
-		assert(accessor.componentType == 5123);		// unsigned short
 		assert(accessor.count == mesh->m_vertexCount);
 
 		int offset = accessor.byteOffset + bufferView.byteOffset;
 		auto ptr = buffer.data.data() + offset;
-		auto p = (unsigned short*)ptr;
-		for (int i = 0; i < accessor.count; ++i)
+		
+		if (accessor.componentType == 5123)	// unsigned short
 		{
-			mesh->joints[i].x = *p; ++p;
-			mesh->joints[i].y = *p; ++p;
-			mesh->joints[i].z = *p; ++p;
-			mesh->joints[i].w = *p; ++p;
+			auto p = (unsigned short*)ptr;
+			for (int i = 0; i < accessor.count; ++i)
+			{
+				mesh->joints[i].x = *p; ++p;
+				mesh->joints[i].y = *p; ++p;
+				mesh->joints[i].z = *p; ++p;
+				mesh->joints[i].w = *p; ++p;
+			}
+		}
+		else if (accessor.componentType == 5121)	// unsigned byte
+		{
+			auto p = (unsigned char*)ptr;
+			for (int i = 0; i < accessor.count; ++i)
+			{
+				mesh->joints[i].x = *p; ++p;
+				mesh->joints[i].y = *p; ++p;
+				mesh->joints[i].z = *p; ++p;
+				mesh->joints[i].w = *p; ++p;
+			}
+		}
+		else
+		{
+			abort();
 		}
 	}
 
@@ -323,7 +344,7 @@ void ImportAnimator(Animation* animation, const tinygltf::Animation& anim, const
 
 		auto& inputAccessor = model.accessors[sampler.input];
 		float maxtime = inputAccessor.maxValues[0];
-		animation->length = max(animation->length, maxtime);
+		animation->length = fmax(animation->length, maxtime);
 		
 		LoadBuffer(model, sampler.input, curve.input);
 		LoadBuffer(model, sampler.output, curve.output);
