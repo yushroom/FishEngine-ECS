@@ -58,7 +58,11 @@ Mesh* MeshUtil::FromTextFile(const String & str)
 	mesh->indices.resize(mesh->m_triangleCount * 3);
 
 	for (auto & v : mesh->vertices)
+	{
 		is >> v.position.x >> v.position.y >> v.position.z;
+		//v.position.x *= -1;
+		v.position /= 20;
+	}
 	for (auto & v : mesh->vertices)
 		is >> v.normal.x >> v.normal.y >> v.normal.z;
 	for (auto & v : mesh->vertices)
@@ -138,10 +142,16 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 	auto& primitive = gltf_mesh.primitives[0];
 	
 	bool withTangent = false;
+	bool withJoints = false;
+	bool withWeights = false;
 	for (auto& pair : primitive.attributes)
 	{
 		if (pair.first == "TANGENT")
 			withTangent = true;
+		else if (pair.first == "JOINTS_0")
+			withJoints = true;
+		else if (pair.first == "WEIGHTS_0")
+			withJoints = true;
 	}
 	
 	int id = primitive.attributes["POSITION"];
@@ -154,7 +164,6 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 	auto& normal_accessor	= model.accessors[id];
 	auto& normal_bufferView = model.bufferViews[normal_accessor.bufferView];
 	auto& normal_buffer = model.buffers[normal_bufferView.buffer];
-	
 	
 	
 	auto& indices_accessor = model.accessors[primitive.indices];
@@ -173,7 +182,8 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 		GetVector3(v.position, i, position_buffer, position_bufferView, position_accessor);
 		GetVector3(v.normal, i, normal_buffer, normal_bufferView, normal_accessor);
 		//GetVector3(v.tangent, i, tangent_buffer, tangent_bufferView, tangent_accessor);
-		v.position *= 0.01f;
+		//v.position *= 0.01f;
+		//v.position.x = -v.position.x;
 	}
 	
 	if (withTangent)
@@ -188,6 +198,13 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 			auto& v = mesh->vertices[i];
 			GetVector3(v.tangent, i, tangent_buffer, tangent_bufferView, tangent_accessor);
 		}
+	}
+
+	if (withJoints)
+	{
+		id = primitive.attributes["JOINTS_0"];
+		auto& accessor = model.accessors[id];
+		auto& 
 	}
 	
 	//assert(mesh->indices.size() * sizeof())
@@ -245,16 +262,17 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 }
 
 #include <FishEngine/Components/Animator.hpp>
+#include <FishEngine/Components/Renderable.hpp>
+#include <FishEngine/Components/Transform.hpp>
 
-void ImportAnimator(Animator* animator, const tinygltf::Model& model, const std::vector<ECS::GameObject*>& gos)
+void ImportAnimator(Animation* animation, const tinygltf::Animation& anim, const tinygltf::Model& model, const std::vector<ECS::GameObject*>& gos)
 {
-	auto& anim = model.animations[0];
+	//auto& anim = model.animations[0];
 	int channelCount = anim.channels.size();
-//	Animator* animator = new Animator();
-	animator->curves.resize(channelCount);
+	animation->curves.resize(channelCount);
 	for (int i = 0; i < channelCount; ++i)
 	{
-		auto& curve = animator->curves[i];
+		auto& curve = animation->curves[i];
 		auto& channel = anim.channels[i];
 		curve.node = gos[channel.target_node];
 		if (channel.target_path == "translation")
@@ -269,53 +287,50 @@ void ImportAnimator(Animator* animator, const tinygltf::Model& model, const std:
 			abort();
 		
 		auto& sampler = anim.samplers[channel.sampler];
+
+		auto& inputAccessor = model.accessors[sampler.input];
+		float maxtime = inputAccessor.maxValues[0];
+		animation->length = max(animation->length, maxtime);
 		
-		{
-//			auto& accessor = model.accessors[sampler.input];
-//			auto& bufferView = model.bufferViews[accessor.bufferView];
-//			auto& buffer = model.buffers[bufferView.buffer];
-//			curve.input.resize(accessor.count);
-//			assert(accessor.componentType == 5126);
-//			assert(accessor.type == TINYGLTF_TYPE_SCALAR);
-//
-//			int offset = accessor.byteOffset + bufferView.byteOffset;
-//			auto ptr = buffer.data.data() + offset;
-//			memcpy(curve.input.data(), ptr, accessor.count*sizeof(float));
-			LoadBuffer(model, sampler.input, curve.input);
-		}
-		
-		{
-//			auto& accessor = model.accessors[sampler.input];
-//			auto& bufferView = model.bufferViews[accessor.bufferView];
-//			auto& buffer = model.buffers[bufferView.buffer];
-//			curve.input.resize(accessor.count);
-//			assert(accessor.componentType == 5126);
-//			if (curve.type == AnimationCurveType::Rotation)
-//				assert(accessor.type == TINYGLTF_TYPE_VEC4);
-//			else
-//				abort();
-//
-//
-//			int offset = accessor.byteOffset + bufferView.byteOffset;
-//			auto ptr = buffer.data.data() + offset;
-//			memcpy(curve.input.data(), ptr, accessor.count*sizeof(float));
-			LoadBuffer(model, sampler.output, curve.output);
-		}
+		LoadBuffer(model, sampler.input, curve.input);
+		LoadBuffer(model, sampler.output, curve.output);
+
+		//if (curve.type == AnimationCurveType::Translation)
+		//{
+		//	for (int i = 0; i < curve.output.size(); i += 3)
+		//	{
+		//		curve.output[i] *= -1;
+		//	}
+		//}
 		
 		//assert(curve.input.size() == curve.output.size());
 	}
 }
 
-
-tinygltf::Model ModelUtil::FromGLTF(const char* filePath, ECS::Scene* scene)
+void ImportSkin(Skin* skin, const tinygltf::Skin& gltf_skin, const tinygltf::Model& model, const std::vector<ECS::GameObject*>& gos)
 {
-	tinygltf::Model model;
+	skin->name = gltf_skin.name;
+	if (gltf_skin.skeleton > 0)
+		skin->root = gos[gltf_skin.skeleton];
+	skin->joints.reserve(gltf_skin.joints.size());
+	for (int id : gltf_skin.joints)
+	{
+		skin->joints.push_back(gos[id]);
+	}
+	auto& accessor = model.accessors[gltf_skin.inverseBindMatrices];
+	assert(accessor.type == TINYGLTF_TYPE_MAT4);
+}
+
+Model ModelUtil::FromGLTF(const char* filePath, ECS::Scene* scene)
+{
+	Model model;
+	tinygltf::Model& gltf_model = model.gltfModel;
 	tinygltf::TinyGLTF loader;
 	std::string err;
 	std::string warn;
 
-//	bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, filePath);
-	bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, filePath); // for binary glTF(.glb)
+	//bool ret = loader.LoadASCIIFromFile(&gltf_model, &err, &warn, filePath);
+	bool ret = loader.LoadBinaryFromFile(&gltf_model, &err, &warn, filePath); // for binary glTF(.glb)
 
 	if (!warn.empty()) {
 		printf("Warn: %s\n", warn.c_str());
@@ -323,6 +338,7 @@ tinygltf::Model ModelUtil::FromGLTF(const char* filePath, ECS::Scene* scene)
 
 	if (!err.empty()) {
 		printf("Err: %s\n", err.c_str());
+		abort();
 	}
 
 	if (!ret) {
@@ -330,32 +346,105 @@ tinygltf::Model ModelUtil::FromGLTF(const char* filePath, ECS::Scene* scene)
 		abort();
 	}
 
-	std::vector<Mesh*> meshes;
-	for (int i = 0; i < model.meshes.size(); ++i)
+	// load all meshes
+	for (int i = 0; i < gltf_model.meshes.size(); ++i)
 	{
 		Mesh* mesh = new Mesh();
-		ImportMesh(mesh, model, model.meshes[i]);
-		meshes.push_back(mesh);
+		ImportMesh(mesh, gltf_model, gltf_model.meshes[i]);
+		model.meshes.push_back(mesh);
 	}
-	
-	std::vector<ECS::GameObject*> nodes;
-	nodes.reserve(model.nodes.size());
-	for (auto& node : model.nodes)
+
+	// build node hierarchy
+	model.nodes.reserve(gltf_model.nodes.size());
+	for (auto& node : gltf_model.nodes)
 	{
-		nodes.push_back(scene->CreateGameObject());
-		if (node.mesh != -1)
+		auto go = scene->CreateGameObject();
+		model.nodes.push_back(go);
+		if (node.mesh >= 0)
 		{
-//			scene->GameObjectAddComponent<>(<#ECS::GameObject *go#>)
+			Renderable* r = scene->GameObjectAddComponent<Renderable>(go);
+			r->mesh = model.meshes[node.mesh];
+		}
+
+		go->m_Name = node.name;
+
+		auto mtx = node.matrix;
+		if (mtx.size() > 0)
+		{
+			Matrix4x4 m;
+			for (int i = 0; i < 16; ++i)
+			{
+				m.m[i%4][i/4] = mtx[i];
+			}
+			auto t = go->GetTransform();
+			Vector3 p, s;
+			Quaternion r;
+			Matrix4x4::Decompose(m, &p, &r, &s);
+			t->SetLocalPosition(p);
+			t->SetLocalRotation(r);
+			t->SetLocalScale(s);
+		}
+		else
+		{
+			auto& p = node.translation;
+			if (p.size() > 0)
+			{
+				//go->GetTransform()->SetLocalPosition(-p[0], p[1], p[2]);
+				go->GetTransform()->SetLocalPosition(p[0], p[1], p[2]);
+			}
+
+			auto& s = node.scale;
+			if (s.size() > 0)
+			{
+				go->GetTransform()->SetLocalScale(s[0], s[1], s[2]);
+			}
+
+			auto& r = node.rotation;
+			if (r.size() > 0)
+			{
+				go->GetTransform()->SetLocalRotation(Quaternion(r[0], r[1], r[2], r[3]));
+			}
 		}
 	}
-	
-	Animator* animator = new Animator();
-	ImportAnimator(animator, model, nodes);
-	
+
+
 //	auto& img = model.images[0].image;
 ////	auto tex = TextureUtils::LoadTextureFromMemory(img.data(), img.size());
 //	auto tex = loadTexture2(img.data(), img.size(), "from/gltf", BGFX_TEXTURE_NONE, nullptr, nullptr);
 
-	int nodeId = model.scenes[model.defaultScene].nodes[0];
+	// set transform parent
+	model.rootGameObject = scene->CreateGameObject();
+	auto& defaultScene = gltf_model.scenes[gltf_model.defaultScene];
+	for (int nodeID = 0; nodeID < gltf_model.nodes.size(); ++nodeID)
+	{
+		auto& node = gltf_model.nodes[nodeID];
+		ECS::GameObject* go = model.nodes[nodeID];
+		for (int childID : node.children)
+		{
+			model.nodes[childID]->GetTransform()->SetParent(go->GetTransform());
+		}
+	}
+
+	auto rootT = model.rootGameObject->GetTransform();
+	for (int nodeID : defaultScene.nodes)
+	{
+		ECS::GameObject* go = model.nodes[nodeID];
+		go->GetTransform()->SetParent(rootT);
+	}
+
+	if (gltf_model.animations.size() > 0)
+	{
+		auto& anim = gltf_model.animations[0];
+		Animation* animation = scene->GameObjectAddComponent<Animation>(model.rootGameObject);
+		ImportAnimator(animation, anim, gltf_model, model.nodes);
+	}
+
+	if (gltf_model.skins.size() > 0)
+	{
+		auto& gltf_skin = gltf_model.skins[0];
+		Skin* skin = scene->GameObjectAddComponent<Skin>(model.rootGameObject);	// TODO
+		ImportSkin(skin, gltf_skin, gltf_model, model.nodes);
+	}
+
 	return model;
 }

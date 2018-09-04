@@ -70,8 +70,21 @@ namespace ECS
 		
 		Transform* GetTransform() const { return m_Transform; }
 		//EntityID GetParentID() const { return m_ParentID; }
+
+		template<class T>
+		T* GetComponent() {
+			for (auto comp : m_Components)
+			{
+				T* t = comp->As<T>();
+				if (t != nullptr)
+					return t;
+			}
+			return nullptr;
+		}
 		
 		Scene* GetScene() { return m_Scene; }
+
+		std::string m_Name;
 
 	protected:
 		GameObject(EntityID entityID, Scene* scene);

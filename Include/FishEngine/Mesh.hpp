@@ -1,9 +1,11 @@
 #pragma once
 
 #include "Engine.hpp"
-#include <bgfx/bgfx.h>
 #include "Object.hpp"
 #include "Math.hpp"
+
+#include <vector>
+#include <bgfx/bgfx.h>
 
 struct PUNTVertex
 {
@@ -17,6 +19,8 @@ struct PUNTVertex
 	static bgfx::VertexDecl ms_decl;
 };
 
+#include <FishEngine/Math/IntVector.hpp>
+
 
 class Mesh : public Object
 {
@@ -24,6 +28,10 @@ class Mesh : public Object
 public:
 	bgfx::IndexBufferHandle m_IndexBuffer;
 	bgfx::VertexBufferHandle m_VertexBuffer;
+
+	std::vector<FishEngine::Int4> joints;
+	std::vector<Vector4> weights;
+
 	
 	inline static Mesh* Cube = nullptr;
 	inline static Mesh* Sphere = nullptr;
@@ -67,6 +75,7 @@ public:
 
 struct Model
 {
+	ECS::GameObject* rootGameObject = nullptr;
 	std::vector<ECS::GameObject*> nodes;
 	std::vector<Mesh*> meshes;
 	tinygltf::Model gltfModel;
