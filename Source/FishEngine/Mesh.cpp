@@ -63,8 +63,6 @@ Mesh* MeshUtil::FromTextFile(const String & str)
 	for (auto & v : mesh->vertices)
 	{
 		is >> v.position.x >> v.position.y >> v.position.z;
-		//v.position.x *= -1;
-		v.position /= 20;
 	}
 	for (auto & v : mesh->vertices)
 		is >> v.normal.x >> v.normal.y >> v.normal.z;

@@ -98,6 +98,14 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 	auto& position_accessor = model.accessors[id];
 	auto& position_bufferView = model.bufferViews[position_accessor.bufferView];
 	auto& position_buffer = model.buffers[position_bufferView.buffer];
+	
+	{
+		auto& m = position_accessor.minValues;
+		Vector3 min(m[0], m[1], m[2]);
+		auto& m2 = position_accessor.maxValues;
+		Vector3 max(m2[0], m2[1], m2[2]);
+		mesh->bounds.SetMinMax(min, max);
+	}
 
 
 	id = primitive.attributes["NORMAL"];
@@ -343,7 +351,7 @@ void PrintHierarchy(Transform* t, int indent)
 	}
 }
 
-Model ModelUtil::FromGLTF(const char* filePath, ECS::Scene* scene)
+ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* scene)
 {
 	Model model;
 	//tinygltf::Model& gltf_model = model.gltfModel;
@@ -497,5 +505,5 @@ Model ModelUtil::FromGLTF(const char* filePath, ECS::Scene* scene)
 
 	PrintHierarchy(rootT, 0);
 
-	return model;
+	return model.rootGameObject;
 }

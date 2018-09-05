@@ -35,6 +35,8 @@ public:
 
 	std::vector<FishEngine::Int4> joints;
 	std::vector<Vector4> weights;
+	
+	Bounds bounds;
 
 
 	inline static Mesh* Cube = nullptr;

@@ -138,6 +138,16 @@ namespace FishEngine
 		// Transforms a direction by this matrix.
 		Vector3 MultiplyVector(const Vector3& v) const;
 
+		
+		static Matrix4x4 Translate(const Vector3& t)
+		{
+			return Matrix4x4(
+				1, 0, 0, t.x,
+				 0, 1, 0, t.y,
+				 0, 0, 1, t.z,
+				 0, 0, 0, 1
+			);
+		}
 
 		// Creates a scaling matrix.
 		static Matrix4x4 Scale(float scale);

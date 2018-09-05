@@ -33,6 +33,6 @@ struct Model
 class ModelUtil : public Static
 {
 public:
-	static Model FromGLTF(const char* filePath, ECS::Scene* scene);
+	static ECS::GameObject* FromGLTF(const std::string& filePath, ECS::Scene* scene);
 };
 

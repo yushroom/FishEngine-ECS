@@ -2,7 +2,7 @@
 
 #include "../FishEngine.hpp"
 #include "Vector3.hpp"
-//#include "Macro.hpp"
+#include "Vector4.hpp"
 
 namespace FishEngine
 {
@@ -157,6 +157,16 @@ namespace FishEngine
 		{
 			return m_extents.x >= 0 && m_extents.y >= 0 && m_extents.z >= 0;
 		}
+	};
+	
+	struct BoundingSphere
+	{
+	public:
+		Vector3 position;
+		float radius;
+		
+		BoundingSphere(const Vector3& position, float radius) : position(position), radius(radius) {}
+		BoundingSphere(const Vector4& packedSphere) : position(packedSphere.x, packedSphere.y, packedSphere.z), radius(packedSphere.z) { }
 	};
 }
 
