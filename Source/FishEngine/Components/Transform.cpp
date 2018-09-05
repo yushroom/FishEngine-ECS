@@ -100,7 +100,7 @@ void Transform::Translate(const Vector3& translation, Space relativeTo /*= Space
 		if (m_Father != nullptr) {
 			m_LocalToWorldMatrix = m_Father->GetLocalToWorldMatrix() * m_LocalToWorldMatrix;
 		}
-		//		m_worldToLocalMatrix = m_localToWorldMatrix.inverse();
+//		m_worldToLocalMatrix = m_localToWorldMatrix.inverse();
 #else
 		// TODO this version is not right, take a look to see where the bug is.
 		// maybe in the TRS

@@ -222,6 +222,12 @@ public:
 		MakeDirty();
 	}
 
+	void SetLocalMatrix(const Matrix4x4& mat)
+	{
+		Matrix4x4::Decompose(mat, &m_LocalPosition, &m_LocalRotation, &m_LocalScale);
+		MakeDirty();
+	}
+
 
 	// Applies a rotation of zAngle degrees around the z axis, xAngle degrees around the x axis, and yAngle degrees around the y axis (in that order)
 	//		void Rotate(float xAngle, float yAngle, float zAngle, Space relativeTo = Space::Self);

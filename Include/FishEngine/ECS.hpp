@@ -43,6 +43,7 @@ namespace ECS
 	protected:
 		Component() = default;
 
+	public:
 		// temp
 		GameObject* m_GameObject = nullptr;
 	};

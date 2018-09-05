@@ -139,6 +139,26 @@ void LoadBuffer(const tinygltf::Model& model, int accessorID, std::vector<float>
 }
 
 
+void RHS2LHS(Vector3& v)
+{
+	v.z *= -1;
+}
+
+void RHS2LHS(Quaternion& q)
+{
+	auto euler = q.eulerAngles();
+	euler.x *= -1;
+	q = Quaternion::Euler(euler);
+}
+
+void RHS2LHS(Matrix4x4& m)
+{
+	Vector3 t, s;
+	Quaternion r;
+	Matrix4x4::Decompose(m, &t, &r, &s);
+	m.SetTRS(t, r, s);
+}
+
 void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_mesh)
 {
 	assert(gltf_mesh.primitives.size() == 1);
@@ -185,8 +205,7 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 		GetVector3(v.position, i, position_buffer, position_bufferView, position_accessor);
 		GetVector3(v.normal, i, normal_buffer, normal_bufferView, normal_accessor);
 		//GetVector3(v.tangent, i, tangent_buffer, tangent_bufferView, tangent_accessor);
-		//v.position *= 0.01f;
-		//v.position.x = -v.position.x;
+		//RHS2LHS(v.position);
 	}
 	
 	if (withTangent)
@@ -268,25 +287,21 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 																  sizeof(PUNTVertex)*mesh->vertices.size()),
 													PUNTVertex::ms_decl
 													);
-	
-	//5120 (BYTE)1
-	//5121(UNSIGNED_BYTE)1
-	//5122 (SHORT)2
-	//5123 (UNSIGNED_SHORT)2
-	//5125 (UNSIGNED_INT)4
-	//5126 (FLOAT)4
+
 	int size = 1;	// in bytes
 	switch (indices_accessor.componentType)
 	{
-		case 5120: // byte
-		case 5121:
+		case 5120:	// byte
+		case 5121:	// unsigned byte
 			size = 1; break;
-		case 5122:
-		case 5123:
+		case 5122:	// short
+		case 5123:	// unsigned short
 			size = 2; break;
-		case 5125:
-		case 5126:
+		case 5125:	// unsigned int
+		case 5126:	// float
 			size = 4; break;
+		default:
+			abort();
 	}
 	
 	auto ptr = indices_buffer.data.data();
@@ -315,7 +330,7 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 	mesh->m_IndexBuffer = bgfx::createIndexBuffer( bgfx::copy(ptr, byteLen) );
 }
 
-#include <FishEngine/Components/Animator.hpp>
+#include <FishEngine/Components/Animation.hpp>
 #include <FishEngine/Components/Renderable.hpp>
 #include <FishEngine/Components/Transform.hpp>
 
@@ -364,20 +379,23 @@ void ImportAnimator(Animation* animation, const tinygltf::Animation& anim, const
 void ImportSkin(Skin* skin, const tinygltf::Skin& gltf_skin, const tinygltf::Model& model, const std::vector<ECS::GameObject*>& gos)
 {
 	skin->name = gltf_skin.name;
+	assert(gltf_skin.skeleton > 0);
 	if (gltf_skin.skeleton > 0)
 		skin->root = gos[gltf_skin.skeleton];
-	skin->joints.reserve(gltf_skin.joints.size());
-	skin->inverseBindMatrices.resize(gltf_skin.joints.size());
+	auto boneCount = gltf_skin.joints.size();
+	assert(boneCount < 256);
+	skin->joints.reserve(boneCount);
+	skin->inverseBindMatrices.resize(boneCount);
 	for (int id : gltf_skin.joints)
 	{
 		skin->joints.push_back(gos[id]);
 	}
 	auto& accessor = model.accessors[gltf_skin.inverseBindMatrices];
 	assert(accessor.type == TINYGLTF_TYPE_MAT4);
+	assert(accessor.componentType == 5126);		// float
+	assert(accessor.count == boneCount);
 	auto& bufferView = model.bufferViews[accessor.bufferView];
 	auto& buffer = model.buffers[bufferView.buffer];
-
-	assert(accessor.componentType == 5126);		// float
 
 	int offset = accessor.byteOffset + bufferView.byteOffset;
 	auto ptr = buffer.data.data() + offset;
@@ -385,6 +403,31 @@ void ImportSkin(Skin* skin, const tinygltf::Skin& gltf_skin, const tinygltf::Mod
 
 	for (auto& m : skin->inverseBindMatrices)
 		m = m.transpose();
+
+	auto T = Matrix4x4::Scale(-1, 1, 1);
+	// set bind pose
+	for (int i = 0; i < boneCount; ++i)
+	{
+		//skin->joints[i]->GetTransform()->SetLocalMatrix(skin->inverseBindMatrices[i]);
+		auto bone = skin->joints[i]->GetTransform();
+		auto& bindpose = skin->inverseBindMatrices[i];
+		//bindpose = T * bindpose.inverse() * T;
+		bindpose = bone->GetWorldToLocalMatrix() * skin->root->GetTransform()->GetLocalToWorldMatrix();
+		//bindpose = T * bindpose * T;
+	}
+}
+
+void PrintHierarchy(Transform* t, int indent)
+{
+	for (int i = 0; i < indent; ++i)
+		putchar(' ');
+	printf(t->m_GameObject->m_Name.c_str());
+	printf("    local pos: %s  pos: %s", t->GetLocalPosition().ToString().c_str(), t->GetPosition().ToString().c_str());
+	putchar('\n');
+	for (auto c : t->GetChildren())
+	{
+		PrintHierarchy(c, indent + 2);
+	}
 }
 
 Model ModelUtil::FromGLTF(const char* filePath, ECS::Scene* scene)
@@ -413,6 +456,7 @@ Model ModelUtil::FromGLTF(const char* filePath, ECS::Scene* scene)
 	}
 
 	model.rootGameObject = scene->CreateGameObject();
+	model.rootGameObject->m_Name = "Root";
 
 	// load all meshes
 	for (int i = 0; i < gltf_model.meshes.size(); ++i)
@@ -423,13 +467,19 @@ Model ModelUtil::FromGLTF(const char* filePath, ECS::Scene* scene)
 	}
 
 	// build node hierarchy
-	model.nodes.reserve(gltf_model.nodes.size());
-	for (auto& node : gltf_model.nodes)
+	auto nodeCount = gltf_model.nodes.size();
+	model.nodes.reserve(nodeCount);
+	//for (auto& node : gltf_model.nodes)
+	for (int i = 0; i < nodeCount; ++i)
 	{
+		auto& node = gltf_model.nodes[i];
 		auto go = scene->CreateGameObject();
 		model.nodes.push_back(go);
 
-		go->m_Name = node.name;
+		if (!node.name.empty())
+			go->m_Name = node.name;
+		else
+			go->m_Name = "node" + std::to_string(i);
 
 		auto mtx = node.matrix;
 		if (mtx.size() > 0)
@@ -440,12 +490,8 @@ Model ModelUtil::FromGLTF(const char* filePath, ECS::Scene* scene)
 				m.m[i%4][i/4] = mtx[i];
 			}
 			auto t = go->GetTransform();
-			Vector3 p, s;
-			Quaternion r;
-			Matrix4x4::Decompose(m, &p, &r, &s);
-			t->SetLocalPosition(p);
-			t->SetLocalRotation(r);
-			t->SetLocalScale(s);
+			//t->SetLocalMatrix(m);
+			//auto euler = t->GetLocalEulerAngles();
 		}
 		else
 		{
@@ -465,8 +511,23 @@ Model ModelUtil::FromGLTF(const char* filePath, ECS::Scene* scene)
 			auto& r = node.rotation;
 			if (r.size() > 0)
 			{
-				go->GetTransform()->SetLocalRotation(Quaternion(r[0], r[1], r[2], r[3]));
+				auto q = Quaternion(r[0], r[1], r[2], r[3]);
+				//auto euler = q.eulerAngles();
+				//euler.x = -euler.x;
+				//auto q = Quaternion::Euler(euler);
+				go->GetTransform()->SetLocalRotation(q);
 			}
+		}
+	}
+
+	// set transform parent
+	for (int nodeID = 0; nodeID < gltf_model.nodes.size(); ++nodeID)
+	{
+		auto& node = gltf_model.nodes[nodeID];
+		ECS::GameObject* go = model.nodes[nodeID];
+		for (int childID : node.children)
+		{
+			model.nodes[childID]->GetTransform()->SetParent(go->GetTransform(), false);
 		}
 	}
 
@@ -511,26 +572,16 @@ Model ModelUtil::FromGLTF(const char* filePath, ECS::Scene* scene)
 ////	auto tex = TextureUtils::LoadTextureFromMemory(img.data(), img.size());
 //	auto tex = loadTexture2(img.data(), img.size(), "from/gltf", BGFX_TEXTURE_NONE, nullptr, nullptr);
 
-	// set transform parent
-	
 	auto& defaultScene = gltf_model.scenes[gltf_model.defaultScene];
-	for (int nodeID = 0; nodeID < gltf_model.nodes.size(); ++nodeID)
-	{
-		auto& node = gltf_model.nodes[nodeID];
-		ECS::GameObject* go = model.nodes[nodeID];
-		for (int childID : node.children)
-		{
-			model.nodes[childID]->GetTransform()->SetParent(go->GetTransform());
-		}
-	}
-
 	auto rootT = model.rootGameObject->GetTransform();
 	for (int nodeID : defaultScene.nodes)
 	{
 		ECS::GameObject* go = model.nodes[nodeID];
-		go->GetTransform()->SetParent(rootT);
+		assert(go->GetTransform()->GetParent() == nullptr);
+		go->GetTransform()->SetParent(rootT, false);
 	}
 
+	PrintHierarchy(rootT, 0);
 
 	return model;
 }

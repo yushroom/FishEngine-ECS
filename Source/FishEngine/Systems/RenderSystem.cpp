@@ -101,38 +101,35 @@ void RenderSystem::Draw()
 	});
 	renderState->m_State = old_state;
 
-//	m_Scene->ForEach<Renderable>([](ECS::GameObject* go, Renderable* rend)
-//	{
-//		auto& mtx = go->GetTransform()->GetLocalToWorldMatrix();
-//		Graphics::DrawMesh(rend->mesh, mtx, rend->material);
-//	});
-	
-	Matrix4x4 u_jointMatrix[64];
-	
+	// CPU skinning
+	Matrix4x4 u_jointMatrix[256];
 	m_Scene->ForEach<Renderable>([&u_jointMatrix](ECS::GameObject* go, Renderable* r)
 	{
 		auto mesh = r->mesh;
 		if (mesh->IsSkinned())
 		{
 			auto worldToObject = r->skin->root->GetTransform()->GetWorldToLocalMatrix();
-//			auto worldToObject = Matrix4x4::identity;
+			//auto worldToObject = Matrix4x4::identity;
 			for (int i = 0; i < r->skin->joints.size(); ++i)
 			{
-				u_jointMatrix[i] =  worldToObject *
-									r->skin->joints[i]->GetTransform()->GetLocalToWorldMatrix() *
-									r->skin->inverseBindMatrices[i];
+				auto bone = r->skin->joints[i]->GetTransform();
+				auto& bindpose = r->skin->inverseBindMatrices[i];
+				u_jointMatrix[i] = worldToObject * bone->GetLocalToWorldMatrix() * bindpose;
 			}
 			
-			// cpu skinning
+			
 			mesh->m_DynamicVertices = mesh->vertices;
 			for (int i = 0; i < mesh->vertices.size(); ++i)
 			{
 				const Vector4& a_weight = mesh->weights[i];
 				const auto& a_joint = mesh->joints[i];
-				Matrix4x4 skinMatrix = a_weight.x * u_jointMatrix[a_joint.x];
-				skinMatrix += a_weight.y * u_jointMatrix[a_joint.y];
-				skinMatrix += a_weight.z * u_jointMatrix[a_joint.z];
-				skinMatrix += a_weight.w * u_jointMatrix[a_joint.w];
+				Matrix4x4 skinMatrix = u_jointMatrix[a_joint.x] * a_weight.x;
+				//if (a_weight.y > 0)
+					skinMatrix += u_jointMatrix[a_joint.y] * a_weight.y;
+				//if (a_weight.z > 0)
+					skinMatrix += u_jointMatrix[a_joint.z] * a_weight.z;
+				//if (a_weight.w > 0)
+					skinMatrix += u_jointMatrix[a_joint.w] * a_weight.w;
 				auto& dv = mesh->m_DynamicVertices[i];
 				auto& v = mesh->vertices[i];
 				dv.position = skinMatrix.MultiplyPoint3x4(v.position);
@@ -149,9 +146,12 @@ void RenderSystem::Draw()
 				bgfx::update(mesh->m_DynamicVertexBuffer, 0, mem);
 			}
 		}
-		
+	});
+
+	m_Scene->ForEach<Renderable>([](ECS::GameObject* go, Renderable* rend)
+	{
 		auto& mtx = go->GetTransform()->GetLocalToWorldMatrix();
-		Graphics::DrawMesh(r->mesh, mtx, r->material);
+		Graphics::DrawMesh(rend->mesh, mtx, rend->material);
 	});
 	
 #if 0
