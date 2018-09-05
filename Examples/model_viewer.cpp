@@ -11,6 +11,7 @@
 #include <FishEngine/Components/SingletonInput.hpp>
 #include <FishEngine/Assets.hpp>
 #include <FishEngine/Components/Animation.hpp>
+#include <FishEngine/Model.hpp>
 
 #include <GLFW/glfw3.h>
 
@@ -67,7 +68,7 @@ public:
 		//model.rootGameObject->GetTransform()->SetLocalScale(0.01);
 
 		m_Scene->AddSystem(new FreeCameraSystem());
-		m_Scene->AddSystem(new AnimationSystem());
+		//m_Scene->AddSystem(new AnimationSystem());
 	}
 	
 private:

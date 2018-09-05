@@ -76,32 +76,3 @@ public:
 	static Mesh* FromTextFile(const String & str);
 	
 };
-
-#include <tiny_gltf.h>
-
-class Skin
-{
-	//COMPONENT(Skin);
-public:
-	std::vector<Matrix4x4> inverseBindMatrices;
-	ECS::GameObject* root = nullptr;
-	std::vector<ECS::GameObject*> joints;
-	std::string name;
-};
-
-struct Model
-{
-	ECS::GameObject* rootGameObject = nullptr;
-	std::vector<ECS::GameObject*> nodes;
-	std::vector<Mesh*> meshes;
-	std::vector<Skin*> skins;
-	tinygltf::Model gltfModel;
-};
-
-
-class ModelUtil : public Static
-{
-public:
-	static Model FromGLTF(const char* filePath, ECS::Scene* scene);
-};
-

@@ -1,9 +1,20 @@
 #pragma once
 #include "FishEngine/ECS.hpp"
-#include <FishEngine/Mesh.hpp>
 
 class Material;
 class Mesh;
+
+
+class Skin : public NonCopyable
+{
+	//COMPONENT(Skin);
+public:
+	std::vector<Matrix4x4> inverseBindMatrices;
+	ECS::GameObject* root = nullptr;
+	std::vector<ECS::GameObject*> joints;
+	std::string name;
+};
+
 
 class Renderable : public ECS::Component
 {
