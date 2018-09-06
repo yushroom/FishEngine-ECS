@@ -68,9 +68,8 @@ public:
 	//std::vector<uint32_t>	m_SubMeshIndexOffset;	// index start
 
 	std::vector<SubMeshInfo> m_SubMeshInfos;
-
 	std::vector<PUNTVertex> m_Vertices;
-	std::vector<uint16_t> m_Indices;
+	std::vector<uint32_t> m_Indices;
 };
 
 namespace ECS

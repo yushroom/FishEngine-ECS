@@ -4,9 +4,11 @@
 #include <FishEngine/Components/Renderable.hpp>
 #include <FishEngine/Components/Transform.hpp>
 
+#define TINYGLTF_NO_STB_IMAGE
+#define TINYGLTF_NO_STB_IMAGE_WRITE
 #define TINYGLTF_IMPLEMENTATION
 //#define STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
+//#define STB_IMAGE_WRITE_IMPLEMENTATION
 // #define TINYGLTF_NOEXCEPTION // optional. disable exception handling.
 #include <tiny_gltf.h>
 
@@ -21,6 +23,7 @@ void GetVector2(
 )
 {
 	assert(accessor.type == TINYGLTF_TYPE_VEC2);
+	assert(accessor.componentType == 5126);
 	assert(idx < accessor.count);
 	size_t offset = accessor.byteOffset + bufferView.byteOffset;
 	size_t stride = bufferView.byteStride == 0 ? sizeof(Vector2) : bufferView.byteStride;
@@ -39,6 +42,7 @@ void GetVector3(
 )
 {
 	assert(accessor.type == TINYGLTF_TYPE_VEC3);
+	assert(accessor.componentType == 5126);
 	assert(idx < accessor.count);
 	size_t offset = accessor.byteOffset + bufferView.byteOffset;
 	size_t stride = bufferView.byteStride == 0 ? sizeof(Vector3) : bufferView.byteStride;
@@ -57,6 +61,7 @@ void GetVector4(
 )
 {
 	assert(accessor.type == TINYGLTF_TYPE_VEC4);
+	assert(accessor.componentType == 5126);
 	assert(idx < accessor.count);
 	size_t offset = accessor.byteOffset + bufferView.byteOffset;
 	size_t stride = bufferView.byteStride == 0 ? sizeof(Vector4) : bufferView.byteStride;
@@ -68,7 +73,7 @@ void GetVector4(
 
 
 template<class T, class B>
-bool In(const std::map<T, B>& d, const T& key)
+bool In(const std::map<T, B>& d, const char* key)
 {
 	return d.find(key) != d.end();
 }
@@ -122,21 +127,28 @@ void ImportPrimitive(Mesh* mesh,
 	const SubMeshInfo& info,
 	tinygltf::Primitive& primitive)
 {
+	bool withPosition = In(primitive.attributes, "POSITION");
+	bool withNormal = false;
 	bool withTangent = false;
 	bool withJoints = false;
 	bool withWeights = false;
 	bool withUV = false;
 	for (auto& pair : primitive.attributes)
 	{
-		if (pair.first == "TANGENT")
+		auto& attr = pair.first;
+		if (attr == "NORMAL")
+			withNormal = true;
+		else if (attr == "TANGENT")
 			withTangent = true;
-		else if (pair.first == "JOINTS_0")
+		else if (attr == "JOINTS_0")
 			withJoints = true;
-		else if (pair.first == "WEIGHTS_0")
+		else if (attr == "WEIGHTS_0")
 			withWeights = true;
-		else if (pair.first == "TEXCOORD_0")
+		else if (attr == "TEXCOORD_0")
 			withUV = true;
 	}
+	
+	assert(withPosition && withNormal);
 
 	// TODO: primitive.mode
 
@@ -263,36 +275,41 @@ void ImportPrimitive(Mesh* mesh,
 	auto& indices_accessor = model.accessors[primitive.indices];
 	auto& indices_bufferView = model.bufferViews[indices_accessor.bufferView];
 	auto& indices_buffer = model.buffers[indices_bufferView.buffer];
+	
 	assert(indices_accessor.componentType == 5123);
+	assert(indices_accessor.type == TINYGLTF_TYPE_SCALAR);
 
 	int size = 1;	// in bytes
 	switch (indices_accessor.componentType)
 	{
-	case 5120:	// byte
+//	case 5120:	// byte
 	case 5121:	// unsigned byte
 		size = 1; break;
-	case 5122:	// short
+//	case 5122:	// short
 	case 5123:	// unsigned short
 		size = 2; break;
 	case 5125:	// unsigned int
-	case 5126:	// float
+//	case 5126:	// float
 		size = 4; break;
 	default:
 		abort();
 	}
 
 	auto ptr = indices_buffer.data.data();
-	ptr += indices_bufferView.byteOffset + indices_accessor.byteOffset;
-	auto byteLen = size * indices_accessor.count;
+	int offset = indices_bufferView.byteOffset + indices_accessor.byteOffset;
+	ptr += offset;
+//	auto byteLen = size * indices_accessor.count;
+//	assert(indices_bufferView.byteLength == byteLen);
+	
+	auto p = (unsigned short*)ptr;
 
-	auto dest = mesh->m_Indices.data() + info.StartIndex;
-	memcpy(dest, ptr, byteLen);
+//	auto dest = mesh->m_Indices.data() + info.StartIndex;
+//	memcpy(dest, ptr, byteLen);
 	for (int i = 0; i < indices_accessor.count; ++i)
 	{
-		mesh->m_Indices[i + info.StartIndex] += info.VertexOffset;
+		mesh->m_Indices[i + info.StartIndex] = info.VertexOffset + *p;
+		p++;
 	}
-
-	assert(indices_bufferView.byteLength == size * indices_accessor.count);
 }
 
 void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_mesh)
@@ -308,6 +325,11 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 		{
 			int id = primitive.attributes["POSITION"];
 			auto& accessor = model.accessors[id];
+			
+//			if (vertexCount + accessor.count > std::numeric_limits<unsigned short>::max())
+//			{
+//				abort();
+//			}
 			info.VertexOffset = vertexCount;
 			vertexCount += accessor.count;
 		}
@@ -323,6 +345,13 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 	mesh->m_VertexCount = vertexCount;
 	mesh->m_Vertices.resize(vertexCount);
 	mesh->m_Indices.resize(indexCount);
+	
+	for (int i = 0; i < mesh->m_SubMeshCount; ++i)
+//	for (auto& info : mesh->m_SubMeshInfos)
+	{
+		auto& info = mesh->m_SubMeshInfos[i];
+		printf("%d %d %d %d\n", i, info.StartIndex, info.Length, info.VertexOffset);
+	}
 
 	for (int i = 0; i < mesh->m_SubMeshCount; ++i)
 	{
@@ -331,6 +360,7 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 		ImportPrimitive(mesh, model, info, primitive);
 	}
 
+//	int count = sizeof(decltype(mesh->m_Vertices)::value_type);
 
 	mesh->m_VertexBuffer = bgfx::createVertexBuffer(
 		bgfx::makeRef(mesh->m_Vertices.data(), sizeof(decltype(mesh->m_Vertices)::value_type)*mesh->m_Vertices.size()),
@@ -339,6 +369,7 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 
 	mesh->m_IndexBuffer = bgfx::createIndexBuffer(
 		bgfx::makeRef(mesh->m_Indices.data(), sizeof(decltype(mesh->m_Indices)::value_type)*mesh->m_Indices.size())
+												  ,BGFX_BUFFER_INDEX32
 	);
 }
 
@@ -430,7 +461,7 @@ void PrintHierarchy(Transform* t, int indent)
 {
 	for (int i = 0; i < indent; ++i)
 		putchar(' ');
-	printf(t->m_GameObject->m_Name.c_str());
+	printf("%s", t->m_GameObject->m_Name.c_str());
 	printf("    local pos: %s  pos: %s", t->GetLocalPosition().ToString().c_str(), t->GetPosition().ToString().c_str());
 	putchar('\n');
 	for (auto c : t->GetChildren())
@@ -446,6 +477,11 @@ inline bool EndsWith(const std::string& s, const std::string& end)
 	return s.substr(s.size() - end.size()) == end;
 }
 
+static bool gltfImageLoader(tinygltf::Image*, std::string *, std::string *, int, int, const unsigned char *, int, void *)
+{
+	return true;
+}
+
 ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* scene)
 {
 	Model model;
@@ -454,6 +490,8 @@ ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* sc
 	tinygltf::TinyGLTF loader;
 	std::string err;
 	std::string warn;
+	
+	loader.SetImageLoader(gltfImageLoader, nullptr);
 
 	bool ret = false;
 	if (EndsWith(filePath, ".gltf"))

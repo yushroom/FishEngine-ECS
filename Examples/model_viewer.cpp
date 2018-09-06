@@ -102,15 +102,16 @@ public:
 
 		//const char* path = FISHENGINE_ROOT "Assets/Models/T-Rex.glb";
 		auto path = GetglTFSample("CesiumMan");
-		//auto path = GetglTFSample("RiggedSimple");
-		//path = GetglTFSample("Buggy");
-		path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
+//		path = GetglTFSample("RiggedSimple");
+		path = GetglTFSample("Duck");
+//		path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
+		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf";
 		auto rootGO = ModelUtil::FromGLTF(path, m_Scene);
 
 		{
 			auto go = m_Scene->CreateGameObject();
 			m_Scene->GameObjectAddComponent<Camera>(go);
-			go->GetTransform()->SetLocalPosition(0, 0, -2);
+			go->GetTransform()->SetLocalPosition(0, 0.5, -2);
 			m_Scene->GameObjectAddComponent<FreeCamera>(go);
 		}
 		{
@@ -133,7 +134,7 @@ public:
 		});
 
 		//rootGO->GetTransform()->SetLocalEulerAngles(-90, -90, 0);
-		rootGO->GetTransform()->SetLocalScale(0.1f);
+//		rootGO->GetTransform()->SetLocalScale(0.1f);
 
 		Gizmos::Init();
 		
