@@ -82,7 +82,9 @@ bgfx::TextureHandle loadTexture2(void* data, uint32_t size,
 				, imageReleaseCb
 				, imageContainer
 			);
-			unload(data);
+			
+			// TODO: unload
+			//unload(data);
 
 			if (imageContainer->m_cubeMap)
 			{
@@ -153,7 +155,9 @@ bgfx::TextureHandle loadTexture(bx::FileReaderI* _reader, const char* _filePath,
 	uint32_t size;
 	void* data = load(_reader, &s_allocator, _filePath, &size);
 	
-	return loadTexture2(data, size, _filePath, _flags, _info, _orientation);
+	auto ret = loadTexture2(data, size, _filePath, _flags, _info, _orientation);
+	unload(data);
+	return ret;
 }
 
 

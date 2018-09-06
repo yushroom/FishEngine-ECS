@@ -3,6 +3,7 @@
 #include <FishEngine/Components/Animation.hpp>
 #include <FishEngine/Components/Renderable.hpp>
 #include <FishEngine/Components/Transform.hpp>
+#include <FishEngine/Material.hpp>
 
 #define TINYGLTF_NO_STB_IMAGE
 #define TINYGLTF_NO_STB_IMAGE_WRITE
@@ -12,7 +13,17 @@
 // #define TINYGLTF_NOEXCEPTION // optional. disable exception handling.
 #include <tiny_gltf.h>
 
-//using tinygltf::Model;
+struct Model
+{
+	ECS::GameObject* rootGameObject = nullptr;
+	std::vector<ECS::GameObject*> nodes;
+	std::vector<Mesh*> meshes;
+	std::vector<Skin*> skins;
+	std::vector<bgfx::TextureHandle> images;
+	std::vector<Material*> materials;
+	//tinygltf::Model gltfModel;
+};
+
 
 void GetVector2(
 	Vector2& v,
@@ -78,6 +89,14 @@ bool In(const std::map<T, B>& d, const char* key)
 	return d.find(key) != d.end();
 }
 
+template<class T, class B>
+const B& Get(const std::map<T, B> dict, const char* key)
+{
+	assert(dict.find(key) != dict.end());
+	return dict.find(key)->second;
+}
+
+
 void LoadBuffer(const tinygltf::Model& model, int accessorID, std::vector<float>& out_buffer)
 {
 	auto& accessor = model.accessors[accessorID];
@@ -125,7 +144,7 @@ void RHS2LHS(Matrix4x4& m)
 void ImportPrimitive(Mesh* mesh,
 	const tinygltf::Model& model,
 	const SubMeshInfo& info,
-	tinygltf::Primitive& primitive)
+	const tinygltf::Primitive& primitive)
 {
 	bool withPosition = In(primitive.attributes, "POSITION");
 	bool withNormal = false;
@@ -133,6 +152,12 @@ void ImportPrimitive(Mesh* mesh,
 	bool withJoints = false;
 	bool withWeights = false;
 	bool withUV = false;
+	int positionID = -1;
+	int normalID = -1;
+	int tangentID = -1;
+	int jointsID = -1;
+	int weightsID = -1;
+	int uvID = -1;
 	for (auto& pair : primitive.attributes)
 	{
 		auto& attr = pair.first;
@@ -152,7 +177,7 @@ void ImportPrimitive(Mesh* mesh,
 
 	// TODO: primitive.mode
 
-	int id = primitive.attributes["POSITION"];
+	int id = Get(primitive.attributes, "POSITION");
 	auto& position_accessor = model.accessors[id];
 	auto& position_bufferView = model.bufferViews[position_accessor.bufferView];
 	auto& position_buffer = model.buffers[position_bufferView.buffer];
@@ -166,7 +191,7 @@ void ImportPrimitive(Mesh* mesh,
 	//}
 
 
-	id = primitive.attributes["NORMAL"];
+	id = Get(primitive.attributes, "NORMAL");
 	auto& normal_accessor = model.accessors[id];
 	auto& normal_bufferView = model.bufferViews[normal_accessor.bufferView];
 	auto& normal_buffer = model.buffers[normal_bufferView.buffer];
@@ -187,7 +212,7 @@ void ImportPrimitive(Mesh* mesh,
 
 	if (withUV)
 	{
-		id = primitive.attributes["TEXCOORD_0"];
+		id = Get(primitive.attributes, "TEXCOORD_0");
 		auto& accessor = model.accessors[id];
 		auto& bufferView = model.bufferViews[accessor.bufferView];
 		auto& buffer = model.buffers[bufferView.buffer];
@@ -202,7 +227,7 @@ void ImportPrimitive(Mesh* mesh,
 
 	if (withTangent)
 	{
-		id = primitive.attributes["TANGENT"];
+		id = Get(primitive.attributes, "TANGENT");
 		auto& accessor = model.accessors[id];
 		auto& tangent_bufferView = model.bufferViews[accessor.bufferView];
 		auto& tangent_buffer = model.buffers[tangent_bufferView.buffer];
@@ -218,7 +243,7 @@ void ImportPrimitive(Mesh* mesh,
 	if (withJoints)
 	{
 		mesh->joints.resize(mesh->m_VertexCount);
-		id = primitive.attributes["JOINTS_0"];
+		id = Get(primitive.attributes, "JOINTS_0");
 		auto& accessor = model.accessors[id];
 		auto& bufferView = model.bufferViews[accessor.bufferView];
 		auto& buffer = model.buffers[bufferView.buffer];
@@ -258,7 +283,7 @@ void ImportPrimitive(Mesh* mesh,
 	if (withWeights)
 	{
 		mesh->weights.resize(mesh->m_VertexCount);
-		id = primitive.attributes["WEIGHTS_0"];
+		id = Get(primitive.attributes, "WEIGHTS_0");
 		auto& accessor = model.accessors[id];
 		auto& bufferView = model.bufferViews[accessor.bufferView];
 		auto& buffer = model.buffers[bufferView.buffer];
@@ -457,6 +482,21 @@ void ImportSkin(Skin* skin, const tinygltf::Skin& gltf_skin, const tinygltf::Mod
 	//}
 }
 
+
+
+Material* ImportMaterial(const tinygltf::Material& gltf_material,
+						 const Model& model,
+						 const tinygltf::Model& gltf_model)
+{
+	Material* mat = Material::Clone(Material::Texture);
+	int id = Get(gltf_material.values, "baseColorTexture").TextureIndex();
+	int imageId = gltf_model.textures[id].source;
+	auto img = model.images[imageId];
+	mat->SetTexture("_MainTex", img);
+	return mat;
+}
+
+
 void PrintHierarchy(Transform* t, int indent)
 {
 	for (int i = 0; i < indent; ++i)
@@ -477,8 +517,19 @@ inline bool EndsWith(const std::string& s, const std::string& end)
 	return s.substr(s.size() - end.size()) == end;
 }
 
-static bool gltfImageLoader(tinygltf::Image*, std::string *, std::string *, int, int, const unsigned char *, int, void *)
+#include <FishEngine/Texture.hpp>
+
+
+// TODO: temp
+Model * current_model = nullptr;
+
+bool gltfLoadImageData(tinygltf::Image *image, std::string *err, std::string *warn,
+				   int req_width, int req_height, const unsigned char *bytes,
+				   int size, void *)
 {
+	bgfx::TextureHandle texture = loadTexture2((void*)bytes, size, "unknown.ext");
+	assert(bgfx::isValid(texture));
+	current_model->images.push_back(texture);
 	return true;
 }
 
@@ -491,7 +542,9 @@ ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* sc
 	std::string err;
 	std::string warn;
 	
-	loader.SetImageLoader(gltfImageLoader, nullptr);
+	current_model = &model;
+	
+	loader.SetImageLoader(gltfLoadImageData, nullptr);
 
 	bool ret = false;
 	if (EndsWith(filePath, ".gltf"))
@@ -517,6 +570,13 @@ ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* sc
 
 	model.rootGameObject = scene->CreateGameObject();
 	model.rootGameObject->m_Name = "Root";
+	
+	// loade all materials
+	for (auto& m : gltf_model.materials)
+	{
+		auto mat = ImportMaterial(m, model, gltf_model);
+		model.materials.push_back(mat);
+	}
 
 	// load all meshes
 	for (int i = 0; i < gltf_model.meshes.size(); ++i)
@@ -620,6 +680,8 @@ ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* sc
 		{
 			Renderable* r = scene->GameObjectAddComponent<Renderable>(go);
 			r->mesh = model.meshes[node.mesh];
+			auto& gltf_mesh = gltf_model.meshes[node.mesh];
+			r->material = model.materials[gltf_mesh.primitives[0].material];
 
 			if (node.skin >= 0)
 			{

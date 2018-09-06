@@ -13,6 +13,7 @@
 #include <FishEngine/Components/Animation.hpp>
 #include <FishEngine/Model.hpp>
 #include <FishEngine/Graphics.hpp>
+#include <FishEngine/Shader.hpp>
 
 #include <GLFW/glfw3.h>
 
@@ -111,7 +112,7 @@ public:
 		{
 			auto go = m_Scene->CreateGameObject();
 			m_Scene->GameObjectAddComponent<Camera>(go);
-			go->GetTransform()->SetLocalPosition(0, 0.5, -2);
+			go->GetTransform()->SetLocalPosition(0, 0, -2);
 			m_Scene->GameObjectAddComponent<FreeCamera>(go);
 		}
 		{
@@ -134,7 +135,7 @@ public:
 		});
 
 		//rootGO->GetTransform()->SetLocalEulerAngles(-90, -90, 0);
-//		rootGO->GetTransform()->SetLocalScale(0.1f);
+//		rootGO->GetTransform()->SetLocalScale(0.01f);
 
 		Gizmos::Init();
 		

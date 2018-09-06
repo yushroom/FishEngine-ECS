@@ -1,7 +1,7 @@
 #ifdef VERTEX
 
-$input a_position, a_normal, a_uv, a_tangent
-$output v_position, v_normal, v_uv, v_tangent
+$input a_position, a_normal, a_tangent
+$output v_position, v_normal, v_tangent
 
 #include <bgfx_shader.sh>
 
@@ -12,13 +12,13 @@ void main()
 	v_position = mul(u_model[0], vec4(a_position, 1.0)).xyz;
 	v_normal   = mul(u_model[0], vec4(a_normal, 0.0)).xyz;
 	v_tangent  = mul(u_model[0], a_tangent);	// TODO
-	v_uv = a_uv;
+	// v_uv = a_uv;
 }
 
 #else
 #ifdef FRAGMENT
 
-$input v_position, v_normal, v_uv, v_tangent
+$input v_position, v_normal, v_tangent
 
 #define _AMBIENT_IBL 1
 

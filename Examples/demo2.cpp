@@ -8,6 +8,7 @@
 #include <FishEngine/Systems/FreeCameraSystem.hpp>
 #include <FishEngine/Components/SingletonInput.hpp>
 #include <FishEngine/Assets.hpp>
+#include <FishEngine/Shader.hpp>
 
 //#include <GLFW/glfw3.h>
 

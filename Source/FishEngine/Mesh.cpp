@@ -28,6 +28,7 @@ void PUNTVertex::init()
 		.add(bgfx::Attrib::Normal, 3, bgfx::AttribType::Float)
 		.add(bgfx::Attrib::Tangent, 4, bgfx::AttribType::Float)
 		.end();
+	assert(PUNTVertex::ms_decl.getStride() == sizeof(PUNTVertex));
 }
 
 bgfx::VertexDecl PUNTVertex::ms_decl;
@@ -91,7 +92,8 @@ Mesh* MeshUtil::FromTextFile(const String & str)
 	);
 
 	mesh->m_IndexBuffer = bgfx::createIndexBuffer(
-		bgfx::makeRef(mesh->m_Indices.data(), sizeof(uint16_t)*mesh->m_Indices.size())
+												  bgfx::makeRef(mesh->m_Indices.data(), sizeof(decltype(mesh->m_Indices)::value_type)*mesh->m_Indices.size())
+												  , BGFX_BUFFER_INDEX32
 	);
 
 	return mesh;

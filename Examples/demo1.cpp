@@ -11,6 +11,7 @@
 #include <FishEngine/Texture.hpp>
 #include <FishEngine/Assets.hpp>
 #include <FishEngine/Graphics.hpp>
+#include <FishEngine/Shader.hpp>
 
 #include <imgui/imgui.h>
 #include <bx/bx.h>

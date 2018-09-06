@@ -20,15 +20,6 @@ namespace tinygltf
 }
 
 
-struct Model
-{
-	ECS::GameObject* rootGameObject = nullptr;
-	std::vector<ECS::GameObject*> nodes;
-	std::vector<Mesh*> meshes;
-	std::vector<Skin*> skins;
-	//tinygltf::Model gltfModel;
-};
-
 
 class ModelUtil : public Static
 {

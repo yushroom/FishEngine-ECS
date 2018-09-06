@@ -5,6 +5,7 @@
 #include "FishEngine/Systems/RenderSystem.hpp"
 #include "FishEngine/Systems/InputSystem.hpp"
 #include "FishEngine/Screen.hpp"
+#include <FishEngine/Material.hpp>
 
 #include <GLFW/glfw3.h>
 #include <bgfx/bgfx.h>
@@ -175,7 +176,7 @@ void GameApp::Init()
 	m_Scene->AddSystem(new InputSystem());
 
 	Mesh::StaticInit();
-
+	Material::StaticInit();
 	
 	auto s = new TransformSystem();
 	s->m_Priority = 999;

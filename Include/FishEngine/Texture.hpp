@@ -14,8 +14,10 @@ public:
 
 bgfx::TextureHandle loadTexture2(void* data, uint32_t size,
 								 const char* _filePath,
-								 uint32_t _flags,
-								 //								uint8_t _skip,
-								 bgfx::TextureInfo* _info,
-								 bimg::Orientation::Enum* _orientation
+								 uint32_t _flags = BGFX_SAMPLER_MIN_POINT
+								 | BGFX_SAMPLER_MAG_POINT
+								 | BGFX_SAMPLER_MIP_POINT|BGFX_SAMPLER_U_MIRROR|BGFX_SAMPLER_V_MIRROR,
+//								uint8_t _skip,
+								 bgfx::TextureInfo* _info = nullptr,
+								 bimg::Orientation::Enum* _orientation = nullptr
 								 );

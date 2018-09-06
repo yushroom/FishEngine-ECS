@@ -3,8 +3,8 @@ import os
 
 shader_src_dir = "./Shaders"
 out_dir = './Shaders/runtime'
-# shaderc = "./ThirdParty/bgfx/.build/osx64_clang/bin/shadercDebug"
-shaderc = "./ThirdParty/bgfx/.build/win64_vs2017/bin/shadercDebug.exe"
+shaderc = "./ThirdParty/bgfx/.build/osx64_clang/bin/shadercDebug"
+# shaderc = "./ThirdParty/bgfx/.build/win64_vs2017/bin/shadercDebug.exe"
 
 include_paths = ["./ThirdParty/bgfx/src", "./Shaders/include"]
 
@@ -23,9 +23,10 @@ for shader_file in glob(os.path.join(shader_src_dir, "*.shader")):
     for ext, shader_type, define in [('_vs.bin', 'vertex', 'VERTEX'), ('_fs.bin', 'fragment', 'FRAGMENT')]:
         compiled_shader_file = os.path.join(out_dir, bn + ext)
         cmd = f"{shaderc} {headers} --verbose -f {shader_file} -o {compiled_shader_file} --platform {platform} --type {shader_type} --define {define} --profile {profile}"
-        cmd = cmd.replace('/', '\\')
-        print(cmd)
+        # cmd = cmd.replace('/', '\\')
+        # print(cmd)
         os.system(cmd)
+    print()
 
 # /Users/yushroom/program/github/bgfx/.build/osx64_clang/bin/shadercDebug -i /Users/yushroom/program/github/bgfx/src -i /Users/yushroom/program/FishEngine/Engine/Shaders/include 
 # --verbose -f ./shader/PBR.sc -o ./shader/PBR_vs.bin --platform osx --type v --define VERTEX --profile 150
