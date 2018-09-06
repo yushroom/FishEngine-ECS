@@ -301,7 +301,7 @@ void ImportPrimitive(Mesh* mesh,
 	auto& indices_bufferView = model.bufferViews[indices_accessor.bufferView];
 	auto& indices_buffer = model.buffers[indices_bufferView.buffer];
 	
-	assert(indices_accessor.componentType == 5123);
+//	assert(indices_accessor.componentType == 5123);
 	assert(indices_accessor.type == TINYGLTF_TYPE_SCALAR);
 
 	int size = 1;	// in bytes
@@ -326,14 +326,32 @@ void ImportPrimitive(Mesh* mesh,
 //	auto byteLen = size * indices_accessor.count;
 //	assert(indices_bufferView.byteLength == byteLen);
 	
-	auto p = (unsigned short*)ptr;
-
-//	auto dest = mesh->m_Indices.data() + info.StartIndex;
-//	memcpy(dest, ptr, byteLen);
-	for (int i = 0; i < indices_accessor.count; ++i)
+	if (size == 1)
 	{
-		mesh->m_Indices[i + info.StartIndex] = info.VertexOffset + *p;
-		p++;
+		auto p = (unsigned char*)ptr;
+		for (int i = 0; i < indices_accessor.count; ++i)
+		{
+			mesh->m_Indices[i + info.StartIndex] = info.VertexOffset + *p;
+			p++;
+		}
+	}
+	else if (size == 2)
+	{
+		auto p = (unsigned short*)ptr;
+		for (int i = 0; i < indices_accessor.count; ++i)
+		{
+			mesh->m_Indices[i + info.StartIndex] = info.VertexOffset + *p;
+			p++;
+		}
+	}
+	else
+	{
+		auto p = (unsigned int*)ptr;
+		for (int i = 0; i < indices_accessor.count; ++i)
+		{
+			mesh->m_Indices[i + info.StartIndex] = info.VertexOffset + *p;
+			p++;
+		}
 	}
 }
 
@@ -488,11 +506,19 @@ Material* ImportMaterial(const tinygltf::Material& gltf_material,
 						 const Model& model,
 						 const tinygltf::Model& gltf_model)
 {
-	Material* mat = Material::Clone(Material::Texture);
-	int id = Get(gltf_material.values, "baseColorTexture").TextureIndex();
-	int imageId = gltf_model.textures[id].source;
-	auto img = model.images[imageId];
-	mat->SetTexture("_MainTex", img);
+	Material* mat = nullptr;
+	if (In(gltf_material.values, "baseColorTexture"))
+	{
+		mat = Material::Clone(Material::Texture);
+		int id = Get(gltf_material.values, "baseColorTexture").TextureIndex();
+		int imageId = gltf_model.textures[id].source;
+		auto img = model.images[imageId];
+		mat->SetTexture("_MainTex", img);
+	}
+	else
+	{
+		mat = Material::Clone(Material::Default);
+	}
 	return mat;
 }
 
@@ -681,7 +707,13 @@ ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* sc
 			Renderable* r = scene->GameObjectAddComponent<Renderable>(go);
 			r->mesh = model.meshes[node.mesh];
 			auto& gltf_mesh = gltf_model.meshes[node.mesh];
-			r->material = model.materials[gltf_mesh.primitives[0].material];
+//			r->material = model.materials[gltf_mesh.primitives[0].material];
+			r->m_Materials.reserve(gltf_mesh.primitives.size());
+			for (auto& p : gltf_mesh.primitives)
+			{
+				int id = p.material;
+				r->m_Materials.push_back(model.materials[id]);
+			}
 
 			if (node.skin >= 0)
 			{

@@ -20,8 +20,12 @@ class Renderable : public ECS::Component
 {
 	COMPONENT(Renderable);
 	
+//	void SetMaterial();
+//	void SetMaterial(int index);
+	
 public:
 	Material* material = nullptr;
+	std::vector<Material*> m_Materials;
 	Mesh* mesh = nullptr;
 	Skin* skin = nullptr;
 };

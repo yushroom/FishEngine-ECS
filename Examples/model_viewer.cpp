@@ -104,9 +104,9 @@ public:
 		//const char* path = FISHENGINE_ROOT "Assets/Models/T-Rex.glb";
 		auto path = GetglTFSample("CesiumMan");
 //		path = GetglTFSample("RiggedSimple");
-		path = GetglTFSample("Duck");
+		path = GetglTFSample("TextureCoordinateTest");
 //		path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
-		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf";
+//		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf";
 		auto rootGO = ModelUtil::FromGLTF(path, m_Scene);
 
 		{

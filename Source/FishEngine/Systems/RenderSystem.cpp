@@ -151,7 +151,15 @@ void RenderSystem::Draw()
 	m_Scene->ForEach<Renderable>([](ECS::GameObject* go, Renderable* rend)
 	{
 		auto& mtx = go->GetTransform()->GetLocalToWorldMatrix();
-		Graphics::DrawMesh(rend->mesh, mtx, rend->material);
+		if (rend->m_Materials.size() != rend->mesh->m_SubMeshCount)
+			Graphics::DrawMesh(rend->mesh, mtx, rend->material);
+		else
+		{
+			for (int i = 0; i < rend->m_Materials.size(); ++i)
+			{
+				Graphics::DrawMesh(rend->mesh, mtx, rend->m_Materials[i], 0, i);
+			}
+		}
 	});
 	
 #if 0
