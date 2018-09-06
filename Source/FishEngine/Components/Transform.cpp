@@ -1,4 +1,5 @@
 #include <FishEngine/Components/Transform.hpp>
+#include <cassert>
 
 Vector3 Transform::TransformDirection(const Vector3& direction) const
 {

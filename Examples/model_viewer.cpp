@@ -86,7 +86,7 @@ inline std::string GetglTFSample(const std::string& name)
 	return "/Users/yushroom/program/github/glTF-Sample-Models/2.0/"
 	
 #else
-	return R"(D:\program\glTF-Sample-Models\2.0\)";
+	return R"(D:\program\glTF-Sample-Models\2.0\)"
 #endif
 		+ name + "/glTF-Binary/" + name + ".glb";
 }
@@ -100,10 +100,11 @@ public:
 		auto fs = FISHENGINE_ROOT "Shaders/runtime/PBR_fs.bin";
 		m_Shader = ShaderUtil::Compile(vs, fs);
 
-		//const char* test_path = FISHENGINE_ROOT "Assets/Models/T-Rex.glb";
-//		auto test_path = R"(D:\program\glTF-Sample-Models\2.0\CesiumMan\glTF-Binary\CesiumMan.glb)";
-//		auto test_path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/RiggedSimple/glTF-Binary/RiggedSimple.glb";
+		//const char* path = FISHENGINE_ROOT "Assets/Models/T-Rex.glb";
 		auto path = GetglTFSample("CesiumMan");
+		//auto path = GetglTFSample("RiggedSimple");
+		//path = GetglTFSample("Buggy");
+		path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
 		auto rootGO = ModelUtil::FromGLTF(path, m_Scene);
 
 		{
@@ -131,8 +132,8 @@ public:
 				r->material = mat;
 		});
 
-		rootGO->GetTransform()->SetLocalEulerAngles(-90, -90, 0);
-		//model.rootGameObject->GetTransform()->SetLocalScale(0.01);
+		//rootGO->GetTransform()->SetLocalEulerAngles(-90, -90, 0);
+		rootGO->GetTransform()->SetLocalScale(0.1f);
 
 		Gizmos::Init();
 		

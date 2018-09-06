@@ -26,7 +26,7 @@ void PUNTVertex::init()
 		.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
 		.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
 		.add(bgfx::Attrib::Normal, 3, bgfx::AttribType::Float)
-		.add(bgfx::Attrib::Tangent, 3, bgfx::AttribType::Float)
+		.add(bgfx::Attrib::Tangent, 4, bgfx::AttribType::Float)
 		.end();
 }
 
@@ -42,44 +42,56 @@ void Mesh::StaticInit()
 }
 
 
-void Mesh::Bind()
+void Mesh::Bind(int subMeshIndex/* = -1*/, int bgfxStream/* = 0*/)
 {
+	if (subMeshIndex < -1 || subMeshIndex >= m_SubMeshCount)
+	{
+		return;
+	}
+
 	if (IsSkinned())
-		bgfx::setVertexBuffer(0, m_DynamicVertexBuffer);
+		bgfx::setVertexBuffer(bgfxStream, m_DynamicVertexBuffer);
 	else
-		bgfx::setVertexBuffer(0, m_VertexBuffer);
-	bgfx::setIndexBuffer(m_IndexBuffer);
+		bgfx::setVertexBuffer(bgfxStream, m_VertexBuffer);
+
+	if (subMeshIndex == -1)
+		bgfx::setIndexBuffer(m_IndexBuffer);
+	else
+	{
+		auto& info = m_SubMeshInfos[subMeshIndex];
+		bgfx::setIndexBuffer(m_IndexBuffer, info.StartIndex, info.Length);
+	}
 }
 
 Mesh* MeshUtil::FromTextFile(const String & str)
 {
 	std::istringstream is(str);
 	auto mesh = new Mesh();
-	is >> mesh->m_vertexCount >> mesh->m_triangleCount;
+	is >> mesh->m_VertexCount >> mesh->m_TriangleCount;
 
-	mesh->vertices.resize(mesh->m_vertexCount);
-	mesh->indices.resize(mesh->m_triangleCount * 3);
+	mesh->m_Vertices.resize(mesh->m_VertexCount);
+	mesh->m_Indices.resize(mesh->m_TriangleCount * 3);
 
-	for (auto & v : mesh->vertices)
+	for (auto & v : mesh->m_Vertices)
 	{
 		is >> v.position.x >> v.position.y >> v.position.z;
 	}
-	for (auto & v : mesh->vertices)
+	for (auto & v : mesh->m_Vertices)
 		is >> v.normal.x >> v.normal.y >> v.normal.z;
-	for (auto & v : mesh->vertices)
+	for (auto & v : mesh->m_Vertices)
 		is >> v.uv.x >> v.uv.y;
-	for (auto & v : mesh->vertices)
+	for (auto & v : mesh->m_Vertices)
 		is >> v.tangent.x >> v.tangent.y >> v.tangent.z;
-	for (auto & f : mesh->indices)
+	for (auto & f : mesh->m_Indices)
 		is >> f;
 
 	mesh->m_VertexBuffer = bgfx::createVertexBuffer(
-		bgfx::makeRef(mesh->vertices.data(), sizeof(PUNTVertex)*mesh->vertices.size()),
+		bgfx::makeRef(mesh->m_Vertices.data(), sizeof(PUNTVertex)*mesh->m_Vertices.size()),
 		PUNTVertex::ms_decl
 	);
 
 	mesh->m_IndexBuffer = bgfx::createIndexBuffer(
-		bgfx::makeRef(mesh->indices.data(), sizeof(uint16_t)*mesh->indices.size())
+		bgfx::makeRef(mesh->m_Indices.data(), sizeof(uint16_t)*mesh->m_Indices.size())
 	);
 
 	return mesh;

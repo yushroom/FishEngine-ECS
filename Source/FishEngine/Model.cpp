@@ -12,6 +12,24 @@
 
 //using tinygltf::Model;
 
+void GetVector2(
+	Vector2& v,
+	int idx,
+	const tinygltf::Buffer& buffer,
+	const tinygltf::BufferView& bufferView,
+	const tinygltf::Accessor& accessor
+)
+{
+	assert(accessor.type == TINYGLTF_TYPE_VEC2);
+	assert(idx < accessor.count);
+	size_t offset = accessor.byteOffset + bufferView.byteOffset;
+	size_t stride = bufferView.byteStride == 0 ? sizeof(Vector2) : bufferView.byteStride;
+	offset += stride * idx;
+	//assert(offset < bufferView.byteLength);
+	auto ptr = buffer.data.data() + offset;
+	memcpy(&v, ptr, sizeof(Vector2));
+}
+
 void GetVector3(
 	Vector3& v,
 	int idx,
@@ -20,12 +38,34 @@ void GetVector3(
 	const tinygltf::Accessor& accessor
 )
 {
+	assert(accessor.type == TINYGLTF_TYPE_VEC3);
+	assert(idx < accessor.count);
 	size_t offset = accessor.byteOffset + bufferView.byteOffset;
 	size_t stride = bufferView.byteStride == 0 ? sizeof(Vector3) : bufferView.byteStride;
 	offset += stride * idx;
+	//assert(offset < bufferView.byteLength);
 	auto ptr = buffer.data.data() + offset;
 	memcpy(&v, ptr, sizeof(Vector3));
 }
+
+void GetVector4(
+	Vector4& v,
+	int idx,
+	const tinygltf::Buffer& buffer,
+	const tinygltf::BufferView& bufferView,
+	const tinygltf::Accessor& accessor
+)
+{
+	assert(accessor.type == TINYGLTF_TYPE_VEC4);
+	assert(idx < accessor.count);
+	size_t offset = accessor.byteOffset + bufferView.byteOffset;
+	size_t stride = bufferView.byteStride == 0 ? sizeof(Vector4) : bufferView.byteStride;
+	offset += stride * idx;
+	//assert(offset < bufferView.byteLength);
+	auto ptr = buffer.data.data() + offset;
+	memcpy(&v, ptr, sizeof(Vector4));
+}
+
 
 template<class T, class B>
 bool In(const std::map<T, B>& d, const T& key)
@@ -76,14 +116,16 @@ void RHS2LHS(Matrix4x4& m)
 	m.SetTRS(t, r, s);
 }
 
-void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_mesh)
-{
-	assert(gltf_mesh.primitives.size() == 1);
-	auto& primitive = gltf_mesh.primitives[0];
 
+void ImportPrimitive(Mesh* mesh,
+	const tinygltf::Model& model,
+	const SubMeshInfo& info,
+	tinygltf::Primitive& primitive)
+{
 	bool withTangent = false;
 	bool withJoints = false;
 	bool withWeights = false;
+	bool withUV = false;
 	for (auto& pair : primitive.attributes)
 	{
 		if (pair.first == "TANGENT")
@@ -92,20 +134,24 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 			withJoints = true;
 		else if (pair.first == "WEIGHTS_0")
 			withWeights = true;
+		else if (pair.first == "TEXCOORD_0")
+			withUV = true;
 	}
+
+	// TODO: primitive.mode
 
 	int id = primitive.attributes["POSITION"];
 	auto& position_accessor = model.accessors[id];
 	auto& position_bufferView = model.bufferViews[position_accessor.bufferView];
 	auto& position_buffer = model.buffers[position_bufferView.buffer];
 	
-	{
-		auto& m = position_accessor.minValues;
-		Vector3 min(m[0], m[1], m[2]);
-		auto& m2 = position_accessor.maxValues;
-		Vector3 max(m2[0], m2[1], m2[2]);
-		mesh->bounds.SetMinMax(min, max);
-	}
+	//{
+	//	auto& m = position_accessor.minValues;
+	//	Vector3 minv(m[0], m[1], m[2]);
+	//	auto& m2 = position_accessor.maxValues;
+	//	Vector3 maxv(m2[0], m2[1], m2[2]);
+	//	mesh->bounds.SetMinMax(minv, maxv);
+	//}
 
 
 	id = primitive.attributes["NORMAL"];
@@ -114,48 +160,57 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 	auto& normal_buffer = model.buffers[normal_bufferView.buffer];
 
 
-	auto& indices_accessor = model.accessors[primitive.indices];
-	auto& indices_bufferView = model.bufferViews[indices_accessor.bufferView];
-	auto& indices_buffer = model.buffers[indices_bufferView.buffer];
+	int primitiveVertexCount = position_accessor.count;
+	assert(normal_accessor.count == primitiveVertexCount);
 
-	mesh->m_vertexCount = position_accessor.count;
-	mesh->m_triangleCount = indices_accessor.count / 3;
 
-	mesh->vertices.resize(mesh->m_vertexCount);
-	mesh->indices.resize(mesh->m_triangleCount * 3);
-
-	for (int i = 0; i < mesh->m_vertexCount; ++i)
+	for (int i = 0; i < primitiveVertexCount; ++i)
 	{
-		auto& v = mesh->vertices[i];
+		auto& v = mesh->m_Vertices[i+info.VertexOffset];
 		GetVector3(v.position, i, position_buffer, position_bufferView, position_accessor);
 		GetVector3(v.normal, i, normal_buffer, normal_bufferView, normal_accessor);
 		//GetVector3(v.tangent, i, tangent_buffer, tangent_bufferView, tangent_accessor);
 		//RHS2LHS(v.position);
 	}
 
+	if (withUV)
+	{
+		id = primitive.attributes["TEXCOORD_0"];
+		auto& accessor = model.accessors[id];
+		auto& bufferView = model.bufferViews[accessor.bufferView];
+		auto& buffer = model.buffers[bufferView.buffer];
+		assert(accessor.count == primitiveVertexCount);
+
+		for (int i = 0; i < primitiveVertexCount; ++i)
+		{
+			auto& v = mesh->m_Vertices[i + info.VertexOffset];
+			GetVector2(v.uv, i, buffer, bufferView, accessor);
+		}
+	}
+
 	if (withTangent)
 	{
 		id = primitive.attributes["TANGENT"];
-		auto& tangent_accessor = model.accessors[id];
-		auto& tangent_bufferView = model.bufferViews[tangent_accessor.bufferView];
+		auto& accessor = model.accessors[id];
+		auto& tangent_bufferView = model.bufferViews[accessor.bufferView];
 		auto& tangent_buffer = model.buffers[tangent_bufferView.buffer];
+		assert(accessor.count == primitiveVertexCount);
 
-		for (int i = 0; i < mesh->m_vertexCount; ++i)
+		for (int i = 0; i < primitiveVertexCount; ++i)
 		{
-			auto& v = mesh->vertices[i];
-			GetVector3(v.tangent, i, tangent_buffer, tangent_bufferView, tangent_accessor);
+			auto& v = mesh->m_Vertices[i + info.VertexOffset];
+			GetVector4(v.tangent, i, tangent_buffer, tangent_bufferView, accessor);
 		}
 	}
 
 	if (withJoints)
 	{
-		mesh->joints.resize(mesh->m_vertexCount);
+		mesh->joints.resize(mesh->m_VertexCount);
 		id = primitive.attributes["JOINTS_0"];
 		auto& accessor = model.accessors[id];
 		auto& bufferView = model.bufferViews[accessor.bufferView];
 		auto& buffer = model.buffers[bufferView.buffer];
-
-		assert(accessor.count == mesh->m_vertexCount);
+		assert(accessor.count == primitiveVertexCount);
 
 		int offset = accessor.byteOffset + bufferView.byteOffset;
 		auto ptr = buffer.data.data() + offset;
@@ -190,14 +245,14 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 
 	if (withWeights)
 	{
-		mesh->weights.resize(mesh->m_vertexCount);
+		mesh->weights.resize(mesh->m_VertexCount);
 		id = primitive.attributes["WEIGHTS_0"];
 		auto& accessor = model.accessors[id];
 		auto& bufferView = model.bufferViews[accessor.bufferView];
 		auto& buffer = model.buffers[bufferView.buffer];
 
 		assert(accessor.componentType == 5126);		// float
-		assert(accessor.count == mesh->m_vertexCount);
+		assert(accessor.count == primitiveVertexCount);
 
 		int offset = accessor.byteOffset + bufferView.byteOffset;
 		auto ptr = buffer.data.data() + offset;
@@ -205,13 +260,10 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 	}
 
 
-	//assert(mesh->indices.size() * sizeof())
-	//memcpy(mesh->indices.data(), ptr, indices_bufferView.byteLength);
-
-	mesh->m_VertexBuffer = bgfx::createVertexBuffer(bgfx::makeRef(mesh->vertices.data(),
-		sizeof(PUNTVertex)*mesh->vertices.size()),
-		PUNTVertex::ms_decl
-	);
+	auto& indices_accessor = model.accessors[primitive.indices];
+	auto& indices_bufferView = model.bufferViews[indices_accessor.bufferView];
+	auto& indices_buffer = model.buffers[indices_bufferView.buffer];
+	assert(indices_accessor.componentType == 5123);
 
 	int size = 1;	// in bytes
 	switch (indices_accessor.componentType)
@@ -233,27 +285,63 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 	ptr += indices_bufferView.byteOffset + indices_accessor.byteOffset;
 	auto byteLen = size * indices_accessor.count;
 
-	assert(indices_bufferView.byteLength >= size * indices_accessor.count);
-	assert(size == 2);
+	auto dest = mesh->m_Indices.data() + info.StartIndex;
+	memcpy(dest, ptr, byteLen);
+	for (int i = 0; i < indices_accessor.count; ++i)
+	{
+		mesh->m_Indices[i + info.StartIndex] += info.VertexOffset;
+	}
 
-	//if (indices_accessor.componentType == 5123)
-	//{
-	//	memcpy(mesh->indices.data(), ptr, indices_bufferView.byteLength);
-	//	//printf("%s\n", mesh->indices[0]);
-
-	//	mesh->m_IndexBuffer = bgfx::createIndexBuffer(
-	//		bgfx::makeRef(mesh->indices.data(), sizeof(uint16_t)*mesh->indices.size())
-	//	);
-	//}
-	//else
-	//{
-	//	mesh->m_IndexBuffer = bgfx::createIndexBuffer(
-	//		bgfx::copy(ptr, indices_bufferView.byteLength)
-	//	);
-	//}
-
-	mesh->m_IndexBuffer = bgfx::createIndexBuffer(bgfx::copy(ptr, byteLen));
+	assert(indices_bufferView.byteLength == size * indices_accessor.count);
 }
+
+void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_mesh)
+{
+	uint32_t vertexCount = 0;
+	uint32_t indexCount = 0;
+	mesh->m_SubMeshCount = gltf_mesh.primitives.size();
+	mesh->m_SubMeshInfos.resize(mesh->m_SubMeshCount);
+	for (int i = 0; i < mesh->m_SubMeshCount; ++i)
+	{
+		auto& primitive = gltf_mesh.primitives[i];
+		auto& info = mesh->m_SubMeshInfos[i];
+		{
+			int id = primitive.attributes["POSITION"];
+			auto& accessor = model.accessors[id];
+			info.VertexOffset = vertexCount;
+			vertexCount += accessor.count;
+		}
+
+		{
+			int id = primitive.indices;
+			auto& accessor = model.accessors[id];
+			info.StartIndex = indexCount;
+			info.Length = accessor.count;
+			indexCount += accessor.count;
+		}
+	}
+	mesh->m_VertexCount = vertexCount;
+	mesh->m_Vertices.resize(vertexCount);
+	mesh->m_Indices.resize(indexCount);
+
+	for (int i = 0; i < mesh->m_SubMeshCount; ++i)
+	{
+		auto& primitive = gltf_mesh.primitives[i];
+		auto& info = mesh->m_SubMeshInfos[i];
+		ImportPrimitive(mesh, model, info, primitive);
+	}
+
+
+	mesh->m_VertexBuffer = bgfx::createVertexBuffer(
+		bgfx::makeRef(mesh->m_Vertices.data(), sizeof(decltype(mesh->m_Vertices)::value_type)*mesh->m_Vertices.size()),
+		PUNTVertex::ms_decl
+	);
+
+	mesh->m_IndexBuffer = bgfx::createIndexBuffer(
+		bgfx::makeRef(mesh->m_Indices.data(), sizeof(decltype(mesh->m_Indices)::value_type)*mesh->m_Indices.size())
+	);
+}
+
 
 void ImportAnimator(Animation* animation, const tinygltf::Animation& anim, const tinygltf::Model& model, const std::vector<ECS::GameObject*>& gos)
 {
@@ -351,6 +439,13 @@ void PrintHierarchy(Transform* t, int indent)
 	}
 }
 
+inline bool EndsWith(const std::string& s, const std::string& end)
+{
+	if (s.size() < end.size())
+		return false;
+	return s.substr(s.size() - end.size()) == end;
+}
+
 ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* scene)
 {
 	Model model;
@@ -360,8 +455,13 @@ ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* sc
 	std::string err;
 	std::string warn;
 
-	//bool ret = loader.LoadASCIIFromFile(&gltf_model, &err, &warn, filePath);
-	bool ret = loader.LoadBinaryFromFile(&gltf_model, &err, &warn, filePath); // for binary glTF(.glb)
+	bool ret = false;
+	if (EndsWith(filePath, ".gltf"))
+		ret = loader.LoadASCIIFromFile(&gltf_model, &err, &warn, filePath);
+	else if (EndsWith(filePath, ".glb"))
+		ret = loader.LoadBinaryFromFile(&gltf_model, &err, &warn, filePath);
+	else
+		abort();
 
 	if (!warn.empty()) {
 		printf("Warn: %s\n", warn.c_str());

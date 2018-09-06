@@ -12,7 +12,7 @@ struct PUNTVertex
 	Vector3 position;
 	Vector2 uv;
 	Vector3 normal;
-	Vector3 tangent;
+	Vector4 tangent;
 
 	static void init();;
 
@@ -21,6 +21,12 @@ struct PUNTVertex
 
 #include <FishEngine/Math/IntVector.hpp>
 
+struct SubMeshInfo
+{
+	int StartIndex;
+	int Length;
+	int VertexOffset;
+};
 
 class Mesh : public Object
 {
@@ -45,24 +51,26 @@ public:
 
 	static void StaticInit();
 
-	void Bind();
+	void Bind(int subMeshIndex = -1, int bgfxStream = 0);
 
 	bool IsSkinned() const { return joints.size() > 0; }
 
 //private:
 public:
-	uint32_t m_vertexCount = 0;
-	uint32_t m_triangleCount = 0;
-	int						m_subMeshCount = 1;
+	uint32_t m_VertexCount = 0;
+	uint32_t m_TriangleCount = 0;
+	int						m_SubMeshCount = 1;
 	//std::vector<Vector3>    m_vertices;
 	//std::vector<Vector3>    m_normals;
 	//std::vector<Vector2>    m_uv;
 	//std::vector<Vector3>    m_tangents;
 	//std::vector<uint32_t>   m_triangles;
-	//std::vector<uint32_t>	m_subMeshIndexOffset;	// index start
+	//std::vector<uint32_t>	m_SubMeshIndexOffset;	// index start
 
-	std::vector<PUNTVertex> vertices;
-	std::vector<uint16_t> indices;
+	std::vector<SubMeshInfo> m_SubMeshInfos;
+
+	std::vector<PUNTVertex> m_Vertices;
+	std::vector<uint16_t> m_Indices;
 };
 
 namespace ECS

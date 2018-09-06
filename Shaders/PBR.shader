@@ -11,7 +11,7 @@ void main()
 	//v_normal = normalize( mul(u_model[0], vec4(a_normal, 0.0)).xyz );
 	v_position = mul(u_model[0], vec4(a_position, 1.0)).xyz;
 	v_normal   = mul(u_model[0], vec4(a_normal, 0.0)).xyz;
-	v_tangent  = mul(u_model[0], vec4(a_tangent, 0.0)).xyz;
+	v_tangent  = mul(u_model[0], a_tangent);	// TODO
 	v_uv = a_uv;
 }
 

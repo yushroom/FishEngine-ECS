@@ -28,7 +28,7 @@ void RenderSystem::OnAdded()
 	init.resolution.height = 480;
 	init.resolution.reset = BGFX_RESET_VSYNC | BGFX_RESET_MSAA_X2;
 	bgfx::init(init);
-//	bgfx::setDebug(BGFX_DEBUG_STATS);
+	//	bgfx::setDebug(BGFX_DEBUG_STATS);
 	bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
 
 	auto state = m_Scene->AddSingletonComponent<SingletonRenderState>();
@@ -118,8 +118,8 @@ void RenderSystem::Draw()
 			}
 			
 			
-			mesh->m_DynamicVertices = mesh->vertices;
-			for (int i = 0; i < mesh->vertices.size(); ++i)
+			mesh->m_DynamicVertices = mesh->m_Vertices;
+			for (int i = 0; i < mesh->m_Vertices.size(); ++i)
 			{
 				const Vector4& a_weight = mesh->weights[i];
 				const auto& a_joint = mesh->joints[i];
@@ -131,12 +131,12 @@ void RenderSystem::Draw()
 				//if (a_weight.w > 0)
 					skinMatrix += u_jointMatrix[a_joint.w] * a_weight.w;
 				auto& dv = mesh->m_DynamicVertices[i];
-				auto& v = mesh->vertices[i];
+				auto& v = mesh->m_Vertices[i];
 				dv.position = skinMatrix.MultiplyPoint3x4(v.position);
 				dv.normal = skinMatrix.MultiplyVector(v.normal);
 			}
 			
-			auto mem = bgfx::makeRef(mesh->m_DynamicVertices.data(), sizeof(PUNTVertex)*mesh->vertices.size());
+			auto mem = bgfx::makeRef(mesh->m_DynamicVertices.data(), sizeof(PUNTVertex)*mesh->m_Vertices.size());
 			if (!bgfx::isValid(mesh->m_DynamicVertexBuffer))
 			{
 				mesh->m_DynamicVertexBuffer = bgfx::createDynamicVertexBuffer(mem, PUNTVertex::ms_decl);

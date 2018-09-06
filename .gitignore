@@ -1,4 +1,5 @@
 /build/
 /bin/
-/shader/*.bin
+/Shaders/*/*.bin
 /ThirdParty/
+/Assets/Models

@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 #include "Math.hpp"
+#include <cassert>
 
 struct MaterialProperties
 {
