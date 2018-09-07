@@ -17,21 +17,31 @@
 
 #include <GLFW/glfw3.h>
 
+template<class T>
+size_t Sizeof(const std::vector<T> v)
+{
+	return sizeof(T) * v.size();
+}
+
 class Gizmos : public Static
 {
+	friend class RenderSystem;
 public:
 	inline static Vector4 color;
 	inline static Matrix4x4 matrix;
 	
 	inline static Material* material = nullptr;
 	
-	static void Init()
+	static void StaticInit()
 	{
 		auto vs = FISHENGINE_ROOT "Shaders/runtime/color_vs.bin";
 		auto fs = FISHENGINE_ROOT "Shaders/runtime/color_fs.bin";
 		auto shader = ShaderUtil::Compile(vs, fs);
 		material = new Material;
 		material->SetShader(shader);
+
+		Vector3 temp;
+		//vb = bgfx::createDynamicVertexBuffer(bgfx::copy(&temp, sizeof(temp)), PUNTVertex::s_P_decl, BGFX_BUFFER_ALLOW_RESIZE);
 	}
 	
 	static void DrawCube(const Vector3& center, const Vector3& size)
@@ -41,9 +51,53 @@ public:
 		Graphics::DrawMesh(Mesh::Cube, m, material);
 	}
 	
-	static void DrawLine(const Vector3& from, const Vector3& to) { }
+
+	static void DrawLine(const Vector3& from, const Vector3& to)
+	{
+		Line line{ from, to };
+
+		auto vb = bgfx::createDynamicVertexBuffer(bgfx::copy(&line, sizeof(line)), PUNTVertex::s_P_decl);
+
+		bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_DEPTH_TEST_ALWAYS | BGFX_STATE_PT_LINES);
+		material->SetVector("u_color", color);
+		material->BindUniforms();
+		bgfx::setTransform(matrix.transpose().data());
+		bgfx::setVertexBuffer(0, vb);
+		bgfx::submit(0, material->GetShader()->GetProgram());
+		bgfx::destroy(vb);
+	}
+
 	static void DrawWireSphere(const Vector3& center, float radius) { }
 	
+private:
+
+	struct Line
+	{
+		Vector3 from;
+		Vector3 to;
+	};
+
+	inline static std::vector<Line> lines;
+};
+
+class SelectionSystem : public ECS::ISystem
+{
+public:
+	void Update() override
+	{
+		if (selected != nullptr)
+		{
+			Gizmos::matrix = selected->GetTransform()->GetLocalToWorldMatrix();
+			Gizmos::color = Vector4(1, 0, 0, 1);
+			Gizmos::DrawLine(Vector3::zero, Vector3{1, 0, 0});
+			Gizmos::color = Vector4(0, 1, 0, 1);
+			Gizmos::DrawLine(Vector3::zero, Vector3{ 0, 1, 0 });
+			Gizmos::color = Vector4(0, 0, 1, 1);
+			Gizmos::DrawLine(Vector3::zero, Vector3{ 0, 0, 1 });
+		}
+	}
+
+	ECS::GameObject* selected = nullptr;
 };
 
 class DrawSkeletonSystem : public ECS::ISystem
@@ -61,11 +115,18 @@ public:
 			for (auto* bone : rend->skin->joints)
 			{
 				auto t = bone->GetTransform();
-//				auto p = t->GetPosition();
-//				Gizmos::DrawWireSphere(p, 0.1f);
 				Gizmos::matrix = t->GetLocalToWorldMatrix();
 				Gizmos::DrawCube(Vector3::zero, Vector3::one * 0.05f);
+				
+				//auto p = t->GetParent();
+				//if (p != nullptr)
+				//{
+				//	Gizmos::matrix = p->GetLocalToWorldMatrix();
+				//	Gizmos::DrawLine(t->GetLocalPosition(), Vector3::zero);
+				//}
 			}
+
+			Gizmos::matrix = Matrix4x4::identity;
 			Gizmos::color = Vector4(0, 1, 0, 1);
 			for (auto* bone : rend->skin->joints)
 			{
@@ -104,9 +165,10 @@ public:
 		//const char* path = FISHENGINE_ROOT "Assets/Models/T-Rex.glb";
 		auto path = GetglTFSample("CesiumMan");
 //		path = GetglTFSample("RiggedSimple");
-		path = GetglTFSample("TextureCoordinateTest");
+//		path = GetglTFSample("TextureCoordinateTest");
 //		path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
 //		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf";
+		//path = GetglTFSample("Buggy");
 		auto rootGO = ModelUtil::FromGLTF(path, m_Scene);
 
 		{
@@ -134,14 +196,23 @@ public:
 				r->material = mat;
 		});
 
-		//rootGO->GetTransform()->SetLocalEulerAngles(-90, -90, 0);
-//		rootGO->GetTransform()->SetLocalScale(0.01f);
+		rootGO->GetTransform()->SetLocalEulerAngles(-90, -90, 0);
+		//rootGO->GetTransform()->SetLocalScale(0.1f);
 
-		Gizmos::Init();
+		Gizmos::StaticInit();
 		
 		m_Scene->AddSystem(new FreeCameraSystem());
-		m_Scene->AddSystem(new AnimationSystem());
+
+		{
+			auto s = new AnimationSystem();
+			m_Scene->AddSystem(s);
+			s->m_Priority = 999;
+		}
 		m_Scene->AddSystem(new DrawSkeletonSystem());
+
+		auto s = new SelectionSystem();
+		m_Scene->AddSystem(s);
+		s->selected = rootGO->GetTransform()->GetChildAt(0)->GetChildAt(0)->GetChildAt(0)->m_GameObject;
 	}
 	
 private:

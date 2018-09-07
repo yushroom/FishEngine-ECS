@@ -53,6 +53,33 @@ void RenderSystem::Start()
 #include <FishEngine/Components/SingletonInput.hpp>
 #include <FishEngine/Screen.hpp>
 
+Transform* selected = nullptr;
+
+void HierarchyNode(Transform* t)
+{
+	auto name = t->m_GameObject->m_Name.c_str();
+	//ImGui::PushID(t);
+	ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+	if (selected == t)
+		node_flags |= ImGuiTreeNodeFlags_Selected;
+	if (t->GetChildren().empty())
+		node_flags |= ImGuiTreeNodeFlags_Leaf;
+	node_flags |= ImGuiTreeNodeFlags_DefaultOpen;
+	bool node_open = ImGui::TreeNodeEx((void*)t, node_flags, name);
+	if (ImGui::IsItemClicked())
+		selected = t;
+	if (node_open)
+	{
+		for (auto c : t->GetChildren())
+		{
+			HierarchyNode(c);
+		}
+		ImGui::TreePop();
+	}
+	//ImGui::PopID();
+};
+
+
 void RenderSystem::Draw()
 {
 	Camera* camera = m_Scene->FindComponent<Camera>();
@@ -166,16 +193,26 @@ void RenderSystem::Draw()
 	//printf("============here==========\n\n");
 	auto input = m_Scene->GetSingletonComponent<SingletonInput>();
 	Vector2 mousePos = input->GetMousePosition();
+	mousePos.x *= Screen::width;
+	mousePos.y *= Screen::height;
 	auto mouseBtns =
-	(input->IsButtonPressed(KeyCode::MouseLeftButton) ? IMGUI_MBUT_LEFT : 0) |
-	(input->IsButtonPressed(KeyCode::MouseRightButton) ? IMGUI_MBUT_RIGHT : 0) |
-	(input->IsButtonPressed(KeyCode::MouseMiddleButton) ? IMGUI_MBUT_MIDDLE : 0);
+	(input->IsButtonHeld(KeyCode::MouseLeftButton) ? IMGUI_MBUT_LEFT : 0) |
+	(input->IsButtonHeld(KeyCode::MouseRightButton) ? IMGUI_MBUT_RIGHT : 0) |
+	(input->IsButtonHeld(KeyCode::MouseMiddleButton) ? IMGUI_MBUT_MIDDLE : 0);
 	
-	ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
-	ImGui::SetNextWindowSize(ImVec2(100, 100), ImGuiCond_FirstUseEver);
 	imguiBeginFrame(mousePos.x, mousePos.y, mouseBtns, input->GetAxis(Axis::MouseScrollWheel), Screen::width, Screen::height);
+	ImGui::SetNextWindowPos(ImVec2(0, 0));
+	ImGui::SetNextWindowSize(ImVec2(200, Screen::height), ImGuiCond_FirstUseEver);
 	ImGui::Begin("Hierarchy", NULL, 0);
-	ImGui::Text("Environment light:");
+	//ImGui::Text("Environment light:");
+
+	m_Scene->m_RootTransforms.size();
+	
+	for (auto t : m_Scene->m_RootTransforms)
+	{
+		HierarchyNode(t);
+	}
+
 	ImGui::End();
 	imguiEndFrame();
 #endif

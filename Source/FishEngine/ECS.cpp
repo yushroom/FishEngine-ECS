@@ -15,6 +15,7 @@ GameObject* Scene::CreateGameObject()
 	m_GameObjects[id] = go;
 	go->m_Transform = GameObjectAddComponent<Transform>(go);
 	go->m_Scene = this;
+	m_RootTransforms.push_back(go->GetTransform());
 	return go;
 }
 

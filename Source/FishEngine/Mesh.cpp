@@ -19,7 +19,7 @@ std::string ReadFileAsString(const std::string &path)
 }
 
 
-void PUNTVertex::init()
+void PUNTVertex::StaticInit()
 {
 	ms_decl
 		.begin()
@@ -29,14 +29,16 @@ void PUNTVertex::init()
 		.add(bgfx::Attrib::Tangent, 4, bgfx::AttribType::Float)
 		.end();
 	assert(PUNTVertex::ms_decl.getStride() == sizeof(PUNTVertex));
+
+	s_P_decl.begin().add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float).end();
 }
 
 bgfx::VertexDecl PUNTVertex::ms_decl;
-
+bgfx::VertexDecl PUNTVertex::s_P_decl;
 
 void Mesh::StaticInit()
 {
-	PUNTVertex::init();
+	PUNTVertex::StaticInit();
 	
 	Cube = MeshUtil::FromTextFile(ReadFileAsString(FISHENGINE_ROOT "Assets/Models/Cube.txt"));
 	Sphere = MeshUtil::FromTextFile(ReadFileAsString(FISHENGINE_ROOT "Assets/Models/Sphere.txt"));
