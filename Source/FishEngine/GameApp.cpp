@@ -56,6 +56,11 @@ static void glfw_window_size_callback(GLFWwindow* window, int width, int height)
 	mainApp->Resize(width, height);
 }
 
+inline KeyCode KKK(KeyCode key, int offset)
+{
+	return KeyCode(int(key) + offset);
+}
+
 static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	if (key == GLFW_KEY_UNKNOWN)
@@ -75,12 +80,12 @@ static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int act
 
 	if (key >= GLFW_KEY_0 && key <= GLFW_KEY_9)
 		e.key = KeyCode(key);
-	else if(key >= GLFW_KEY_A && key <= GLFW_KEY_Z)
+	else if (key >= GLFW_KEY_A && key <= GLFW_KEY_Z)
 		e.key = KeyCode(key);
-	else if (key == GLFW_KEY_F1)
-		e.key = KeyCode::F1;
+	else if (key >= GLFW_KEY_F1 && key <= GLFW_KEY_F15)
+		e.key = KKK(KeyCode::F1, key - GLFW_KEY_F1);
 	else if (key == GLFW_KEY_ESCAPE)
-		e.key = KeyCode::ECS;
+		e.key = KeyCode::Escape;
 	else if (key == GLFW_KEY_LEFT_ALT)
 		e.key = KeyCode::LeftAlt;
 	else if (key == GLFW_KEY_RIGHT_ALT)
@@ -94,14 +99,6 @@ static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int act
 	else if (key == GLFW_KEY_RIGHT_SUPER)
 		e.key = KeyCode::RightCommand;
 	s->PostKeyEvent(e);
-	
-	//if (key == GLFW_KEY_LEFT_ALT)
-	//{
-	//	if (action == GLFW_PRESS)
-	//		printf("left alt pressed\n");
-	//	else if (action == GLFW_RELEASE)
-	//		printf("left alt released\n");
-	//}
 }
 
 static void glfw_mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -197,7 +194,7 @@ void GameApp::Run()
 		//glfwWaitEvents();
 
 		auto si = m_Scene->GetSingletonComponent<SingletonInput>();
-		if (si->IsButtonPressed(KeyCode::ECS))
+		if (si->IsButtonPressed(KeyCode::Escape))
 			glfwSetWindowShouldClose(m_Window, 1);
 
 		if (si->IsButtonPressed(KeyCode::F1))

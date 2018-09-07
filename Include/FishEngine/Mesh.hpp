@@ -14,9 +14,11 @@ struct PUNTVertex
 	Vector3 normal;
 	Vector4 tangent;
 
-	static void init();;
+	static void StaticInit();;
 
 	static bgfx::VertexDecl ms_decl;
+
+	static bgfx::VertexDecl s_P_decl;
 };
 
 #include <FishEngine/Math/IntVector.hpp>
