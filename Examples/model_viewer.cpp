@@ -14,91 +14,11 @@
 #include <FishEngine/Model.hpp>
 #include <FishEngine/Graphics.hpp>
 #include <FishEngine/Shader.hpp>
+#include <FishEngine/Gizmos.hpp>
+#include <FishEngine/Systems/SelectionSystem.hpp>
 
 #include <GLFW/glfw3.h>
 
-template<class T>
-size_t Sizeof(const std::vector<T> v)
-{
-	return sizeof(T) * v.size();
-}
-
-class Gizmos : public Static
-{
-	friend class RenderSystem;
-public:
-	inline static Vector4 color;
-	inline static Matrix4x4 matrix;
-	
-	inline static Material* material = nullptr;
-	
-	static void StaticInit()
-	{
-		auto vs = FISHENGINE_ROOT "Shaders/runtime/color_vs.bin";
-		auto fs = FISHENGINE_ROOT "Shaders/runtime/color_fs.bin";
-		auto shader = ShaderUtil::Compile(vs, fs);
-		material = new Material;
-		material->SetShader(shader);
-
-		Vector3 temp;
-		//vb = bgfx::createDynamicVertexBuffer(bgfx::copy(&temp, sizeof(temp)), PUNTVertex::s_P_decl, BGFX_BUFFER_ALLOW_RESIZE);
-	}
-	
-	static void DrawCube(const Vector3& center, const Vector3& size)
-	{
-		auto m = Matrix4x4::Translate(center) * matrix * Matrix4x4::Scale(size);
-		material->SetVector("u_color", color);
-		Graphics::DrawMesh(Mesh::Cube, m, material);
-	}
-	
-
-	static void DrawLine(const Vector3& from, const Vector3& to)
-	{
-		Line line{ from, to };
-
-		auto vb = bgfx::createDynamicVertexBuffer(bgfx::copy(&line, sizeof(line)), PUNTVertex::s_P_decl);
-
-		bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_DEPTH_TEST_ALWAYS | BGFX_STATE_PT_LINES);
-		material->SetVector("u_color", color);
-		material->BindUniforms();
-		bgfx::setTransform(matrix.transpose().data());
-		bgfx::setVertexBuffer(0, vb);
-		bgfx::submit(0, material->GetShader()->GetProgram());
-		bgfx::destroy(vb);
-	}
-
-	static void DrawWireSphere(const Vector3& center, float radius) { }
-	
-private:
-
-	struct Line
-	{
-		Vector3 from;
-		Vector3 to;
-	};
-
-	inline static std::vector<Line> lines;
-};
-
-class SelectionSystem : public ECS::ISystem
-{
-public:
-	void Update() override
-	{
-		if (selected != nullptr)
-		{
-			Gizmos::matrix = selected->GetTransform()->GetLocalToWorldMatrix();
-			Gizmos::color = Vector4(1, 0, 0, 1);
-			Gizmos::DrawLine(Vector3::zero, Vector3{1, 0, 0});
-			Gizmos::color = Vector4(0, 1, 0, 1);
-			Gizmos::DrawLine(Vector3::zero, Vector3{ 0, 1, 0 });
-			Gizmos::color = Vector4(0, 0, 1, 1);
-			Gizmos::DrawLine(Vector3::zero, Vector3{ 0, 0, 1 });
-		}
-	}
-
-	ECS::GameObject* selected = nullptr;
-};
 
 class DrawSkeletonSystem : public ECS::ISystem
 {
@@ -158,17 +78,15 @@ class ModelViewer : public GameApp
 public:
 	void Start() override
 	{
-		auto vs = FISHENGINE_ROOT "Shaders/runtime/PBR_vs.bin";
-		auto fs = FISHENGINE_ROOT "Shaders/runtime/PBR_fs.bin";
-		m_Shader = ShaderUtil::Compile(vs, fs);
-
-		//const char* path = FISHENGINE_ROOT "Assets/Models/T-Rex.glb";
+//		const char* path = FISHENGINE_ROOT "Assets/Models/T-Rex.glb";
 		auto path = GetglTFSample("CesiumMan");
 //		path = GetglTFSample("RiggedSimple");
-//		path = GetglTFSample("TextureCoordinateTest");
+		path = GetglTFSample("TextureCoordinateTest");
+//		path = GetglTFSample("Triangle");
+//		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Triangle/glTF/Triangle.gltf";
 //		path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
 //		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf";
-		//path = GetglTFSample("Buggy");
+//		path = GetglTFSample("Buggy");
 		auto rootGO = ModelUtil::FromGLTF(path, m_Scene);
 
 		{
@@ -176,6 +94,7 @@ public:
 			m_Scene->GameObjectAddComponent<Camera>(go);
 			go->GetTransform()->SetLocalPosition(0, 0, -2);
 			m_Scene->GameObjectAddComponent<FreeCamera>(go);
+			go->m_Name = "Main Camera";
 		}
 		{
 			auto go = m_Scene->CreateGameObject();
@@ -183,36 +102,59 @@ public:
 			auto light = m_Scene->GameObjectAddComponent<Light>(go);
 			t->SetLocalEulerAngles(50, -30, 0);
 			t->SetLocalPosition(0, 3, 0);
+			go->m_Name = "Directional Light";
 		}
-
+		
+//		auto rootGO = m_Scene->CreateGameObject();
+//		auto r = m_Scene->GameObjectAddComponent<Renderable>(rootGO);
+//		r->mesh = Mesh::Cube;
+#if 0
+		auto vs = FISHENGINE_ROOT "Shaders/runtime/PBR_vs.bin";
+		auto fs = FISHENGINE_ROOT "Shaders/runtime/PBR_fs.bin";
+		m_Shader = ShaderUtil::Compile(vs, fs);
 		Material* mat = new Material();
 		mat->SetShader(m_Shader);
 		Vector4 pbrparams(0, 0.5f, 0, 0);
 		mat->SetVector("BaseColor", Vector4::one);
 		mat->SetVector("PBRParams", pbrparams);
+#elif 0
+		Material* mat = nullptr;
+		{
+			auto vs = FISHENGINE_ROOT "Shaders/runtime/color_vs.bin";
+			auto fs = FISHENGINE_ROOT "Shaders/runtime/color_fs.bin";
+			auto shader = ShaderUtil::Compile(vs, fs);
+			mat = new Material();
+			mat->SetShader(shader);
+			mat->SetVector("uniform_color", Vector4(1, 0, 0, 1));
+		}
+#else
+		Material* mat = Material::Clone(Material::Default);
+		mat->SetVector("uniform_color", Vector4(1, 1, 0, 1));
+#endif
+//		r->m_Materials.push_back( mat );
 
-		m_Scene->ForEach<Renderable>([mat](ECS::GameObject* go, Renderable* r){
-			if (r->material == nullptr)
-				r->material = mat;
-		});
+//		m_Scene->ForEach<Renderable>([mat](ECS::GameObject* go, Renderable* r){
+//			r->mesh = nullptr;
+//		});
 
-		rootGO->GetTransform()->SetLocalEulerAngles(-90, -90, 0);
+//		rootGO->GetTransform()->SetLocalEulerAngles(-90, -90, 0);
 		//rootGO->GetTransform()->SetLocalScale(0.1f);
 
 		Gizmos::StaticInit();
 		
 		m_Scene->AddSystem(new FreeCameraSystem());
 
-		{
-			auto s = new AnimationSystem();
-			m_Scene->AddSystem(s);
-			s->m_Priority = 999;
-		}
-		m_Scene->AddSystem(new DrawSkeletonSystem());
+//		{
+//			auto s = new AnimationSystem();
+//			m_Scene->AddSystem(s);
+//			s->m_Priority = 999;
+//		}
+//		m_Scene->AddSystem(new DrawSkeletonSystem());
 
 		auto s = new SelectionSystem();
 		m_Scene->AddSystem(s);
-		s->selected = rootGO->GetTransform()->GetChildAt(0)->GetChildAt(0)->GetChildAt(0)->m_GameObject;
+//		s->selected = rootGO->GetTransform()->GetChildAt(0)->GetChildAt(0)->GetChildAt(0)->m_GameObject;
+		s->selected = rootGO;
 	}
 	
 private:

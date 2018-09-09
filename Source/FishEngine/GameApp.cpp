@@ -193,6 +193,7 @@ void GameApp::Run()
 	while (!glfwWindowShouldClose(m_Window))
 	{
 		//glfwWaitEvents();
+//		printf("============ frame begin ===========\n");
 
 		auto si = m_Scene->GetSingletonComponent<SingletonInput>();
 		if (si->IsButtonPressed(KeyCode::Escape))
@@ -233,6 +234,7 @@ void GameApp::Run()
 
 		/* Poll for and process events */
 		glfwPollEvents();
+//		printf("============ frame end ===========\n");
 	}
 
 	/* Loop until the user closes the window */

@@ -72,6 +72,8 @@ namespace ECS
 		Transform* GetTransform() const { return m_Transform; }
 		//EntityID GetParentID() const { return m_ParentID; }
 
+		const std::vector<Component*>& GetComponents() const { return m_Components; }
+		
 		template<class T>
 		T* GetComponent() {
 			for (auto comp : m_Components)

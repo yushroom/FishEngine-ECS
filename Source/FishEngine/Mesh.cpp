@@ -31,6 +31,11 @@ void PUNTVertex::StaticInit()
 	assert(PUNTVertex::ms_decl.getStride() == sizeof(PUNTVertex));
 
 	s_P_decl.begin().add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float).end();
+	
+	s_PC_decl.begin()
+		.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
+		.add(bgfx::Attrib::Color0, 3, bgfx::AttribType::Float)
+	.end();
 }
 
 bgfx::VertexDecl PUNTVertex::ms_decl;
@@ -44,11 +49,21 @@ void Mesh::StaticInit()
 	Sphere = MeshUtil::FromTextFile(ReadFileAsString(FISHENGINE_ROOT "Assets/Models/Sphere.txt"));
 }
 
+void Mesh::__Upload()
+{
+	m_VertexBuffer = bgfx::createVertexBuffer(bgfx::makeRef(m_Vertices.data(), sizeof(decltype(m_Vertices)::value_type)*m_Vertices.size()),
+											  PUNTVertex::ms_decl);
+	
+	m_IndexBuffer = bgfx::createIndexBuffer(bgfx::makeRef(m_Indices.data(), sizeof(decltype(m_Indices)::value_type)*m_Indices.size())
+											, BGFX_BUFFER_INDEX32
+												  );
+}
 
 void Mesh::Bind(int subMeshIndex/* = -1*/, int bgfxStream/* = 0*/)
 {
 	if (subMeshIndex < -1 || subMeshIndex >= m_SubMeshCount)
 	{
+		abort();
 		return;
 	}
 
@@ -87,16 +102,14 @@ Mesh* MeshUtil::FromTextFile(const String & str)
 		is >> v.tangent.x >> v.tangent.y >> v.tangent.z;
 	for (auto & f : mesh->m_Indices)
 		is >> f;
-
-	mesh->m_VertexBuffer = bgfx::createVertexBuffer(
-		bgfx::makeRef(mesh->m_Vertices.data(), sizeof(PUNTVertex)*mesh->m_Vertices.size()),
-		PUNTVertex::ms_decl
-	);
-
-	mesh->m_IndexBuffer = bgfx::createIndexBuffer(
-												  bgfx::makeRef(mesh->m_Indices.data(), sizeof(decltype(mesh->m_Indices)::value_type)*mesh->m_Indices.size())
-												  , BGFX_BUFFER_INDEX32
-	);
+	
+	mesh->m_SubMeshCount = 1;
+	SubMeshInfo info;
+	info.StartIndex = 0;
+	info.VertexOffset = 0;
+	info.Length = mesh->m_Indices.size();
+	mesh->m_SubMeshInfos.push_back(info);
+	mesh->__Upload();
 
 	return mesh;
 }

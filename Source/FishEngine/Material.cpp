@@ -33,8 +33,11 @@ void Material::SetShader(Shader* shader)
 
 void Material::SetVector(const std::string& name, const Vector4& value)
 {
-	assert(m_UniformInfos.find(name) != m_UniformInfos.end());
-	m_MaterialProperties.vec4s[name] = value;
+//	assert(m_UniformInfos.find(name) != m_UniformInfos.end());
+	if (m_UniformInfos.find(name) != m_UniformInfos.end())
+		m_MaterialProperties.vec4s[name] = value;
+	else
+		printf("Material::SetTexture: %s not found!\n", name.c_str());
 }
 
 void Material::SetTexture(const std::string& name, bgfx::TextureHandle value)
@@ -95,5 +98,12 @@ void Material::StaticInit()
 		auto shader = ShaderUtil::Compile(vs, fs);
 		Texture = new Material;
 		Texture->SetShader(shader);
+	}
+	{
+		auto vs = FISHENGINE_ROOT "Shaders/runtime/Error_vs.bin";
+		auto fs = FISHENGINE_ROOT "Shaders/runtime/Error_fs.bin";
+		auto shader = ShaderUtil::Compile(vs, fs);
+		Error = new Material;
+		Error->SetShader(shader);
 	}
 }

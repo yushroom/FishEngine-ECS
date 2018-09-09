@@ -36,8 +36,9 @@ public:
 	}
 	
 	static void StaticInit();
-	inline static Material* Default;
-	inline static Material* Texture;
+	inline static Material* Default = nullptr;
+	inline static Material* Texture = nullptr;
+	inline static Material* Error = nullptr;
 	
 protected:
 	Shader* m_Shader = nullptr;

@@ -173,7 +173,7 @@ void ImportPrimitive(Mesh* mesh,
 			withUV = true;
 	}
 	
-	assert(withPosition && withNormal);
+	assert(withPosition);
 
 	// TODO: primitive.mode
 
@@ -190,24 +190,31 @@ void ImportPrimitive(Mesh* mesh,
 	//	mesh->bounds.SetMinMax(minv, maxv);
 	//}
 
-
-	id = Get(primitive.attributes, "NORMAL");
-	auto& normal_accessor = model.accessors[id];
-	auto& normal_bufferView = model.bufferViews[normal_accessor.bufferView];
-	auto& normal_buffer = model.buffers[normal_bufferView.buffer];
-
-
 	int primitiveVertexCount = position_accessor.count;
-	assert(normal_accessor.count == primitiveVertexCount);
+	
 
 
 	for (int i = 0; i < primitiveVertexCount; ++i)
 	{
 		auto& v = mesh->m_Vertices[i+info.VertexOffset];
 		GetVector3(v.position, i, position_buffer, position_bufferView, position_accessor);
-		GetVector3(v.normal, i, normal_buffer, normal_bufferView, normal_accessor);
 		//GetVector3(v.tangent, i, tangent_buffer, tangent_bufferView, tangent_accessor);
 		//RHS2LHS(v.position);
+	}
+	
+	if (withNormal)
+	{
+		id = Get(primitive.attributes, "NORMAL");
+		auto& normal_accessor = model.accessors[id];
+		auto& normal_bufferView = model.bufferViews[normal_accessor.bufferView];
+		auto& normal_buffer = model.buffers[normal_bufferView.buffer];
+		assert(normal_accessor.count == primitiveVertexCount);
+		
+		for (int i = 0; i < primitiveVertexCount; ++i)
+		{
+			auto& v = mesh->m_Vertices[i+info.VertexOffset];
+			GetVector3(v.normal, i, normal_buffer, normal_bufferView, normal_accessor);
+		}
 	}
 
 	if (withUV)
@@ -388,6 +395,7 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 	mesh->m_VertexCount = vertexCount;
 	mesh->m_Vertices.resize(vertexCount);
 	mesh->m_Indices.resize(indexCount);
+	mesh->m_TriangleCount = indexCount / 3;
 	
 	for (int i = 0; i < mesh->m_SubMeshCount; ++i)
 //	for (auto& info : mesh->m_SubMeshInfos)
@@ -404,16 +412,10 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 	}
 
 //	int count = sizeof(decltype(mesh->m_Vertices)::value_type);
+	
+	assert(mesh->m_Vertices.size() == mesh->m_VertexCount);
 
-	mesh->m_VertexBuffer = bgfx::createVertexBuffer(
-		bgfx::makeRef(mesh->m_Vertices.data(), sizeof(decltype(mesh->m_Vertices)::value_type)*mesh->m_Vertices.size()),
-		PUNTVertex::ms_decl
-	);
-
-	mesh->m_IndexBuffer = bgfx::createIndexBuffer(
-		bgfx::makeRef(mesh->m_Indices.data(), sizeof(decltype(mesh->m_Indices)::value_type)*mesh->m_Indices.size())
-												  ,BGFX_BUFFER_INDEX32
-	);
+	mesh->__Upload();
 }
 
 
@@ -712,7 +714,10 @@ ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* sc
 			for (auto& p : gltf_mesh.primitives)
 			{
 				int id = p.material;
-				r->m_Materials.push_back(model.materials[id]);
+				if (id == -1)
+					r->m_Materials.push_back(Material::Default);
+				else
+					r->m_Materials.push_back(model.materials[id]);
 			}
 
 			if (node.skin >= 0)
@@ -726,7 +731,12 @@ ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* sc
 	////	auto tex = TextureUtils::LoadTextureFromMemory(img.data(), img.size());
 	//	auto tex = loadTexture2(img.data(), img.size(), "from/gltf", BGFX_TEXTURE_NONE, nullptr, nullptr);
 
-	auto& defaultScene = gltf_model.scenes[gltf_model.defaultScene];
+	assert(gltf_model.scenes.size() > 0);
+	
+	int defaultSceneId = gltf_model.defaultScene;
+	if (defaultSceneId == -1)
+		defaultSceneId = 0;
+	auto& defaultScene = gltf_model.scenes[defaultSceneId];
 	auto rootT = model.rootGameObject->GetTransform();
 	for (int nodeID : defaultScene.nodes)
 	{

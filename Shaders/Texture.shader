@@ -20,7 +20,7 @@ uniform sampler2D _MainTex;
 
 void main()
 {
-	gl_FragColor = texture(_MainTex, v_texcoord0);
+	gl_FragColor = texture2D(_MainTex, v_texcoord0);
 }
 
 #endif

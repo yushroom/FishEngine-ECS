@@ -7,6 +7,8 @@
 #include "FishEngine/Graphics.hpp"
 #include "FishEngine/Material.hpp"
 #include <FishEngine/Mesh.hpp>
+#include <FishEngine/Gizmos.hpp>
+#include <FishEngine/Systems/SelectionSystem.hpp>
 
 #include <bx/math.h>
 
@@ -23,13 +25,13 @@ SingletonRenderState::SingletonRenderState()
 void RenderSystem::OnAdded()
 {
 	bgfx::Init init;
-	init.type = bgfx::RendererType::Enum::OpenGL;
+	init.type = bgfx::RendererType::Enum::Metal;
 	init.resolution.width = 640;
 	init.resolution.height = 480;
 	init.resolution.reset = BGFX_RESET_VSYNC | BGFX_RESET_MSAA_X2;
 	bgfx::init(init);
-	//	bgfx::setDebug(BGFX_DEBUG_STATS);
-	bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
+//	bgfx::setDebug(BGFX_DEBUG_STATS);
+	bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL, 0x303030ff, 1.0f, 0);
 
 	auto state = m_Scene->AddSingletonComponent<SingletonRenderState>();
 
@@ -39,7 +41,7 @@ void RenderSystem::OnAdded()
 		| BGFX_STATE_WRITE_Z
 		| BGFX_STATE_DEPTH_TEST_LESS
 		| BGFX_STATE_CULL_CCW
-		| BGFX_STATE_MSAA
+//		| BGFX_STATE_MSAA
 		;
 	
 	imguiCreate();
@@ -57,18 +59,22 @@ Transform* selected = nullptr;
 
 void HierarchyNode(Transform* t)
 {
-	auto name = t->m_GameObject->m_Name.c_str();
+	auto name = t->m_GameObject->m_Name;
+	if (name.empty())
+		name = "go:" + std::to_string(t->entityID);
+#if 1
 	//ImGui::PushID(t);
 	ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
 	if (selected == t)
 		node_flags |= ImGuiTreeNodeFlags_Selected;
+	bool isLeaf = t->GetChildren().empty();
 	if (t->GetChildren().empty())
-		node_flags |= ImGuiTreeNodeFlags_Leaf;
+		node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
 	node_flags |= ImGuiTreeNodeFlags_DefaultOpen;
-	bool node_open = ImGui::TreeNodeEx((void*)t, node_flags, name);
+	bool node_open = ImGui::TreeNodeEx((void*)t, node_flags, name.c_str());
 	if (ImGui::IsItemClicked())
 		selected = t;
-	if (node_open)
+	if (!isLeaf && node_open)
 	{
 		for (auto c : t->GetChildren())
 		{
@@ -77,18 +83,31 @@ void HierarchyNode(Transform* t)
 		ImGui::TreePop();
 	}
 	//ImGui::PopID();
+#else
+	if (ImGui::TreeNode(name.c_str()))
+	{
+		for (auto c : t->GetChildren())
+		{
+			HierarchyNode(c);
+		}
+		ImGui::TreePop();
+	}
+	
+#endif
 };
 
 
 void RenderSystem::Draw()
 {
+	bgfx::touch(0);
+//	bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL);
 	Camera* camera = m_Scene->FindComponent<Camera>();
 	if (camera == nullptr)
 		return;
 	float cameraPos[4];
 	Matrix4x4 view;
 	{
-		auto go = m_Scene->GetGameObjectByID(camera->entityID);
+		auto go = camera->m_GameObject;
 		auto p = go->GetTransform()->GetPosition();
 		cameraPos[0] = p.x;
 		cameraPos[1] = p.y;
@@ -104,7 +123,7 @@ void RenderSystem::Draw()
 	Light* light = m_Scene->FindComponent<Light>();
 	if (light != nullptr)
 	{
-		Vector3 lightDir = -m_Scene->GetGameObjectByID(light->entityID)->GetTransform()->GetForward();
+		Vector3 lightDir = -light->m_GameObject->GetTransform()->GetForward();
 		Vector3 d = Vector3::Normalize(lightDir);
 		bgfx::setUniform(renderState->m_UniformLightDir, &d);
 	}
@@ -128,12 +147,13 @@ void RenderSystem::Draw()
 	});
 	renderState->m_State = old_state;
 
+#if 1
 	// CPU skinning
 	Matrix4x4 u_jointMatrix[256];
 	m_Scene->ForEach<Renderable>([&u_jointMatrix](ECS::GameObject* go, Renderable* r)
 	{
 		auto mesh = r->mesh;
-		if (mesh->IsSkinned())
+		if (mesh != nullptr && mesh->IsSkinned())
 		{
 			auto worldToObject = r->skin->root->GetTransform()->GetWorldToLocalMatrix();
 			//auto worldToObject = Matrix4x4::identity;
@@ -174,20 +194,46 @@ void RenderSystem::Draw()
 			}
 		}
 	});
+#endif
 
+#if 1
 	m_Scene->ForEach<Renderable>([](ECS::GameObject* go, Renderable* rend)
 	{
+		if (rend->mesh == nullptr)
+			return;
 		auto& mtx = go->GetTransform()->GetLocalToWorldMatrix();
-		if (rend->m_Materials.size() != rend->mesh->m_SubMeshCount)
-			Graphics::DrawMesh(rend->mesh, mtx, rend->material);
+		
+		if (rend->m_Materials.empty())
+		{
+			// render with error material
+			Graphics::DrawMesh(rend->mesh, mtx, Material::Error);
+		}
 		else
 		{
-			for (int i = 0; i < rend->m_Materials.size(); ++i)
+			if (rend->m_Materials.size() != rend->mesh->m_SubMeshCount)
 			{
-				Graphics::DrawMesh(rend->mesh, mtx, rend->m_Materials[i], 0, i);
+				abort();	// mismatch
+				Graphics::DrawMesh(rend->mesh, mtx, rend->m_Materials[0]);
+			}
+			else
+			{
+				if (rend->m_Materials.size() == 1)
+				{
+					Graphics::DrawMesh(rend->mesh, mtx, rend->m_Materials[0]);
+				}
+				else
+				{
+					for (int i = 0; i < rend->m_Materials.size(); ++i)
+					{
+						Graphics::DrawMesh(rend->mesh, mtx, rend->m_Materials[i], 0, i);
+					}
+				}
 			}
 		}
 	});
+#endif
+	
+	Gizmos::__Draw();
 	
 #if 0
 	//printf("============here==========\n\n");
@@ -199,21 +245,53 @@ void RenderSystem::Draw()
 	(input->IsButtonHeld(KeyCode::MouseLeftButton) ? IMGUI_MBUT_LEFT : 0) |
 	(input->IsButtonHeld(KeyCode::MouseRightButton) ? IMGUI_MBUT_RIGHT : 0) |
 	(input->IsButtonHeld(KeyCode::MouseMiddleButton) ? IMGUI_MBUT_MIDDLE : 0);
-	
+//	selected = m_Scene->GetSystem<SelectionSystem>()->selected->GetTransform();
 	imguiBeginFrame(mousePos.x, mousePos.y, mouseBtns, input->GetAxis(Axis::MouseScrollWheel), Screen::width, Screen::height);
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
-	ImGui::SetNextWindowSize(ImVec2(200, Screen::height), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(200, Screen::height));
 	ImGui::Begin("Hierarchy", NULL, 0);
-	//ImGui::Text("Environment light:");
-
-	m_Scene->m_RootTransforms.size();
-	
 	for (auto t : m_Scene->m_RootTransforms)
 	{
 		HierarchyNode(t);
 	}
-
 	ImGui::End();
+	
+	const int WIDTH = 300;
+	ImGui::SetNextWindowPos(ImVec2(Screen::width-WIDTH, 0));
+	ImGui::SetNextWindowSize(ImVec2(WIDTH, Screen::height));
+	ImGui::Begin("Inspector", NULL, 0);
+	if (selected != nullptr)
+	{
+		for (auto comp : selected->m_GameObject->GetComponents())
+		{
+			if (ImGui::CollapsingHeader(comp->GetTypeIndex().name(), ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				if (comp->Is<Transform>())
+				{
+					auto t = comp->As<Transform>();
+					Vector3 pos = t->GetLocalPosition();
+					if (ImGui::InputFloat3("Position", pos.data()))
+					{
+						t->SetLocalPosition(pos);
+					}
+					
+					auto r = t->GetLocalEulerAngles();
+					if (ImGui::InputFloat3("Rotation", r.data()))
+					{
+						t->SetLocalEulerAngles(r);
+					}
+					
+					auto s = t->GetLocalScale();
+					if (ImGui::InputFloat3("Scale", s.data()))
+					{
+						t->SetLocalEulerAngles(s);
+					}
+				}
+			}
+		}
+	}
+	ImGui::End();
+	
 	imguiEndFrame();
 #endif
 }

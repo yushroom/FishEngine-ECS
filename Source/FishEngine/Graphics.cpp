@@ -13,14 +13,13 @@ void Graphics::DrawMesh(Mesh* mesh, const Matrix4x4& matrix, Material* material,
 	if (mesh == nullptr || material == nullptr)
 		return;
 
+	// Set render states.
 	auto state = GameApp::GetMainApp()->GetScene()->GetSingletonComponent<SingletonRenderState>();
+	bgfx::setState(state->GetState());
 	
 	// Set model matrix for rendering.
 	bgfx::setTransform(matrix.transpose().data());
-	// Set render states.
-	bgfx::setState(state->GetState());
 	material->BindUniforms();
-
 	mesh->Bind(submeshID, id);
 	// Submit primitive for rendering to view 0.
 	bgfx::submit(id, material->GetShader()->GetProgram());

@@ -7,6 +7,12 @@
 #include <vector>
 #include <bgfx/bgfx.h>
 
+struct VertexPC
+{
+	Vector3 position;
+	Vector3 color;
+};
+
 struct PUNTVertex
 {
 	Vector3 position;
@@ -19,6 +25,7 @@ struct PUNTVertex
 	static bgfx::VertexDecl ms_decl;
 
 	static bgfx::VertexDecl s_P_decl;
+	inline static bgfx::VertexDecl s_PC_decl;
 };
 
 #include <FishEngine/Math/IntVector.hpp>
@@ -72,6 +79,9 @@ public:
 	std::vector<SubMeshInfo> m_SubMeshInfos;
 	std::vector<PUNTVertex> m_Vertices;
 	std::vector<uint32_t> m_Indices;
+	
+public:
+	void __Upload();
 };
 
 namespace ECS

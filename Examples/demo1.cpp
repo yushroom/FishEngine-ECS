@@ -182,10 +182,12 @@ public:
 			skyboxMat->SetVector("u_params", m_params.floats);
 			skyboxMat->SetTexture("s_texCube", m_tex_filtered);
 			skybox->m_skyboxMaterial = skyboxMat;
+			go->m_Name = "Main Camera";
 		}
 		{
 			auto go = m_Scene->CreateGameObject();
 			m_Scene->GameObjectAddComponent<Light>(go);
+			go->m_Name = "Directional Light";
 		}
 		
 
@@ -207,12 +209,13 @@ public:
 				mat->SetVector("BaseColor", Vector4::one);
 				mat->SetVector("PBRParams", pbrparams);
 				mat->SetTexture("AmbientCubemap", m_tex_filtered);
-				rend->material = mat;
+//				rend->material = mat;
+				rend->m_Materials.push_back(mat);
 			}
 		}
 		
 		m_Scene->AddSystem(new FreeCameraSystem());
-		m_Scene->AddSystem(new PickingSystem());
+		//m_Scene->AddSystem(new PickingSystem());
 	}
 	
 	void Update() override
