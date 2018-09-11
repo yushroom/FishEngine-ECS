@@ -26,9 +26,10 @@ void RenderSystem::OnAdded()
 {
 	bgfx::Init init;
 	init.type = bgfx::RendererType::Enum::Metal;
-	init.resolution.width = 640;
-	init.resolution.height = 480;
-	init.resolution.reset = BGFX_RESET_VSYNC | BGFX_RESET_MSAA_X2;
+	init.resolution.width = 800;
+	init.resolution.height = 600;
+//	init.resolution.reset = BGFX_RESET_VSYNC | BGFX_RESET_MSAA_X2;
+	init.resolution.reset = BGFX_RESET_VSYNC;
 	bgfx::init(init);
 //	bgfx::setDebug(BGFX_DEBUG_STATS);
 	bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL, 0x303030ff, 1.0f, 0);
@@ -152,6 +153,10 @@ void RenderSystem::Draw()
 	Matrix4x4 u_jointMatrix[256];
 	m_Scene->ForEach<Renderable>([&u_jointMatrix](ECS::GameObject* go, Renderable* r)
 	{
+		if (r == nullptr || !r->m_Enabled)
+		{
+			return;
+		}
 		auto mesh = r->mesh;
 		if (mesh != nullptr && mesh->IsSkinned())
 		{
@@ -199,7 +204,7 @@ void RenderSystem::Draw()
 #if 1
 	m_Scene->ForEach<Renderable>([](ECS::GameObject* go, Renderable* rend)
 	{
-		if (rend->mesh == nullptr)
+		if (rend == nullptr || !rend->m_Enabled || rend->mesh == nullptr)
 			return;
 		auto& mtx = go->GetTransform()->GetLocalToWorldMatrix();
 		
@@ -235,7 +240,9 @@ void RenderSystem::Draw()
 	
 	Gizmos::__Draw();
 	
-#if 0
+#if 1
+	const int hierarchy_width = 250;
+	const int inspector_width = 250;
 	//printf("============here==========\n\n");
 	auto input = m_Scene->GetSingletonComponent<SingletonInput>();
 	Vector2 mousePos = input->GetMousePosition();
@@ -245,10 +252,10 @@ void RenderSystem::Draw()
 	(input->IsButtonHeld(KeyCode::MouseLeftButton) ? IMGUI_MBUT_LEFT : 0) |
 	(input->IsButtonHeld(KeyCode::MouseRightButton) ? IMGUI_MBUT_RIGHT : 0) |
 	(input->IsButtonHeld(KeyCode::MouseMiddleButton) ? IMGUI_MBUT_MIDDLE : 0);
-//	selected = m_Scene->GetSystem<SelectionSystem>()->selected->GetTransform();
+	selected = m_Scene->GetSystem<SelectionSystem>()->selected->GetTransform();
 	imguiBeginFrame(mousePos.x, mousePos.y, mouseBtns, input->GetAxis(Axis::MouseScrollWheel), Screen::width, Screen::height);
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
-	ImGui::SetNextWindowSize(ImVec2(200, Screen::height));
+	ImGui::SetNextWindowSize(ImVec2(hierarchy_width, Screen::height));
 	ImGui::Begin("Hierarchy", NULL, 0);
 	for (auto t : m_Scene->m_RootTransforms)
 	{
@@ -256,9 +263,10 @@ void RenderSystem::Draw()
 	}
 	ImGui::End();
 	
-	const int WIDTH = 300;
-	ImGui::SetNextWindowPos(ImVec2(Screen::width-WIDTH, 0));
-	ImGui::SetNextWindowSize(ImVec2(WIDTH, Screen::height));
+	m_Scene->GetSystem<SelectionSystem>()->selected = selected->m_GameObject;
+	
+	ImGui::SetNextWindowPos(ImVec2(Screen::width-inspector_width, 0));
+	ImGui::SetNextWindowSize(ImVec2(inspector_width, Screen::height));
 	ImGui::Begin("Inspector", NULL, 0);
 	if (selected != nullptr)
 	{
@@ -286,9 +294,35 @@ void RenderSystem::Draw()
 					{
 						t->SetLocalEulerAngles(s);
 					}
+					
+					auto q = t->GetLocalRotation();
+					if (ImGui::InputFloat4("Rotation2", (float*)&q))
+					{
+						t->SetLocalRotation(q);
+					}
+				}
+				else if (comp->Is<Renderable>())
+				{
+					auto r = comp->As<Renderable>();
+					ImGui::Checkbox("enabled", &r->m_Enabled);
 				}
 			}
 		}
+	}
+	ImGui::End();
+	
+	int HEIGHT = 200;
+	ImGui::SetNextWindowPos(ImVec2(inspector_width, Screen::height-HEIGHT));
+	ImGui::SetNextWindowSize(ImVec2(Screen::width-inspector_width-hierarchy_width, HEIGHT));
+	ImGui::Begin("Systems", NULL, 0);
+	for (ISystem* s : m_Scene->GetSystems())
+	{
+		ImGui::PushID((void*)s);
+		if (ImGui::CollapsingHeader(s->GetTypeIndex().name(), ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::Checkbox("enabled", &s->m_Enabled);
+		}
+		ImGui::PopID();
 	}
 	ImGui::End();
 	

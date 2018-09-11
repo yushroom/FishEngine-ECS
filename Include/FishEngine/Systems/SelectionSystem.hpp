@@ -6,6 +6,7 @@
 
 class SelectionSystem : public ECS::ISystem
 {
+	SYSTEM(SelectionSystem);
 public:
 	void Update() override
 	{

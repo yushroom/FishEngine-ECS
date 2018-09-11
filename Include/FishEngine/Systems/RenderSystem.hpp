@@ -23,6 +23,7 @@ private:
 
 class RenderSystem : public ECS::ISystem
 {
+	SYSTEM(RenderSystem);
 public:
 	void OnAdded() override;
 	void Start() override;

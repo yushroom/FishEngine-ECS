@@ -745,7 +745,7 @@ ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* sc
 		go->GetTransform()->SetParent(rootT, false);
 	}
 
-	PrintHierarchy(rootT, 0);
+//	PrintHierarchy(rootT, 0);
 
 	return model.rootGameObject;
 }

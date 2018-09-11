@@ -9,6 +9,7 @@
 
 class Transform;
 class TransformSystem;
+class RenderSystem;
 
 namespace ECS
 {
@@ -113,15 +114,43 @@ namespace ECS
 		virtual void PostUpdate() {};
 
 		int m_Priority = 0;
+		
+		virtual std::type_index GetTypeIndex() = 0;
+		
+		template<class T>
+		bool Is() const
+		{
+			const T* t = dynamic_cast<const T*>(this);
+			return t != nullptr;
+		}
+		
+		template<class T>
+		T* As()
+		{
+			return dynamic_cast<T*>(this);
+		}
+		
+		bool m_Enabled = true;
 
 	protected:
 		Scene * m_Scene = nullptr;
+		
 	};
+	
+	#define SYSTEM(T)                            	\
+	protected:                                      \
+		T() = default;                              \
+	private:                                        \
+		friend class ECS::Scene;                    \
+		std::type_index GetTypeIndex() override { return std::type_index(typeid(T)); }      \
+		static T* Create() { T* t = new T(); return t; }               \
+
+
 
 
 	class SingletonComponent
 	{
-		friend Scene;
+		friend class Scene;
 	protected:
 		SingletonComponent() = default;
 	};
@@ -129,6 +158,7 @@ namespace ECS
 
 	class Scene
 	{
+		friend class RenderSystem;
 	public:
 		//EntityID CreateGameObject();
 		GameObject* CreateGameObject();
@@ -236,11 +266,14 @@ namespace ECS
 			return (T*)it->second;
 		}
 		
-		void AddSystem(ISystem* system)
+		template<class T>
+		T* AddSystem()
 		{
+			T* system = new T();	// did you forget to add SYSTEM(T) ?
 			m_Systems.push_back(system);
 			system->m_Scene = this;
 			system->OnAdded();
+			return system;
 		}
 
 		template<class T>
@@ -271,7 +304,8 @@ namespace ECS
 		{
 			for (ISystem* s : m_Systems)
 			{
-				s->Update();
+				if (s->m_Enabled)
+					s->Update();
 			}
 		}
 
@@ -289,6 +323,11 @@ namespace ECS
 			if (it == m_GameObjects.end())
 				return nullptr;
 			return it->second;
+		}
+		
+		const std::vector<ISystem*>& GetSystems() const
+		{
+			return m_Systems;
 		}
 
 

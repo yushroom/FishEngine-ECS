@@ -25,6 +25,7 @@ class Renderable : public ECS::Component
 	
 public:
 	//Material* material = nullptr;
+	bool m_Enabled = true;
 	std::vector<Material*> m_Materials;
 	Mesh* mesh = nullptr;
 	Skin* skin = nullptr;

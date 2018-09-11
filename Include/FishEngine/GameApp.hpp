@@ -30,8 +30,8 @@ public:
 
 protected:
 	GLFWwindow * 	m_Window 		= nullptr;
-	int 			m_WindowWidth 	= 640;
-	int 			m_WindowHeight 	= 480;
+	int 			m_WindowWidth 	= 800;
+	int 			m_WindowHeight 	= 600;
 
 	ECS::Scene* m_Scene = nullptr;
 };

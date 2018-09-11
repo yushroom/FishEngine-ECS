@@ -12,6 +12,7 @@ struct KeyEvent
 
 class InputSystem : public ECS::ISystem
 {
+	SYSTEM(InputSystem);
 public:
 
 	void OnAdded() override;

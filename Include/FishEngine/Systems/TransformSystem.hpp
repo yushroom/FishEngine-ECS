@@ -5,6 +5,7 @@
 
 class TransformSystem : public ECS::ISystem
 {
+	SYSTEM(TransformSystem);
 public:
 	void Update() override
 	{

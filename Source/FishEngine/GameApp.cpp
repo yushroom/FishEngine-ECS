@@ -166,18 +166,16 @@ void GameApp::Init()
 	
 	/*RenderSystem::GetInstance().Init2(m_WindowWidth, m_WindowHeight);*/
 	m_Scene = new ECS::Scene();
-	RenderSystem* rs = new RenderSystem();
+	auto rs = m_Scene->AddSystem<RenderSystem>();
 	rs->m_Priority = 1000;
-	m_Scene->AddSystem(rs);
 
-	m_Scene->AddSystem(new InputSystem());
+	m_Scene->AddSystem<InputSystem>();
 
 	Mesh::StaticInit();
 	Material::StaticInit();
 	
-	auto s = new TransformSystem();
+	auto s = m_Scene->AddSystem<TransformSystem>();
 	s->m_Priority = 999;
-	m_Scene->AddSystem(s);
 
 	Resize(m_WindowWidth, m_WindowHeight);
 }
