@@ -89,6 +89,7 @@ public:
 		//path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
 //		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf";
 		path = GetglTFSample("Buggy");
+//		path = GetglTFSample("BrainStem");
 		auto rootGO = ModelUtil::FromGLTF(path, m_Scene);
 
 		{
@@ -132,8 +133,6 @@ public:
 		//rootGO->GetTransform()->SetLocalEulerAngles(-90, -90, 0);
 		rootGO->GetTransform()->SetLocalScale(0.1f);
 
-		Gizmos::StaticInit();
-		
 		//m_Scene->AddSystem<FreeCameraSystem>();
 
 		{
@@ -145,12 +144,12 @@ public:
 
 		auto s=  m_Scene->AddSystem<SelectionSystem>();
 //		s->selected = rootGO->GetTransform()->GetChildAt(0)->GetChildAt(0)->GetChildAt(0)->m_GameObject;
-		s->selected = rootGO;
+		s->selected = Camera::GetMainCamera()->m_GameObject;
 
 		{
 			auto cam = Camera::GetEditorCamera();
 			assert(cam != nullptr);
-			cam->GetTransform()->SetLocalPosition(12, 12, -8);
+			cam->GetTransform()->SetLocalPosition(2.5, 2.5, -11);
 			cam->GetTransform()->SetLocalEulerAngles(45, -60, 0);
 		}
 	}

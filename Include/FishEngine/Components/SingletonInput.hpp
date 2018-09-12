@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../ECS.hpp"
+#include "../Screen.hpp"
 
 // see: https://github.com/Unity-Technologies/UnityCsReference/blob/master/Runtime/Export/KeyCode.cs
 
@@ -348,6 +349,7 @@ public:
 	bool IsButtonHeld(KeyCode code) const;
 	bool IsButtonReleased(KeyCode code) const;
 
+	Vector3 GetMousePosition_Unity() const { return {m_MousePosition.x*Screen::width, (1-m_MousePosition.y)*Screen::height, 0}; }
 	Vector2 GetMousePosition() const { return m_MousePosition; }
 	float GetAxis(Axis axis) const { return m_Axis[(int)axis]; }
 

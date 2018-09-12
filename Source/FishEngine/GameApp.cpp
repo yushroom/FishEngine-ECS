@@ -6,6 +6,7 @@
 #include "FishEngine/Systems/InputSystem.hpp"
 #include "FishEngine/Screen.hpp"
 #include <FishEngine/Material.hpp>
+#include <FishEngine/Gizmos.hpp>
 
 #include <FishEngine/Systems/EditorSystem.hpp>
 
@@ -22,6 +23,8 @@
 #define GLFW_EXPOSE_NATIVE_COCOA
 #	endif
 #include <GLFW/glfw3native.h>
+
+#include <thread>
 
 
 static void* glfwNativeWindowHandle(GLFWwindow* _window)
@@ -129,6 +132,11 @@ void glfw_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	s->UpdateAxis(Axis::MouseScrollWheel, yoffset);
 }
 
+void glfw_window_iconify_callback(GLFWwindow* window, int iconified)
+{
+	mainApp->m_WindowMinimized = (iconified == GLFW_TRUE);
+}
+
 
 void GameApp::Init()
 {
@@ -163,6 +171,7 @@ void GameApp::Init()
 	glfwSetKeyCallback(m_Window, glfw_key_callback);
 	glfwSetMouseButtonCallback(m_Window, glfw_mouse_button_callback);
 	glfwSetScrollCallback(m_Window, glfw_scroll_callback);
+	glfwSetWindowIconifyCallback(m_Window, glfw_window_iconify_callback);
 
 	glfwSwapInterval(1);
 
@@ -173,6 +182,7 @@ void GameApp::Init()
 
 	Mesh::StaticInit();
 	Material::StaticInit();
+	Gizmos::StaticInit();
 	
 	{
 		auto s = m_Scene->AddSystem<TransformSystem>();
@@ -194,6 +204,11 @@ void GameApp::Run()
 	
 	while (!glfwWindowShouldClose(m_Window))
 	{
+		if (m_WindowMinimized)
+		{
+			using namespace std::chrono_literals;
+			std::this_thread::sleep_for(200ms);
+		}
 		//glfwWaitEvents();
 //		printf("============ frame begin ===========\n");
 
@@ -220,7 +235,7 @@ void GameApp::Run()
 //		bgfx::setViewRect(0, 0, 0, uint16_t(m_WindowWidth*2), uint16_t(m_WindowHeight*2) );
 		bgfx::setViewRect(0, 0, 0, uint16_t(m_WindowWidth), uint16_t(m_WindowHeight) );
 		
-		Update();
+//		Update();
 		m_Scene->Update();
 
 		m_Scene->GetSystem<RenderSystem>()->Draw();

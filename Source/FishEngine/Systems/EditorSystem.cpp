@@ -61,7 +61,7 @@ void EditorSystem::OnAdded()
 	cam->m_Type = CameraType::Editor;
 	go->GetTransform()->SetLocalPosition(0, 0, -10);
 	m_Scene->GameObjectAddComponent<FreeCamera>(go);
-
+	
 	m_Scene->AddSystem<FreeCameraSystem>();
 }
 
@@ -260,6 +260,15 @@ void EditorSystem::Inspector()
 						ImGui::Text("current clip:");
 						//ImGui::Text("  root bone: %s", );
 					}
+				}
+				else if (comp->Is<Camera>())
+				{
+					auto c = comp->As<Camera>();
+					int fov = c->m_FOV;
+					ImGui::SliderInt("Field of View", &fov, 1, 179);
+					c->m_FOV = fov;
+					ImGui::SliderFloat("Near", &c->m_NearClipPlane, 0.01, c->m_FarClipPlane);
+					ImGui::SliderFloat("Far", &c->m_FarClipPlane, 1, 1000);
 				}
 			}
 		}

@@ -17,7 +17,7 @@ public:
 	void Run();
 
 	virtual void Start() { };
-	virtual void Update() { };
+//	void Update();
 	virtual void Clean() { };
 
 	void Resize(int width, int height);
@@ -34,4 +34,7 @@ protected:
 	int 			m_WindowHeight 	= 600;
 
 	ECS::Scene* m_Scene = nullptr;
+	
+public:
+	bool			m_WindowMinimized = false;
 };

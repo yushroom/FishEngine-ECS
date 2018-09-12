@@ -5,16 +5,18 @@
 
 namespace FishEngine
 {
-	class FE_EXPORT Ray
+	class Ray
 	{
 	public:
 		//InjectSerializationFunctionsNonVirtual(Ray)
 		
 		// The origin point of the ray.
-		Vector3 origin;
+		Vector3 origin {0, 0, 0};
 
 		// The direction of the ray.
-		Vector3 direction;
+		Vector3 direction {0, 0, 1};
+		
+		Ray() = default;
 
 		// Creates a ray starting at origin along direction.
 		Ray(const Vector3& origin, const Vector3& direction)

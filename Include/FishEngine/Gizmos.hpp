@@ -24,6 +24,7 @@ public:
     static void StaticInit();
     static void DrawCube(const Vector3& center, const Vector3& size);
     static void DrawLine(Vector3 from, Vector3 to);
+	static void DrawRay(Vector3 from, const Vector3& direction);
     static void DrawWireSphere(const Vector3& center, float radius);
 	static void DrawBounds(const Bounds& bounds);
 	static void DrawFrustum(const Frustum& frustum, const Matrix4x4& cameraToWorld);

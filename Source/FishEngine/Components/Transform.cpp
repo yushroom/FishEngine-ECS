@@ -1,9 +1,14 @@
 #include <FishEngine/Components/Transform.hpp>
 #include <cassert>
 
+Vector3 Transform::TransformPoint(const Vector3& point) const
+{
+	return GetLocalToWorldMatrix().MultiplyPoint(point);
+}
+
 Vector3 Transform::TransformDirection(const Vector3& direction) const
 {
-	return m_LocalToWorldMatrix.MultiplyVector(direction);
+	return GetLocalToWorldMatrix().MultiplyVector(direction);
 }
 
 void Transform::Translate(const Vector3& translation, Space relativeTo /*= Space::Self*/)

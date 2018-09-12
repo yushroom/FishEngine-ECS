@@ -94,10 +94,11 @@ void RenderSystem::Draw()
 	Matrix4x4 viewT = viewMat.transpose();
 	bgfx::setViewTransform(0, viewT.data(), proj);
 	bgfx::setViewTransform(1, viewT.data(), proj);
-
+	
 	Matrix4x4 projMat;
 	memcpy(projMat.data(), proj, sizeof(projMat));
 	projMat = projMat.transpose();
+	camera->m_ProjectionMatrix = projMat;
 	
 	// draw skybox first
 	auto old_state = renderState->m_State;
@@ -161,7 +162,7 @@ void RenderSystem::Draw()
 		}
 	});
 #endif
-
+	
 	auto viewProjMat = projMat * viewMat;
 	Bounds box_ndc;
 	if (bgfx::getCaps()->homogeneousDepth)
@@ -172,7 +173,15 @@ void RenderSystem::Draw()
 #if 1
 	// test frustum culling
 	auto gameCamera = Camera::GetMainCamera();
-	viewProjMat = projMat * gameCamera->GetWorldToCameraMatrix();
+	{
+		float proj[16];
+		bx::mtxProj(proj, gameCamera->m_FOV, aspectRatio, gameCamera->m_NearClipPlane, gameCamera->m_FarClipPlane, bgfx::getCaps()->homogeneousDepth);
+		Matrix4x4 projMat;
+		memcpy(projMat.data(), proj, sizeof(projMat));
+		projMat = projMat.transpose();
+		gameCamera->m_ProjectionMatrix = projMat;
+		viewProjMat = projMat * gameCamera->GetWorldToCameraMatrix();
+	}
 
 	{
 		Frustum frustum;

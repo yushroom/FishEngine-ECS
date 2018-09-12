@@ -217,10 +217,6 @@ public:
 		m_Scene->AddSystem(new FreeCameraSystem());
 		//m_Scene->AddSystem(new PickingSystem());
 	}
-	
-	void Update() override
-	{
-	}
 
 private:
 	Shader* m_Shader = nullptr;

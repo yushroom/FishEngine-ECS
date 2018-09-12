@@ -1,6 +1,7 @@
 #pragma once
 #include <FishEngine/ECS.hpp>
 #include <FishEngine/Components/Transform.hpp>
+#include <FishEngine/Screen.hpp>
 
 enum class CameraType
 {
@@ -22,6 +23,25 @@ public:
 	Matrix4x4 GetCameraToWorldMatrix() const
 	{
 		return GetTransform()->GetLocalToWorldMatrix();
+	}
+	
+	// Returns a ray going from camera through a screen point.
+	Ray ScreenPointToRay(const Vector3& position)
+	{
+		//http://antongerdelan.net/opengl/raycasting.html
+
+		// NDC space
+		float x = (2.0f * position.x) / Screen::width - 1.0f;
+		float y = (2.0f * position.y) / Screen::height - 1.0f;
+		Vector4 ray_clip(x, y, 1.f, 1.0f);
+
+		Vector4 ray_eye = m_ProjectionMatrix.inverse() * ray_clip;
+		ray_eye.z = 1.0f; // forward
+		ray_eye.w = 0.0f;
+
+		Vector4 ray_world_h = GetTransform()->GetLocalToWorldMatrix() * ray_eye;
+		Vector3 ray_world(ray_world_h.x, ray_world_h.y, ray_world_h.z);
+		return Ray(GetTransform()->GetPosition(), ray_world.normalized());
 	}
 
 	static Camera* GetMainCamera()
@@ -49,4 +69,6 @@ public:
 	float m_NearClipPlane = 0.1f;
 	float m_FarClipPlane = 100.f;
 	CameraType m_Type = CameraType::Game;
+	
+	Matrix4x4 m_ProjectionMatrix;
 };

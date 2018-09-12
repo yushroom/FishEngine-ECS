@@ -262,6 +262,8 @@ public:
 	//Vector3 GetForward() const { return GetRotation() * Vector3::forward; }
 	//
 	//// TODO: move to TransformSystem
+	Vector3 TransformPoint(const Vector3& point) const;
+	
 	Vector3 TransformDirection(const Vector3& direction) const;
 	void Translate(const Vector3& translation, Space relativeTo = Space::Self);
 	//void RotateAround(const Vector3& point, const Vector3& axis, float angle);

@@ -40,6 +40,11 @@ void Gizmos::DrawLine(Vector3 from, Vector3 to)
 	s_Lines.push_back({ to, color });
 }
 
+void Gizmos::DrawRay(Vector3 from, const Vector3& direction)
+{
+	DrawLine(from, from + direction);
+}
+
 void Gizmos::DrawWireSphere(const Vector3& center, float radius)
 {
 	abort();
