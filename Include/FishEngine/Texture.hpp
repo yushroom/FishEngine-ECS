@@ -8,7 +8,9 @@
 class TextureUtils : public Static
 {
 public:
-	static bgfx::TextureHandle LoadTexture(const char* path, uint32_t _flags);
+	static bgfx::TextureHandle LoadTexture(const char* path, uint32_t _flags = BGFX_SAMPLER_MIN_POINT
+																				| BGFX_SAMPLER_MAG_POINT
+																				| BGFX_SAMPLER_MIP_POINT | BGFX_SAMPLER_U_MIRROR | BGFX_SAMPLER_V_MIRROR);
 //	static bgfx::TextureHandle LoadTextureFromMemory(void* data, uint32_t size, uint32_t _flags=BGFX_TEXTURE_NONE);
 };
 

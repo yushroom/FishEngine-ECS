@@ -18,6 +18,8 @@ private:
 	bgfx::UniformHandle m_UniformCameraPos;
 	bgfx::UniformHandle m_UniformJointMatrix;
 	uint64_t m_State = 0;
+
+	bool m_EnableFrustumCulling = true;
 };
 
 

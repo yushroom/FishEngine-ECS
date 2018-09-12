@@ -75,6 +75,8 @@ namespace FishEngine {
 		float R10 = qxy + qwz;
 		float R11 = 1.f - (qxx + qzz);
 		
+		if (R12 > 1 && R12 < 1 + 1e-5)
+			R12 = 1;
 		x = -asin(R12);
 		y = atan2(R02, R22);
 		z = atan2(R10, R11);

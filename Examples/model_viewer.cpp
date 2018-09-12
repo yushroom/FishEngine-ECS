@@ -36,8 +36,9 @@ public:
 			for (auto* bone : rend->skin->joints)
 			{
 				auto t = bone->GetTransform();
-				Gizmos::matrix = t->GetLocalToWorldMatrix();
-				Gizmos::DrawCube(Vector3::zero, Vector3::one * 0.5f);
+				//Gizmos::matrix = t->GetLocalToWorldMatrix();
+				//Gizmos::DrawCube(Vector3::zero, Vector3::one * 0.05f);
+				Gizmos::DrawCube(t->GetPosition(), Vector3::one * 0.05f);
 				
 				//auto p = t->GetParent();
 				//if (p != nullptr)
@@ -79,22 +80,22 @@ class ModelViewer : public GameApp
 public:
 	void Start() override
 	{
-		const char* path = FISHENGINE_ROOT "Assets/Models/T-Rex.glb";
-		//auto path = GetglTFSample("CesiumMan");
-//		path = GetglTFSample("RiggedSimple");
-//		path = GetglTFSample("TextureCoordinateTest");
+		//const char* path = FISHENGINE_ROOT "Assets/Models/T-Rex.glb";
+		auto path = GetglTFSample("CesiumMan");
+		//path = GetglTFSample("RiggedSimple");
+		//path = GetglTFSample("TextureCoordinateTest");
 //		path = GetglTFSample("Triangle");
 //		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Triangle/glTF/Triangle.gltf";
-//		path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
+		//path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
 //		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf";
-//		path = GetglTFSample("Buggy");
+		path = GetglTFSample("Buggy");
 		auto rootGO = ModelUtil::FromGLTF(path, m_Scene);
 
 		{
 			auto go = m_Scene->CreateGameObject();
 			m_Scene->GameObjectAddComponent<Camera>(go);
-			go->GetTransform()->SetLocalPosition(0, 0, -2);
-			m_Scene->GameObjectAddComponent<FreeCamera>(go);
+			go->GetTransform()->SetLocalPosition(0, 0, -10);
+			//m_Scene->GameObjectAddComponent<FreeCamera>(go);
 			go->m_Name = "Main Camera";
 		}
 		{
@@ -129,21 +130,29 @@ public:
 //		});
 
 		//rootGO->GetTransform()->SetLocalEulerAngles(-90, -90, 0);
-		//rootGO->GetTransform()->SetLocalScale(0.1f);
+		rootGO->GetTransform()->SetLocalScale(0.1f);
 
 		Gizmos::StaticInit();
 		
-		m_Scene->AddSystem<FreeCameraSystem>();
+		//m_Scene->AddSystem<FreeCameraSystem>();
 
 		{
 			auto s = m_Scene->AddSystem<AnimationSystem>();
 			s->m_Priority = 999;
+			s->m_Enabled = false;
 		}
 		m_Scene->AddSystem<DrawSkeletonSystem>();
 
 		auto s=  m_Scene->AddSystem<SelectionSystem>();
 //		s->selected = rootGO->GetTransform()->GetChildAt(0)->GetChildAt(0)->GetChildAt(0)->m_GameObject;
 		s->selected = rootGO;
+
+		{
+			auto cam = Camera::GetEditorCamera();
+			assert(cam != nullptr);
+			cam->GetTransform()->SetLocalPosition(12, 12, -8);
+			cam->GetTransform()->SetLocalEulerAngles(45, -60, 0);
+		}
 	}
 	
 private:

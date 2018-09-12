@@ -30,10 +30,11 @@ public:
 	
 	static void StaticInit();
 	inline static Material* ColorMaterial = nullptr;
-	inline static Material* Texture = nullptr;
-	inline static Material* Error = nullptr;
+	inline static Material* TextureMaterial = nullptr;
+	inline static Material* ErrorMaterial = nullptr;
+	inline static Material* pbrMetallicRoughness = nullptr;
 	
-protected:
+//protected:
 	Shader* m_Shader = nullptr;
 	std::map<std::string, std::pair<bgfx::UniformHandle, bgfx::UniformInfo>> m_UniformInfos;
 	MaterialProperties m_MaterialProperties;

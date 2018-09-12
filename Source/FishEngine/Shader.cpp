@@ -50,10 +50,10 @@ bgfx::ProgramHandle loadProgram(bx::FileReaderI* _reader, const char* _vsName, c
 
 static bx::FileReader s_fileReader;
 
-Shader* ShaderUtil::Compile(const char* vs_path, const char* fs_path)
+Shader* ShaderUtil::Compile(const std::string& vs_path, const std::string& fs_path)
 {
 	Shader* s = new Shader();
-	s->m_Program = loadProgram(&s_fileReader, vs_path, fs_path, s->m_VertexShdaer, s->m_FragmentShader);
+	s->m_Program = loadProgram(&s_fileReader, vs_path.c_str(), fs_path.c_str(), s->m_VertexShdaer, s->m_FragmentShader);
 //	
 //	bgfx::UniformHandle uniforms[16];
 //	int count = bgfx::getShaderUniforms(s->m_FragmentShader, uniforms, 16);

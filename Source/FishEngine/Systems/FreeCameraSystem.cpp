@@ -1,6 +1,7 @@
 #include <FishEngine/Systems/FreeCameraSystem.hpp>
 #include <FishEngine/Components/Transform.hpp>
 #include <FishEngine/Components/SingletonInput.hpp>
+#include <FishEngine/Systems/SelectionSystem.hpp>
 
 void FreeCameraSystem::Update()
 {
@@ -82,6 +83,14 @@ void FreeCameraSystem::UpdateCameraTransform(SingletonInput* input, ECS::GameObj
 	{
 		t->SetLocalPosition(0, 0, -15);
 		t->SetLocalRotation(Quaternion::identity);
+	}
+
+	auto selected = m_Scene->GetSystem<SelectionSystem>()->selected;
+	if (selected != nullptr && input->IsButtonHeld(KeyCode::F))
+	{
+		auto target = selected->GetTransform();
+		t->Translate(target->GetPosition() - data->m_OrbitCenter, Space::World);
+		data->m_OrbitCenter = target->GetPosition();
 	}
 }
 

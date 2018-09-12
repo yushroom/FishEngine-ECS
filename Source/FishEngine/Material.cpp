@@ -83,6 +83,7 @@ void Material::BindUniforms() const
 			if (it != m_MaterialProperties.textures.end())
 			{
 				auto& value = it->second;
+				assert(bgfx::isValid(value));
 				bgfx::setTexture(texCount, handle, value);
 			}
 			texCount ++;
@@ -94,6 +95,7 @@ void Material::BindUniforms() const
 Material* Material::Clone(Material* mat)
 {
 	Material* m = new Material();
+	m->name = mat->name;
 	m->m_Shader = mat->m_Shader;
 	m->m_UniformInfos = mat->m_UniformInfos;
 	m->m_MaterialProperties = mat->m_MaterialProperties;
@@ -102,27 +104,30 @@ Material* Material::Clone(Material* mat)
 
 #include <FishEngine/Assets.hpp>
 
+Material* CreateMaterialFromShadersDir(const char* shader_name)
+{
+	auto vs = "Shaders/runtime/" + std::string(shader_name) + "_vs.bin";
+	auto fs = "Shaders/runtime/" + std::string(shader_name) + "_fs.bin";
+	vs = FISHENGINE_ROOT + vs;
+	fs = FISHENGINE_ROOT + fs;
+	auto shader = ShaderUtil::Compile(vs, fs);
+	auto mat = new Material;
+	mat->SetShader(shader);
+	mat->name = shader_name;
+	return mat;
+}
+
+#include <FishEngine/Texture.hpp>
+
 void Material::StaticInit()
 {
-	{
-		auto vs = FISHENGINE_ROOT "Shaders/runtime/color_vs.bin";
-		auto fs = FISHENGINE_ROOT "Shaders/runtime/color_fs.bin";
-		auto shader = ShaderUtil::Compile(vs, fs);
-		ColorMaterial = new Material;
-		ColorMaterial->SetShader(shader);
-	}
-	{
-		auto vs = FISHENGINE_ROOT "Shaders/runtime/Texture_vs.bin";
-		auto fs = FISHENGINE_ROOT "Shaders/runtime/Texture_fs.bin";
-		auto shader = ShaderUtil::Compile(vs, fs);
-		Texture = new Material;
-		Texture->SetShader(shader);
-	}
-	{
-		auto vs = FISHENGINE_ROOT "Shaders/runtime/Error_vs.bin";
-		auto fs = FISHENGINE_ROOT "Shaders/runtime/Error_fs.bin";
-		auto shader = ShaderUtil::Compile(vs, fs);
-		Error = new Material;
-		Error->SetShader(shader);
-	}
+	ColorMaterial = CreateMaterialFromShadersDir("color");
+	TextureMaterial = CreateMaterialFromShadersDir("Texture");
+	ErrorMaterial = CreateMaterialFromShadersDir("Error");
+
+	auto white = TextureUtils::LoadTexture(FISHENGINE_ROOT "Assets/Textures/white.png");
+
+	pbrMetallicRoughness = CreateMaterialFromShadersDir("pbrMetallicRoughness");
+	pbrMetallicRoughness->SetVector("baseColorFactor", Vector4::one);
+	pbrMetallicRoughness->SetTexture("baseColorTexture", white);
 }

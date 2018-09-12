@@ -58,11 +58,11 @@ void RenderSystem::Draw()
 {
 	bgfx::touch(0);
 //	bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL);
-	Camera* camera = m_Scene->FindComponent<Camera>();
+	Camera* camera = Camera::GetEditorCamera();
 	if (camera == nullptr)
 		return;
 	float cameraPos[4];
-	Matrix4x4 view;
+	Matrix4x4 viewMat;
 	{
 		auto go = camera->m_GameObject;
 		auto p = go->GetTransform()->GetPosition();
@@ -70,7 +70,7 @@ void RenderSystem::Draw()
 		cameraPos[1] = p.y;
 		cameraPos[2] = p.z;
 		cameraPos[3] = 1.0f;
-		view = go->GetTransform()->GetLocalToWorldMatrix().inverse().transpose();
+		viewMat = go->GetTransform()->GetWorldToLocalMatrix();
 	}
 
 	auto renderState = m_Scene->GetSingletonComponent<SingletonRenderState>();
@@ -88,11 +88,16 @@ void RenderSystem::Draw()
 	
 	float width = (float)GameApp::GetMainApp()->GetWidth();
 	float height = (float)GameApp::GetMainApp()->GetHeight();
-	float ratio = width / height;
+	float aspectRatio = width / height;
 	float proj[16];
-	bx::mtxProj(proj, 60.0f, ratio, camera->m_NearClipPlane, camera->m_FarClipPlane, bgfx::getCaps()->homogeneousDepth);
-	bgfx::setViewTransform(0, view.data(), proj);
-	bgfx::setViewTransform(1, view.data(), proj);
+	bx::mtxProj(proj, camera->m_FOV, aspectRatio, camera->m_NearClipPlane, camera->m_FarClipPlane, bgfx::getCaps()->homogeneousDepth);
+	Matrix4x4 viewT = viewMat.transpose();
+	bgfx::setViewTransform(0, viewT.data(), proj);
+	bgfx::setViewTransform(1, viewT.data(), proj);
+
+	Matrix4x4 projMat;
+	memcpy(projMat.data(), proj, sizeof(projMat));
+	projMat = projMat.transpose();
 	
 	// draw skybox first
 	auto old_state = renderState->m_State;
@@ -157,36 +162,90 @@ void RenderSystem::Draw()
 	});
 #endif
 
+	auto viewProjMat = projMat * viewMat;
+	Bounds box_ndc;
+	if (bgfx::getCaps()->homogeneousDepth)
+		box_ndc.SetMinMax({ -1, -1, -1 }, { 1, 1, 1 });
+	else
+		box_ndc.SetMinMax({ -1, -1, 0 }, { 1, 1, 1 });
+
 #if 1
-	m_Scene->ForEach<Renderable>([](ECS::GameObject* go, Renderable* rend)
+	// test frustum culling
+	auto gameCamera = Camera::GetMainCamera();
+	viewProjMat = projMat * gameCamera->GetWorldToCameraMatrix();
+
+	{
+		Frustum frustum;
+		frustum.aspect = aspectRatio;
+		frustum.fov = gameCamera->m_FOV;
+		frustum.minRange = gameCamera->m_NearClipPlane;
+		frustum.maxRange = gameCamera->m_FarClipPlane;
+		Gizmos::color = Vector4(1, 0, 0, 1);
+		Gizmos::DrawFrustum(frustum, gameCamera->GetCameraToWorldMatrix());
+	}
+
+#endif
+
+#if 1
+	m_Scene->ForEach<Renderable>([&viewProjMat, &box_ndc, renderState](ECS::GameObject* go, Renderable* rend)
 	{
 		if (rend == nullptr || !rend->m_Enabled || rend->mesh == nullptr)
 			return;
-		auto& mtx = go->GetTransform()->GetLocalToWorldMatrix();
+
+		auto& modelMat = go->GetTransform()->GetLocalToWorldMatrix();
+
+
+
+		// camera frustum culling
+		if (renderState->m_EnableFrustumCulling)
+		{
+			auto mvp = viewProjMat * modelMat;
+			bool insideFrustum = false;
+			for (int i = 0; i < 8; ++i)
+			{
+				auto corner = rend->mesh->bounds.GetCorner(i);
+				auto posV = mvp.MultiplyPoint(corner);
+				insideFrustum = box_ndc.Contains(posV);
+				if (insideFrustum)
+					break;
+			}
+
+			if (!insideFrustum)
+			{
+				Gizmos::color = Vector4(0, 0, 1, 1);
+				Gizmos::matrix = modelMat;
+				Gizmos::DrawBounds(rend->mesh->bounds);
+				return;
+			}
+		}
+
+		Gizmos::color = Vector4(0, 1, 0, 1);
+		Gizmos::matrix = modelMat;
+		Gizmos::DrawBounds(rend->mesh->bounds);
 		
 		if (rend->m_Materials.empty())
 		{
 			// render with error material
-			Graphics::DrawMesh(rend->mesh, mtx, Material::Error);
+			Graphics::DrawMesh(rend->mesh, modelMat, Material::ErrorMaterial);
 		}
 		else
 		{
 			if (rend->m_Materials.size() != rend->mesh->m_SubMeshCount)
 			{
 				abort();	// mismatch
-				Graphics::DrawMesh(rend->mesh, mtx, rend->m_Materials[0]);
+				Graphics::DrawMesh(rend->mesh, modelMat, rend->m_Materials[0]);
 			}
 			else
 			{
 				if (rend->m_Materials.size() == 1)
 				{
-					Graphics::DrawMesh(rend->mesh, mtx, rend->m_Materials[0]);
+					Graphics::DrawMesh(rend->mesh, modelMat, rend->m_Materials[0]);
 				}
 				else
 				{
 					for (int i = 0; i < rend->m_Materials.size(); ++i)
 					{
-						Graphics::DrawMesh(rend->mesh, mtx, rend->m_Materials[i], 0, i);
+						Graphics::DrawMesh(rend->mesh, modelMat, rend->m_Materials[i], 0, i);
 					}
 				}
 			}

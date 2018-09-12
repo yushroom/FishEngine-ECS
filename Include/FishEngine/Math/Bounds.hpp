@@ -3,6 +3,7 @@
 #include "../FishEngine.hpp"
 #include "Vector3.hpp"
 #include "Vector4.hpp"
+#include <cassert>
 
 namespace FishEngine
 {
@@ -156,6 +157,18 @@ namespace FishEngine
 		bool IsValid() const
 		{
 			return m_extents.x >= 0 && m_extents.y >= 0 && m_extents.z >= 0;
+		}
+
+		
+		// i in range of [0, 8)
+		Vector3 GetCorner(int i)
+		{
+			assert(i >= 0 && i < 8);
+			int sign[] = { 1, -1 };
+			int x = i & 1;
+			int y = (i>>1) & 1;
+			int z = (i>>2) & 1;
+			return m_center + m_extents * Vector3(sign[i&1], sign[y], sign[z]);
 		}
 	};
 	

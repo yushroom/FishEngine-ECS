@@ -13,6 +13,10 @@
 // #define TINYGLTF_NOEXCEPTION // optional. disable exception handling.
 #include <tiny_gltf.h>
 
+// gltf uses right handed coordinate system(rhs)
+// set this flag to converted to left handed system(lhs)
+#define LOAD_GLTF_AS_LHS 0
+
 struct Model
 {
 	ECS::GameObject* rootGameObject = nullptr;
@@ -121,26 +125,42 @@ void LoadBuffer(const tinygltf::Model& model, int accessorID, std::vector<float>
 }
 
 
-void RHS2LHS(Vector3& v)
+#if LOAD_GLTF_AS_LHS
+
+inline void RHS2LHS(Vector3& v)
 {
 	v.z *= -1;
 }
 
-void RHS2LHS(Quaternion& q)
+inline void RHS2LHS(Quaternion& q)
 {
 	auto euler = q.eulerAngles();
-	euler.x *= -1;
+	euler.z *= -1;
 	q = Quaternion::Euler(euler);
 }
 
-void RHS2LHS(Matrix4x4& m)
+inline void RHS2LHS(Matrix4x4& m)
 {
 	Vector3 t, s;
 	Quaternion r;
 	Matrix4x4::Decompose(m, &t, &r, &s);
+	RHS2LHS(t);
+	RHS2LHS(r);
 	m.SetTRS(t, r, s);
 }
+#else
+inline void RHS2LHS(Vector3& v)
+{
+}
 
+inline void RHS2LHS(Quaternion& q)
+{
+}
+
+inline void RHS2LHS(Matrix4x4& m)
+{
+}
+#endif
 
 void ImportPrimitive(Mesh* mesh,
 	const tinygltf::Model& model,
@@ -183,24 +203,23 @@ void ImportPrimitive(Mesh* mesh,
 	auto& position_bufferView = model.bufferViews[position_accessor.bufferView];
 	auto& position_buffer = model.buffers[position_bufferView.buffer];
 	
-	//{
-	//	auto& m = position_accessor.minValues;
-	//	Vector3 minv(m[0], m[1], m[2]);
-	//	auto& m2 = position_accessor.maxValues;
-	//	Vector3 maxv(m2[0], m2[1], m2[2]);
-	//	mesh->bounds.SetMinMax(minv, maxv);
-	//}
+	{
+		auto& m = position_accessor.minValues;
+		Vector3 minv(m[0], m[1], m[2]);
+		auto& m2 = position_accessor.maxValues;
+		Vector3 maxv(m2[0], m2[1], m2[2]);
+		//mesh->bounds.SetMinMax(minv, maxv);
+		mesh->bounds.Encapsulate(minv);
+		mesh->bounds.Encapsulate(maxv);
+	}
 
 	int primitiveVertexCount = position_accessor.count;
-	
-
 
 	for (int i = 0; i < primitiveVertexCount; ++i)
 	{
 		auto& v = mesh->m_Vertices[i+info.VertexOffset];
 		GetVector3(v.position, i, position_buffer, position_bufferView, position_accessor);
-		//GetVector3(v.tangent, i, tangent_buffer, tangent_bufferView, tangent_accessor);
-		//RHS2LHS(v.position);
+		RHS2LHS(v.position);
 	}
 	
 	if (withNormal)
@@ -215,6 +234,7 @@ void ImportPrimitive(Mesh* mesh,
 		{
 			auto& v = mesh->m_Vertices[i+info.VertexOffset];
 			GetVector3(v.normal, i, normal_buffer, normal_bufferView, normal_accessor);
+			RHS2LHS(v.normal);
 		}
 	}
 
@@ -245,6 +265,7 @@ void ImportPrimitive(Mesh* mesh,
 		{
 			auto& v = mesh->m_Vertices[i + info.VertexOffset];
 			GetVector4(v.tangent, i, tangent_buffer, tangent_bufferView, accessor);
+			//TODO: RHS 2 LHS
 		}
 	}
 
@@ -309,7 +330,6 @@ void ImportPrimitive(Mesh* mesh,
 	auto& indices_bufferView = model.bufferViews[indices_accessor.bufferView];
 	auto& indices_buffer = model.buffers[indices_bufferView.buffer];
 	
-//	assert(indices_accessor.componentType == 5123);
 	assert(indices_accessor.type == TINYGLTF_TYPE_SCALAR);
 
 	int size = 1;	// in bytes
@@ -402,7 +422,7 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 //	for (auto& info : mesh->m_SubMeshInfos)
 	{
 		auto& info = mesh->m_SubMeshInfos[i];
-		printf("%d %d %d %d\n", i, info.StartIndex, info.Length, info.VertexOffset);
+		//printf("[ImportMesh]submesh: %d %d %d %d\n", i, info.StartIndex, info.Length, info.VertexOffset);
 	}
 
 	for (int i = 0; i < mesh->m_SubMeshCount; ++i)
@@ -450,6 +470,27 @@ void ImportAnimation(AnimationClip* animation, const tinygltf::Animation& anim, 
 
 		LoadBuffer(model, sampler.input, curve.input);
 		LoadBuffer(model, sampler.output, curve.output);
+
+#if LOAD_GLTF_AS_LHS
+		if (curve.type == AnimationCurveType::Translation)
+		{
+			for (int i = 2; i < curve.output.size(); i += 3)
+				curve.output[i] *= -1;
+		}
+		else if (curve.type == AnimationCurveType::Rotation)
+		{
+			for (int i = 0; i < curve.output.size(); i += 4)
+			{
+				auto& o = curve.output;
+				Quaternion q(o[i], o[i + 1], o[i + 2], o[i + 3]);
+				RHS2LHS(q);
+				o[i] = q.x;
+				o[i + 1] = q.y;
+				o[i + 2] = q.z;
+				o[i + 3] = q.w;
+			}
+		}
+#endif
 
 		for (auto& i : curve.input)
 			i -= mintime;
@@ -499,6 +540,7 @@ void ImportSkin(Skin* skin, const tinygltf::Skin& gltf_skin, const tinygltf::Mod
 	{
 		m = m.transpose();
 		//m = T * m.inverse() * T;
+		RHS2LHS(m);
 	}
 
 	//auto T = Matrix4x4::Scale(-1, 1, 1);
@@ -521,19 +563,13 @@ Material* ImportMaterial(const tinygltf::Material& gltf_material,
 						 const tinygltf::Model& gltf_model)
 {
 	Material* mat = nullptr;
-	if (In(gltf_material.values, "baseColorTexture"))
-	{
-		mat = Material::Clone(Material::Texture);
-		int id = Get(gltf_material.values, "baseColorTexture").TextureIndex();
-		int imageId = gltf_model.textures[id].source;
-		auto img = model.images[imageId];
-		mat->SetTexture("_MainTex", img);
-	}
-	else if (In(gltf_material.extensions, "KHR_materials_pbrSpecularGlossiness"))
+
+	
+	if (In(gltf_material.extensions, "KHR_materials_pbrSpecularGlossiness"))
 	{
 		const auto& ext = Get(gltf_material.extensions, "KHR_materials_pbrSpecularGlossiness");
 		assert(ext.Get("diffuseTexture").Get("index").IsInt());
-		mat = Material::Clone(Material::Texture);
+		mat = Material::Clone(Material::TextureMaterial);
 		int id = ext.Get("diffuseTexture").Get("index").Get<int>();
 		int imageId = gltf_model.textures[id].source;
 		auto img = model.images[imageId];
@@ -541,8 +577,26 @@ Material* ImportMaterial(const tinygltf::Material& gltf_material,
 	}
 	else
 	{
-		mat = Material::Clone(Material::ColorMaterial);
+		mat = Material::Clone(Material::pbrMetallicRoughness);
+		if (In(gltf_material.values, "baseColorTexture"))
+		{
+			int id = Get(gltf_material.values, "baseColorTexture").TextureIndex();
+			int imageId = gltf_model.textures[id].source;
+			auto img = model.images[imageId];
+			mat->SetTexture("baseColorTexture", img);
+		}
+		if (In(gltf_material.values, "baseColorFactor"))
+		{
+			auto color = Get(gltf_material.values, "baseColorFactor").ColorFactor();
+			Vector4 vcolor(color[0], color[1], color[2], color[3]);
+			mat->SetVector("baseColorFactor", vcolor);
+		}
 	}
+
+	//else
+	//{
+	//	mat = Material::Clone(Material::ColorMaterial);
+	//}
 	return mat;
 }
 
@@ -660,8 +714,8 @@ ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* sc
 				m.m[i % 4][i / 4] = mtx[i];
 			}
 			auto t = go->GetTransform();
-			//t->SetLocalMatrix(m);
-			//auto euler = t->GetLocalEulerAngles();
+			RHS2LHS(m);
+			t->SetLocalMatrix(m);
 		}
 		else
 		{
@@ -669,7 +723,9 @@ ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* sc
 			if (p.size() > 0)
 			{
 				//go->GetTransform()->SetLocalPosition(-p[0], p[1], p[2]);
-				go->GetTransform()->SetLocalPosition(p[0], p[1], p[2]);
+				Vector3 pos(p[0], p[1], p[2]);
+				RHS2LHS(pos);
+				go->GetTransform()->SetLocalPosition(pos);
 			}
 
 			auto& s = node.scale;
@@ -682,9 +738,7 @@ ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* sc
 			if (r.size() > 0)
 			{
 				auto q = Quaternion(r[0], r[1], r[2], r[3]);
-				//auto euler = q.eulerAngles();
-				//euler.x = -euler.x;
-				//auto q = Quaternion::Euler(euler);
+				RHS2LHS(q);
 				go->GetTransform()->SetLocalRotation(q);
 			}
 		}

@@ -11,6 +11,7 @@ public:
 	void Update() override;
 
 public:
+	void MainMenu();
 	void Hierarchy();
 	void Inspector();
 };

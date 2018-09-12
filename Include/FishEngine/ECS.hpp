@@ -254,6 +254,7 @@ namespace ECS
 		template<class T>
 		T* AddSingletonComponent()
 		{
+			static_assert(std::is_base_of_v<SingletonComponent, T>);
 			auto typeidx = std::type_index(typeid(T));
 			auto it = m_SingletonComponents.find(typeidx);
 			if (it != m_SingletonComponents.end())
@@ -269,6 +270,7 @@ namespace ECS
 		template<class T>
 		T* GetSingletonComponent()
 		{
+			static_assert(std::is_base_of_v<SingletonComponent, T>);
 			auto it = m_SingletonComponents.find(std::type_index(typeid(T)));
 			if (it == m_SingletonComponents.end())
 				return nullptr;

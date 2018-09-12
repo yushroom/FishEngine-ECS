@@ -23,5 +23,5 @@ public:
 class ShaderUtil : public Static
 {
 public:
-	static Shader* Compile(const char* vs_path, const char* fs_path);
+	static Shader* Compile(const std::string& vs_path, const std::string& fs_path);
 };
