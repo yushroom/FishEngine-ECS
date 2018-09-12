@@ -82,7 +82,7 @@ static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int act
 	if (key >= GLFW_KEY_0 && key <= GLFW_KEY_9)
 		e.key = KeyCode(key);
 	else if (key >= GLFW_KEY_A && key <= GLFW_KEY_Z)
-		e.key = KeyCode(key);
+		e.key = KKK(KeyCode::A, key - GLFW_KEY_A);
 	else if (key >= GLFW_KEY_F1 && key <= GLFW_KEY_F15)
 		e.key = KKK(KeyCode::F1, key - GLFW_KEY_F1);
 	else if (key == GLFW_KEY_ESCAPE)

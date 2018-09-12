@@ -12,7 +12,9 @@
 #define half3 vec3
 #define half4 vec4
 #define lerp(x, y, t) mix((x), (y), (t))
-#define frac(x) fract(x)
+// #ifndef frac
+// #	define frac(x) fract(x)
+// #endif
 #define saturate(x) clamp((x), 0.0, 1.0)
 
 #endif // HLSLSupport_inc

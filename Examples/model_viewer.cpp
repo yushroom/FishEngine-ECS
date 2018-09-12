@@ -129,7 +129,7 @@ public:
 		}
 #else
 		Material* mat = Material::Clone(Material::Default);
-		mat->SetVector("uniform_color", Vector4(1, 1, 0, 1));
+		mat->SetVector("u_color", Vector4(1, 1, 0, 1));
 #endif
 //		r->m_Materials.push_back( mat );
 

@@ -12,6 +12,8 @@ void main()
 #else
 #ifdef FRAGMENT
 
+#include <bgfx_shader.sh>
+
 void main()
 {
 	gl_FragColor = vec4(1, 1, 0, 1);

@@ -16,7 +16,9 @@ void main()
 
 $input v_texcoord0
 
-uniform sampler2D _MainTex;
+#include <bgfx_shader.sh>
+
+SAMPLER2D(_MainTex, 0);
 
 void main()
 {

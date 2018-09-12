@@ -90,7 +90,7 @@ bool In(const std::map<T, B>& d, const char* key)
 }
 
 template<class T, class B>
-const B& Get(const std::map<T, B> dict, const char* key)
+const B& Get(const std::map<T, B>& dict, const char* key)
 {
 	assert(dict.find(key) != dict.end());
 	return dict.find(key)->second;
