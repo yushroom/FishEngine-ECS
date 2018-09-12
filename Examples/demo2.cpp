@@ -46,8 +46,8 @@ class ModelViewer : public GameApp
 public:
 	void Start() override
 	{
-		auto vs = FISHENGINE_ROOT "Shaders/runtime/PBR_vs.bin";
-		auto fs = FISHENGINE_ROOT "Shaders/runtime/PBR_fs.bin";
+		auto vs = FISHENGINE_ROOT "Shaders/runtime/color_vs.bin";
+		auto fs = FISHENGINE_ROOT "Shaders/runtime/color_fs.bin";
 		m_Shader = ShaderUtil::Compile(vs, fs);
 		Material* mat = new Material();
 		mat->SetShader( m_Shader );
@@ -72,7 +72,8 @@ public:
 			}
 			Renderable* rend = m_Scene->GameObjectAddComponent<Renderable>(go);
 			rend->mesh = Mesh::Cube;
-			rend->material = mat;
+//			rend->material = mat;
+			rend->m_Materials.push_back(mat);
 			mat->SetVector("BaseColor", Vector4::one);
 			mat->SetVector("PBRParams", Vector4(0, 1, 0, 0));
 			return go;

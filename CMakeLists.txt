@@ -72,48 +72,12 @@ SET_TARGET_PROPERTIES(glfw PROPERTIES FOLDER "ThirdParty")
 # #message("PhysXSDK_LIBRARIES" ${PhysXSDK_LIBRARIES})
 
 
-# set(NANOVG_DIR "${CMAKE_CURRENT_LIST_DIR}/ThirdParty/nanovg/nanovg")
-# include_directories(${NANOVG_DIR}/../)
-# file(GLOB_RECURSE NANOVG_HEADERS ${NANOVG_DIR}/*.h)
-# add_library(nanovg ${NANOVG_DIR}/nanovg.c ${NANOVG_HEADERS})
-# set_target_properties(nanovg PROPERTIES FOLDER "ThirdParty")
-
-
-# include_directories(./ThirdParty/yaml-cpp/include)
-# set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
-# set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-# #set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
-# ADD_SUBDIRECTORY(./ThirdParty/yaml-cpp)
-# SET_TARGET_PROPERTIES(yaml-cpp PROPERTIES FOLDER "ThirdParty/yaml-cpp")
-# SET_TARGET_PROPERTIES(format PROPERTIES FOLDER "ThirdParty/yaml-cpp")
-
-
 macro(AutoGroup root_dir)
 	foreach(group ${ARGN})
 		file(GLOB_RECURSE files ${root_dir}/${group}/*.hpp ${root_dir}/${group}/*.inl ${root_dir}/${group}/*.cpp)
 		source_group(${group} FILES ${files})
 	endforeach(group)
 endmacro()
-
-# include_directories(${CMAKE_CURRENT_LIST_DIR}/Include/)
-
-
-# # python3
-# find_package(PythonInterp 3 REQUIRED)
-# find_package(PythonLibs 3 REQUIRED)
-# INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_DIR})
-
-
-# if (APPLE)
-# 	find_package(Boost REQUIRED COMPONENTS filesystem)
-# 	INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
-
-# 	find_package(folly REQUIRED)
-# 	include_directories(${FOLLY_INCLUDE_DIR})
-# endif()
-
-# add_subdirectory(./ThirdParty/pybind11)
-# include_directories(./ThirdParty/pybind11/include)
 
 
 # # glm
@@ -137,46 +101,8 @@ file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_LIST_DIR}/Include/FishEngine/*.hpp ${C
 file(GLOB_RECURSE SRCS ${CMAKE_CURRENT_LIST_DIR}/Source/FishEngine/*.cpp)
 add_library(FishEngine ${HEADERS} ${SRCS})
 
-# file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_LIST_DIR}/Include/FishEditor/*.hpp ${CMAKE_CURRENT_LIST_DIR}/Include/FishEditor/*.inl ${CMAKE_CURRENT_LIST_DIR}/Source/FishEditor/*.hpp)
-# file(GLOB_RECURSE SRCS ${CMAKE_CURRENT_LIST_DIR}/Source/FishEditor/*.cpp)
-# add_library(FishEditor ${HEADERS} ${SRCS})
-
-
-# file(GLOB_RECURSE SRCS ./Source/Editor/*.cpp ./Source/Editor/*.hpp)
-# add_executable(Editor ${SRCS})
-# target_link_libraries(Editor FishEngine)
-# target_link_libraries(Editor FishEditor)
-# target_link_libraries(Editor FishGUI)
-# target_link_libraries(Editor nanovg)
-# target_link_libraries(Editor glfw)
-# target_link_libraries(Editor ${FBXSDK_LIB})
-# target_link_libraries(Editor pybind11::embed)
-# target_link_libraries(Editor ${FOLLY_LIBRARIES})
-# target_link_libraries(Editor ${Boost_LIBRARIES})
-# target_link_libraries(Editor ${PhysXSDK_LIBRARIES})
-# target_link_libraries(Editor yaml-cpp)
-# target_link_libraries(Editor ${BGFX_LIB})
-# if (MSVC)
-# 	target_link_libraries(Editor glew_s)
-# else()
-# 	set_target_properties(Editor PROPERTIES LINK_FLAGS "-framework OpenGL")
-
-# 	SET( INFO_PLIST ${CMAKE_CURRENT_LIST_DIR}/MacOSXBundleInfo.plist.in)
-# 	IF (NOT EXISTS ${INFO_PLIST})
-# 		MESSAGE(FATAL_ERROR "${INFO_PLIST} not found!")
-# 	ENDIF()
-# 	set_target_properties(Editor PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${INFO_PLIST}" )
-# endif()
-
-# add_subdirectory(./Test)
-
 AutoGroup(./Include/FishEngine Math Systems Components)
 AutoGroup(./Source/FishEngine Math Systems Components)
-
-# AutoGroup(${CMAKE_CURRENT_LIST_DIR}/Include/FishEngine Util Math Render Internal Component UI System Physics Serialization Animation)
-# AutoGroup(${CMAKE_CURRENT_LIST_DIR}/Source/FishEngine Math Render Component UI System Physics Serialization Animation)
-# AutoGroup(${CMAKE_CURRENT_LIST_DIR}/Include/FishEditor Serialization)
-# AutoGroup(${CMAKE_CURRENT_LIST_DIR}/Source/FishEditor Serialization)
 
 include_directories("./ThirdParty/tinygltf")
 include_directories("./ThirdParty/bgfx/include")

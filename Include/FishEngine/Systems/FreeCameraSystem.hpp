@@ -7,6 +7,7 @@ class SingletonInput;
 
 class FreeCameraSystem : public ECS::ISystem
 {
+	SYSTEM(FreeCameraSystem);
 public:
 	
 	enum class ControlType

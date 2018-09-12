@@ -13,14 +13,13 @@ void Material::SetShader(Shader* shader)
 		
 		if (count != 0)
 		{
-//				m_UniformInfos.resize(count);
 			std::vector<bgfx::UniformHandle> uniforms(count);
 			bgfx::getShaderUniforms(shader->m_FragmentShader, uniforms.data(), count);
 			
 			for (int i = 0; i < count; ++i)
 			{
 				auto& u = uniforms[i];
-				//					auto& info = m_UniformInfos[i];
+
 				bgfx::UniformInfo info;
 				bgfx::getUniformInfo(u, info);
 				//printf("%s\n", info.name);
@@ -43,10 +42,21 @@ void Material::SetVector(const std::string& name, const Vector4& value)
 void Material::SetTexture(const std::string& name, bgfx::TextureHandle value)
 {
 //	assert(m_UniformInfos.find(name) != m_UniformInfos.end());
+	//m_MaterialProperties.textures[name] = value;
 	if (m_UniformInfos.find(name) != m_UniformInfos.end())
 		m_MaterialProperties.textures[name] = value;
 	else
+	{
 		printf("Material::SetTexture: %s not found!\n", name.c_str());
+		auto handle = bgfx::createUniform(name.c_str(), bgfx::UniformType::Int1);
+		bgfx::UniformInfo info;
+		strcpy(info.name, name.c_str());
+		info.type = bgfx::UniformType::Int1;
+		info.num = 1;
+		m_UniformInfos[name] = std::make_pair(handle, info);
+		m_MaterialProperties.textures[name] = value;
+	}
+	
 }
 
 void Material::BindUniforms() const

@@ -22,6 +22,7 @@
 
 class DrawSkeletonSystem : public ECS::ISystem
 {
+	SYSTEM(DrawSkeletonSystem);
 public:
 	void Update() override
 	{
@@ -81,7 +82,7 @@ public:
 //		const char* path = FISHENGINE_ROOT "Assets/Models/T-Rex.glb";
 		auto path = GetglTFSample("CesiumMan");
 //		path = GetglTFSample("RiggedSimple");
-		path = GetglTFSample("TextureCoordinateTest");
+//		path = GetglTFSample("TextureCoordinateTest");
 //		path = GetglTFSample("Triangle");
 //		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Triangle/glTF/Triangle.gltf";
 //		path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
@@ -125,7 +126,7 @@ public:
 			auto shader = ShaderUtil::Compile(vs, fs);
 			mat = new Material();
 			mat->SetShader(shader);
-			mat->SetVector("uniform_color", Vector4(1, 0, 0, 1));
+			mat->SetVector("u_color", Vector4(1, 0, 0, 1));
 		}
 #else
 		Material* mat = Material::Clone(Material::Default);
@@ -137,22 +138,21 @@ public:
 //			r->mesh = nullptr;
 //		});
 
-//		rootGO->GetTransform()->SetLocalEulerAngles(-90, -90, 0);
+		rootGO->GetTransform()->SetLocalEulerAngles(-90, -90, 0);
 		//rootGO->GetTransform()->SetLocalScale(0.1f);
 
 		Gizmos::StaticInit();
 		
-		m_Scene->AddSystem(new FreeCameraSystem());
+		m_Scene->AddSystem<FreeCameraSystem>();
 
 //		{
 //			auto s = new AnimationSystem();
 //			m_Scene->AddSystem(s);
 //			s->m_Priority = 999;
 //		}
-//		m_Scene->AddSystem(new DrawSkeletonSystem());
+		m_Scene->AddSystem<DrawSkeletonSystem>();
 
-		auto s = new SelectionSystem();
-		m_Scene->AddSystem(s);
+		auto s=  m_Scene->AddSystem<SelectionSystem>();
 //		s->selected = rootGO->GetTransform()->GetChildAt(0)->GetChildAt(0)->GetChildAt(0)->m_GameObject;
 		s->selected = rootGO;
 	}
