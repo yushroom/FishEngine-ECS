@@ -1,6 +1,6 @@
 #include <FishEngine/Model.hpp>
 #include <FishEngine/Mesh.hpp>
-#include <FishEngine/Components/Animation.hpp>
+#include <FishEngine/Components/Animator.hpp>
 #include <FishEngine/Components/Renderable.hpp>
 #include <FishEngine/Components/Transform.hpp>
 #include <FishEngine/Material.hpp>
@@ -21,6 +21,7 @@ struct Model
 	std::vector<Skin*> skins;
 	std::vector<bgfx::TextureHandle> images;
 	std::vector<Material*> materials;
+	std::vector<AnimationClip*> animations;
 	//tinygltf::Model gltfModel;
 };
 
@@ -419,7 +420,7 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 }
 
 
-void ImportAnimator(Animation* animation, const tinygltf::Animation& anim, const tinygltf::Model& model, const std::vector<ECS::GameObject*>& gos)
+void ImportAnimation(AnimationClip* animation, const tinygltf::Animation& anim, const tinygltf::Model& model, const std::vector<ECS::GameObject*>& gos)
 {
 	//auto& anim = model.animations[0];
 	int channelCount = anim.channels.size();
@@ -443,11 +444,16 @@ void ImportAnimator(Animation* animation, const tinygltf::Animation& anim, const
 		auto& sampler = anim.samplers[channel.sampler];
 
 		auto& inputAccessor = model.accessors[sampler.input];
+		float mintime = inputAccessor.minValues[0];
 		float maxtime = inputAccessor.maxValues[0];
-		animation->length = fmax(animation->length, maxtime);
+		
 
 		LoadBuffer(model, sampler.input, curve.input);
 		LoadBuffer(model, sampler.output, curve.output);
+
+		for (auto& i : curve.input)
+			i -= mintime;
+		animation->length = fmax(animation->length, maxtime-mintime);
 
 		//if (curve.type == AnimationCurveType::Translation)
 		//{
@@ -482,15 +488,21 @@ void ImportSkin(Skin* skin, const tinygltf::Skin& gltf_skin, const tinygltf::Mod
 	auto& bufferView = model.bufferViews[accessor.bufferView];
 	auto& buffer = model.buffers[bufferView.buffer];
 
+	auto stride = accessor.ByteStride(bufferView);
+	assert(stride == 16 * sizeof(float));
 	int offset = accessor.byteOffset + bufferView.byteOffset;
 	auto ptr = buffer.data.data() + offset;
 	memcpy(skin->inverseBindMatrices.data(), ptr, accessor.count * 16 * sizeof(float));
 
+	auto T = Matrix4x4::Scale(-1, 1, 1);
 	for (auto& m : skin->inverseBindMatrices)
+	{
 		m = m.transpose();
+		//m = T * m.inverse() * T;
+	}
 
 	//auto T = Matrix4x4::Scale(-1, 1, 1);
-	//// set bind pose
+	// set bind pose
 	//for (int i = 0; i < boneCount; ++i)
 	//{
 	//	//skin->joints[i]->GetTransform()->SetLocalMatrix(skin->inverseBindMatrices[i]);
@@ -517,9 +529,19 @@ Material* ImportMaterial(const tinygltf::Material& gltf_material,
 		auto img = model.images[imageId];
 		mat->SetTexture("_MainTex", img);
 	}
+	else if (In(gltf_material.extensions, "KHR_materials_pbrSpecularGlossiness"))
+	{
+		const auto& ext = Get(gltf_material.extensions, "KHR_materials_pbrSpecularGlossiness");
+		assert(ext.Get("diffuseTexture").Get("index").IsInt());
+		mat = Material::Clone(Material::Texture);
+		int id = ext.Get("diffuseTexture").Get("index").Get<int>();
+		int imageId = gltf_model.textures[id].source;
+		auto img = model.images[imageId];
+		mat->SetTexture("_MainTex", img);
+	}
 	else
 	{
-		mat = Material::Clone(Material::Default);
+		mat = Material::Clone(Material::ColorMaterial);
 	}
 	return mat;
 }
@@ -679,12 +701,18 @@ ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* sc
 		}
 	}
 
+
 	// load animations
 	if (gltf_model.animations.size() > 0)
 	{
-		auto& anim = gltf_model.animations[0];
-		Animation* animation = scene->GameObjectAddComponent<Animation>(model.rootGameObject);
-		ImportAnimator(animation, anim, gltf_model, model.nodes);
+		Animator* animator = scene->GameObjectAddComponent<Animator>(model.rootGameObject);
+		for (auto& anim : gltf_model.animations)
+		{
+			auto clip = new AnimationClip();
+			ImportAnimation(clip, anim, gltf_model, model.nodes);
+			animator->m_Clips.push_back(clip);
+		}
+		animator->m_CurrentClipIndex = 0;
 	}
 
 	// load skins
@@ -715,7 +743,7 @@ ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* sc
 			{
 				int id = p.material;
 				if (id == -1)
-					r->m_Materials.push_back(Material::Default);
+					r->m_Materials.push_back(Material::ColorMaterial);
 				else
 					r->m_Materials.push_back(model.materials[id]);
 			}

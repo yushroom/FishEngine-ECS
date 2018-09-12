@@ -14,13 +14,6 @@ namespace ECS
 	class Scene;
 }
 
-namespace tinygltf
-{
-	class Model;
-}
-
-
-
 class ModelUtil : public Static
 {
 public:

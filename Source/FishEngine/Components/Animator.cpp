@@ -1,20 +1,23 @@
-#include <FishEngine/Components/Animation.hpp>
+#include <FishEngine/Components/Animator.hpp>
 
 Quaternion AnimationCurve::SampleQuat(float time, const Quaternion& initValue)
 {
-	int count = output.size() / 3;
-	if (time > input.back())
+	if (input.empty())
+		return initValue;
+	int count = input.size();
+	if (time >= input.back())
 		return _GetQuaternion(count - 1);
-	while (time > input.back())
-		time -= input.back();
-	if (time <= input.front())
-		return Quaternion::Slerp(initValue, _GetQuaternion(0), time / input[0]);
-	int i = 0;
+	if (time < input.front())
+		return initValue;
+	if (time == input.front())
+		return _GetQuaternion(0);
+	int i = 1;
 	for (; i < input.size(); ++i)
 	{
 		if (time <= input[i])
 			break;
 	}
+	assert(i - 1 >= 0 && i < count);
 	Quaternion left = _GetQuaternion(i - 1);
 	Quaternion right = _GetQuaternion(i);
 	float t = time - input[i - 1];
@@ -24,19 +27,22 @@ Quaternion AnimationCurve::SampleQuat(float time, const Quaternion& initValue)
 
 Vector3 AnimationCurve::SampleVector3(float time, const Vector3& initValue)
 {
-	int count = output.size() / 3;
-	if (time > input.back())
+	if (input.empty())
+		return initValue;
+	int count = input.size();
+	if (time >= input.back())
 		return _GetVector3(count - 1);
-	//while (time > input.back())
-	//	time -= input.back();
-	if (time <= input.front())
-		return Vector3::Lerp(initValue, _GetVector3(0), time / input[0]);
-	int i = 0;
+	if (time < input.front())
+		return initValue;
+	if (time == input.front())
+		return _GetVector3(0);
+	int i = 1;
 	for (; i < input.size(); ++i)
 	{
 		if (time <= input[i])
 			break;
 	}
+	assert(i - 1 >= 0 && i < count);
 	Vector3 left = _GetVector3(i - 1);
 	Vector3 right = _GetVector3(i);
 	float t = time - input[i - 1];

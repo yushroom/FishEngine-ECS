@@ -201,7 +201,7 @@ namespace FishEngine
 		const static Vector3 yAxis;
 		const static Vector3 zAxis;
 
-	private:
+	//private:
 		bool hasNaNs() const { return isnan(x) || isnan(y) || isnan(z); }
 	};
 }

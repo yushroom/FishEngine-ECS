@@ -134,6 +134,8 @@ namespace FishEngine
 		
 		// Returns the Inverse of this rotation.
 		Quaternion inverse() const;
+
+		bool hasNaNs() const { return isnan(x) || isnan(y) || isnan(z) || isnan(w); }
 		
 	private:
 		static Vector3 Internal_MakePositive(Vector3 euler);

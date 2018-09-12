@@ -11,8 +11,7 @@
 #include <FishEngine/Systems/SelectionSystem.hpp>
 
 #include <bx/math.h>
-
-#include <imgui/imgui.h>
+#include <FishEngine/Components/Animator.hpp>
 
 SingletonRenderState::SingletonRenderState()
 {
@@ -25,7 +24,7 @@ SingletonRenderState::SingletonRenderState()
 void RenderSystem::OnAdded()
 {
 	bgfx::Init init;
-	init.type = bgfx::RendererType::Enum::Metal;
+	init.type = bgfx::RendererType::Enum::OpenGL;
 	init.resolution.width = 800;
 	init.resolution.height = 600;
 //	init.resolution.reset = BGFX_RESET_VSYNC | BGFX_RESET_MSAA_X2;
@@ -44,8 +43,6 @@ void RenderSystem::OnAdded()
 		| BGFX_STATE_CULL_CCW
 //		| BGFX_STATE_MSAA
 		;
-	
-	imguiCreate();
 }
 
 void RenderSystem::Start()
@@ -55,47 +52,6 @@ void RenderSystem::Start()
 
 #include <FishEngine/Components/SingletonInput.hpp>
 #include <FishEngine/Screen.hpp>
-
-Transform* selected = nullptr;
-
-void HierarchyNode(Transform* t)
-{
-	auto name = t->m_GameObject->m_Name;
-	if (name.empty())
-		name = "go:" + std::to_string(t->entityID);
-#if 1
-	//ImGui::PushID(t);
-	ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-	if (selected == t)
-		node_flags |= ImGuiTreeNodeFlags_Selected;
-	bool isLeaf = t->GetChildren().empty();
-	if (t->GetChildren().empty())
-		node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
-	node_flags |= ImGuiTreeNodeFlags_DefaultOpen;
-	bool node_open = ImGui::TreeNodeEx((void*)t, node_flags, name.c_str());
-	if (ImGui::IsItemClicked())
-		selected = t;
-	if (!isLeaf && node_open)
-	{
-		for (auto c : t->GetChildren())
-		{
-			HierarchyNode(c);
-		}
-		ImGui::TreePop();
-	}
-	//ImGui::PopID();
-#else
-	if (ImGui::TreeNode(name.c_str()))
-	{
-		for (auto c : t->GetChildren())
-		{
-			HierarchyNode(c);
-		}
-		ImGui::TreePop();
-	}
-	
-#endif
-};
 
 
 void RenderSystem::Draw()
@@ -176,15 +132,15 @@ void RenderSystem::Draw()
 				const Vector4& a_weight = mesh->weights[i];
 				const auto& a_joint = mesh->joints[i];
 				Matrix4x4 skinMatrix = u_jointMatrix[a_joint.x] * a_weight.x;
-				//if (a_weight.y > 0)
+				if (a_weight.y > 0)
 					skinMatrix += u_jointMatrix[a_joint.y] * a_weight.y;
-				//if (a_weight.z > 0)
+				if (a_weight.z > 0)
 					skinMatrix += u_jointMatrix[a_joint.z] * a_weight.z;
-				//if (a_weight.w > 0)
+				if (a_weight.w > 0)
 					skinMatrix += u_jointMatrix[a_joint.w] * a_weight.w;
 				auto& dv = mesh->m_DynamicVertices[i];
 				auto& v = mesh->m_Vertices[i];
-				dv.position = skinMatrix.MultiplyPoint3x4(v.position);
+				dv.position = skinMatrix.MultiplyPoint(v.position);
 				dv.normal = skinMatrix.MultiplyVector(v.normal);
 			}
 			
@@ -239,95 +195,6 @@ void RenderSystem::Draw()
 #endif
 	
 	Gizmos::__Draw();
-	
-#if 1
-	const int hierarchy_width = 250;
-	const int inspector_width = 250;
-	//printf("============here==========\n\n");
-	auto input = m_Scene->GetSingletonComponent<SingletonInput>();
-	Vector2 mousePos = input->GetMousePosition();
-	mousePos.x *= Screen::width;
-	mousePos.y *= Screen::height;
-	auto mouseBtns =
-	(input->IsButtonHeld(KeyCode::MouseLeftButton) ? IMGUI_MBUT_LEFT : 0) |
-	(input->IsButtonHeld(KeyCode::MouseRightButton) ? IMGUI_MBUT_RIGHT : 0) |
-	(input->IsButtonHeld(KeyCode::MouseMiddleButton) ? IMGUI_MBUT_MIDDLE : 0);
-	selected = m_Scene->GetSystem<SelectionSystem>()->selected->GetTransform();
-	imguiBeginFrame(mousePos.x, mousePos.y, mouseBtns, input->GetAxis(Axis::MouseScrollWheel), Screen::width, Screen::height);
-	ImGui::SetNextWindowPos(ImVec2(0, 0));
-	ImGui::SetNextWindowSize(ImVec2(hierarchy_width, Screen::height));
-	ImGui::Begin("Hierarchy", NULL, 0);
-	for (auto t : m_Scene->m_RootTransforms)
-	{
-		HierarchyNode(t);
-	}
-	ImGui::End();
-	
-	m_Scene->GetSystem<SelectionSystem>()->selected = selected->m_GameObject;
-	
-	ImGui::SetNextWindowPos(ImVec2(Screen::width-inspector_width, 0));
-	ImGui::SetNextWindowSize(ImVec2(inspector_width, Screen::height));
-	ImGui::Begin("Inspector", NULL, 0);
-	if (selected != nullptr)
-	{
-		for (auto comp : selected->m_GameObject->GetComponents())
-		{
-			if (ImGui::CollapsingHeader(comp->GetTypeIndex().name(), ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				if (comp->Is<Transform>())
-				{
-					auto t = comp->As<Transform>();
-					Vector3 pos = t->GetLocalPosition();
-					if (ImGui::InputFloat3("Position", pos.data()))
-					{
-						t->SetLocalPosition(pos);
-					}
-					
-					auto r = t->GetLocalEulerAngles();
-					if (ImGui::InputFloat3("Rotation", r.data()))
-					{
-						t->SetLocalEulerAngles(r);
-					}
-					
-					auto s = t->GetLocalScale();
-					if (ImGui::InputFloat3("Scale", s.data()))
-					{
-						t->SetLocalEulerAngles(s);
-					}
-					
-					auto q = t->GetLocalRotation();
-					if (ImGui::InputFloat4("Rotation2", (float*)&q))
-					{
-						t->SetLocalRotation(q);
-					}
-				}
-				else if (comp->Is<Renderable>())
-				{
-					auto r = comp->As<Renderable>();
-					ImGui::Checkbox("enabled", &r->m_Enabled);
-				}
-			}
-		}
-	}
-	ImGui::End();
-	
-	int HEIGHT = 200;
-	ImGui::SetNextWindowPos(ImVec2(inspector_width, Screen::height-HEIGHT));
-	ImGui::SetNextWindowSize(ImVec2(Screen::width-inspector_width-hierarchy_width, HEIGHT));
-	ImGui::Begin("Systems", NULL, 0);
-	for (ISystem* s : m_Scene->GetSystems())
-	{
-		ImGui::PushID((void*)s);
-		if (ImGui::CollapsingHeader(s->GetTypeIndex().name(), ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			ImGui::Checkbox("enabled", &s->m_Enabled);
-		}
-		ImGui::PopID();
-	}
-	ImGui::End();
-	
-	imguiEndFrame();
-#endif
 }
 
 

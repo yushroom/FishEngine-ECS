@@ -36,7 +36,7 @@ void Material::SetVector(const std::string& name, const Vector4& value)
 	if (m_UniformInfos.find(name) != m_UniformInfos.end())
 		m_MaterialProperties.vec4s[name] = value;
 	else
-		printf("Material::SetTexture: %s not found!\n", name.c_str());
+		printf("Material::SetVector: %s not found!\n", name.c_str());
 }
 
 void Material::SetTexture(const std::string& name, bgfx::TextureHandle value)
@@ -91,6 +91,15 @@ void Material::BindUniforms() const
 	}
 }
 
+Material* Material::Clone(Material* mat)
+{
+	Material* m = new Material();
+	m->m_Shader = mat->m_Shader;
+	m->m_UniformInfos = mat->m_UniformInfos;
+	m->m_MaterialProperties = mat->m_MaterialProperties;
+	return m;
+}
+
 #include <FishEngine/Assets.hpp>
 
 void Material::StaticInit()
@@ -99,8 +108,8 @@ void Material::StaticInit()
 		auto vs = FISHENGINE_ROOT "Shaders/runtime/color_vs.bin";
 		auto fs = FISHENGINE_ROOT "Shaders/runtime/color_fs.bin";
 		auto shader = ShaderUtil::Compile(vs, fs);
-		Default = new Material;
-		Default->SetShader(shader);
+		ColorMaterial = new Material;
+		ColorMaterial->SetShader(shader);
 	}
 	{
 		auto vs = FISHENGINE_ROOT "Shaders/runtime/Texture_vs.bin";

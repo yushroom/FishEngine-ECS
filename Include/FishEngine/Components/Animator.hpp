@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../ECS.hpp"
+#include <cassert>
 
 enum class AnimationCurveType
 {
@@ -27,11 +28,27 @@ private:
 	Quaternion _GetQuaternion(int idx);
 };
 
-class Animation : public ECS::Component
+class AnimationClip : public Object
 {
-	COMPONENT(Animation);
 	friend class ModelUtil;
 public:
 	std::vector<AnimationCurve> curves;
 	float length = 0;
+};
+
+class Animator : public ECS::Component
+{
+	COMPONENT(Animator);
+public:
+	AnimationClip * GetCurrentClip() const
+	{
+		if (m_Clips.empty() || m_CurrentClipIndex == -1)
+			return nullptr;
+		assert(m_CurrentClipIndex < m_Clips.size());
+		return m_Clips[m_CurrentClipIndex];
+	}
+
+	std::vector<AnimationClip*> m_Clips;
+	int m_CurrentClipIndex = -1;
+	float m_LocalTimer = 0;
 };

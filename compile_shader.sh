@@ -1,5 +1,0 @@
-/Users/yushroom/program/github/bgfx/.build/osx64_clang/bin/shadercDebug -i /Users/yushroom/program/github/bgfx/src -i /Users/yushroom/program/FishEngine/Engine/Shaders/include --verbose -f ./shader/PBR.sc -o ./shader/PBR_vs.bin --platform osx --type v --define VERTEX --profile 150
-/Users/yushroom/program/github/bgfx/.build/osx64_clang/bin/shadercDebug -i /Users/yushroom/program/github/bgfx/src -i /Users/yushroom/program/FishEngine/Engine/Shaders/include --verbose -f ./shader/PBR.sc -o ./shader/PBR_fs.bin --platform osx --type f --define FRAGMENT --profile 150
-
-/Users/yushroom/program/github/bgfx/.build/osx64_clang/bin/shadercDebug -i /Users/yushroom/program/github/bgfx/src -i /Users/yushroom/program/FishEngine/Engine/Shaders/include --verbose -f ./shader/Skybox.sc -o ./shader/Skybox_vs.bin --platform osx --type v --define VERTEX --profile 150
-/Users/yushroom/program/github/bgfx/.build/osx64_clang/bin/shadercDebug -i /Users/yushroom/program/github/bgfx/src -i /Users/yushroom/program/FishEngine/Engine/Shaders/include --verbose -f ./shader/Skybox.sc -o ./shader/Skybox_fs.bin --platform osx --type f --define FRAGMENT --profile 150

@@ -10,7 +10,7 @@
 #include <FishEngine/Systems/AnimationSystem.hpp>
 #include <FishEngine/Components/SingletonInput.hpp>
 #include <FishEngine/Assets.hpp>
-#include <FishEngine/Components/Animation.hpp>
+#include <FishEngine/Components/Animator.hpp>
 #include <FishEngine/Model.hpp>
 #include <FishEngine/Graphics.hpp>
 #include <FishEngine/Shader.hpp>
@@ -37,7 +37,7 @@ public:
 			{
 				auto t = bone->GetTransform();
 				Gizmos::matrix = t->GetLocalToWorldMatrix();
-				Gizmos::DrawCube(Vector3::zero, Vector3::one * 0.05f);
+				Gizmos::DrawCube(Vector3::zero, Vector3::one * 0.5f);
 				
 				//auto p = t->GetParent();
 				//if (p != nullptr)
@@ -79,8 +79,8 @@ class ModelViewer : public GameApp
 public:
 	void Start() override
 	{
-//		const char* path = FISHENGINE_ROOT "Assets/Models/T-Rex.glb";
-		auto path = GetglTFSample("CesiumMan");
+		const char* path = FISHENGINE_ROOT "Assets/Models/T-Rex.glb";
+		//auto path = GetglTFSample("CesiumMan");
 //		path = GetglTFSample("RiggedSimple");
 //		path = GetglTFSample("TextureCoordinateTest");
 //		path = GetglTFSample("Triangle");
@@ -118,18 +118,8 @@ public:
 		Vector4 pbrparams(0, 0.5f, 0, 0);
 		mat->SetVector("BaseColor", Vector4::one);
 		mat->SetVector("PBRParams", pbrparams);
-#elif 0
-		Material* mat = nullptr;
-		{
-			auto vs = FISHENGINE_ROOT "Shaders/runtime/color_vs.bin";
-			auto fs = FISHENGINE_ROOT "Shaders/runtime/color_fs.bin";
-			auto shader = ShaderUtil::Compile(vs, fs);
-			mat = new Material();
-			mat->SetShader(shader);
-			mat->SetVector("u_color", Vector4(1, 0, 0, 1));
-		}
 #else
-		Material* mat = Material::Clone(Material::Default);
+		Material* mat = Material::Clone(Material::ColorMaterial);
 		mat->SetVector("u_color", Vector4(1, 1, 0, 1));
 #endif
 //		r->m_Materials.push_back( mat );
@@ -138,18 +128,17 @@ public:
 //			r->mesh = nullptr;
 //		});
 
-		rootGO->GetTransform()->SetLocalEulerAngles(-90, -90, 0);
+		//rootGO->GetTransform()->SetLocalEulerAngles(-90, -90, 0);
 		//rootGO->GetTransform()->SetLocalScale(0.1f);
 
 		Gizmos::StaticInit();
 		
 		m_Scene->AddSystem<FreeCameraSystem>();
 
-//		{
-//			auto s = new AnimationSystem();
-//			m_Scene->AddSystem(s);
-//			s->m_Priority = 999;
-//		}
+		{
+			auto s = m_Scene->AddSystem<AnimationSystem>();
+			s->m_Priority = 999;
+		}
 		m_Scene->AddSystem<DrawSkeletonSystem>();
 
 		auto s=  m_Scene->AddSystem<SelectionSystem>();

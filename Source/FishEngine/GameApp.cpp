@@ -7,6 +7,8 @@
 #include "FishEngine/Screen.hpp"
 #include <FishEngine/Material.hpp>
 
+#include <FishEngine/Systems/EditorSystem.hpp>
+
 #include <GLFW/glfw3.h>
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
@@ -163,19 +165,21 @@ void GameApp::Init()
 	glfwSetScrollCallback(m_Window, glfw_scroll_callback);
 
 	glfwSwapInterval(1);
-	
-	/*RenderSystem::GetInstance().Init2(m_WindowWidth, m_WindowHeight);*/
+
 	m_Scene = new ECS::Scene();
+	m_Scene->AddSystem<InputSystem>();
 	auto rs = m_Scene->AddSystem<RenderSystem>();
 	rs->m_Priority = 1000;
-
-	m_Scene->AddSystem<InputSystem>();
 
 	Mesh::StaticInit();
 	Material::StaticInit();
 	
-	auto s = m_Scene->AddSystem<TransformSystem>();
-	s->m_Priority = 999;
+	{
+		auto s = m_Scene->AddSystem<TransformSystem>();
+		s->m_Priority = 998;
+	}
+
+	m_Scene->AddSystem<EditorSystem>()->m_Priority = 999;
 
 	Resize(m_WindowWidth, m_WindowHeight);
 }

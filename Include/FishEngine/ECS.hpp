@@ -25,6 +25,9 @@ namespace ECS
 		EntityID entityID;
 		
 		virtual std::type_index GetTypeIndex() = 0;
+
+		constexpr static const char* CLASS_NAME = "Component";
+		virtual const char* GetClassName() { return CLASS_NAME; }
 		
 		template<class T>
 		bool Is() const
@@ -50,15 +53,16 @@ namespace ECS
 	};
 
 
-	#define COMPONENT(T)                            \
+#	define COMPONENT(T)                            \
 	protected:                                      \
 		T() = default;                              \
 	private:                                        \
 		friend class ECS::Scene;                    \
-		inline static std::vector<T*> components;   \
-		std::type_index GetTypeIndex() override     \
-		{ return std::type_index(typeid(T)); }      \
-		static T* Create() { T* t = new T(); components.push_back(t); return t; }               \
+		inline static std::vector<T*> components;										\
+		std::type_index GetTypeIndex() override { return std::type_index(typeid(T)); }	\
+		constexpr static const char* CLASS_NAME = #T; \
+		const char* GetClassName() override { return CLASS_NAME; }						\
+		static T* Create() { T* t = new T(); components.push_back(t); return t; }		\
 
 
 	
@@ -116,6 +120,9 @@ namespace ECS
 		int m_Priority = 0;
 		
 		virtual std::type_index GetTypeIndex() = 0;
+
+		constexpr static const char* CLASS_NAME = "ISystem";
+		virtual const char* GetClassName() { return CLASS_NAME; }
 		
 		template<class T>
 		bool Is() const
@@ -142,8 +149,10 @@ namespace ECS
 		T() = default;                              \
 	private:                                        \
 		friend class ECS::Scene;                    \
-		std::type_index GetTypeIndex() override { return std::type_index(typeid(T)); }      \
-		static T* Create() { T* t = new T(); return t; }               \
+		std::type_index GetTypeIndex() override { return std::type_index(typeid(T)); }	\
+		constexpr static const char* CLASS_NAME = #T;									\
+		const char* GetClassName() override { return CLASS_NAME; }						\
+		static T* Create() { T* t = new T(); return t; }								\
 
 
 
