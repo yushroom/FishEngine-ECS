@@ -5,6 +5,7 @@
 #include <FishEngine/Mesh.hpp>
 #include <FishEngine/Components/Camera.hpp>
 #include <FishEngine/Components/SingletonInput.hpp>
+#include <FishEngine/Graphics.hpp>
 
 void SelectionSystem::Update()
 {
@@ -119,11 +120,19 @@ void SelectionSystem::Update()
 		float depth_screen = 1.0f / ::tanf(Mathf::Radians(camera->m_FOV/2.f));
 		float scale = fixed_size * depth / depth_screen;
 
-		Gizmos::matrix = t->GetLocalToWorldMatrix() * Matrix4x4::Scale(scale);
+//		Gizmos::matrix = t->GetLocalToWorldMatrix() * Matrix4x4::Scale(scale);
+		auto modelMat = t->GetLocalToWorldMatrix();
+		auto rot = modelMat.ToRotation();
+		auto pos = modelMat._MultiplyPoint(0, 0, 0);
+		Gizmos::matrix = Matrix4x4::TRS(pos, rot, Vector3::one * scale);
 		Gizmos::DrawLine(Vector3::zero, p);
+		auto m = Matrix4x4::Translate(p) * Gizmos::matrix;
+		Graphics::DrawMesh(Mesh::Cone, m, Material::ErrorMaterial);
 	}
 
 	// draw bbox
+	Gizmos::color = Vector4(0, 1, 0, 1);
+	Gizmos::matrix = t->GetLocalToWorldMatrix();
 	auto r = selected->GetComponent<Renderable>();
 	if (r != nullptr && r->mesh != nullptr)
 	{

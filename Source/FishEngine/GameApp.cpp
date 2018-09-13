@@ -9,6 +9,7 @@
 #include <FishEngine/Gizmos.hpp>
 
 #include <FishEngine/Systems/EditorSystem.hpp>
+#include <FishEngine/Systems/DrawGizmosSystem.hpp>
 
 #include <GLFW/glfw3.h>
 #include <bgfx/bgfx.h>
@@ -16,6 +17,8 @@
 
 #include <bx/file.h>
 #include <bx/pixelformat.h>
+
+#include <imgui/imgui.h>
 
 #	if BX_PLATFORM_WINDOWS
 #define GLFW_EXPOSE_NATIVE_WIN32
@@ -105,6 +108,25 @@ static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int act
 	else if (key == GLFW_KEY_RIGHT_SUPER)
 		e.key = KeyCode::RightCommand;
 	s->PostKeyEvent(e);
+	
+	ImGuiIO& io = ImGui::GetIO();
+	if (action == GLFW_PRESS)
+		io.KeysDown[key] = true;
+	else if (action == GLFW_RELEASE)
+		io.KeysDown[key] = false;
+	
+	(void)mods; // Modifiers are not reliable across systems
+	io.KeyCtrl = io.KeysDown[GLFW_KEY_LEFT_CONTROL] || io.KeysDown[GLFW_KEY_RIGHT_CONTROL];
+	io.KeyShift = io.KeysDown[GLFW_KEY_LEFT_SHIFT] || io.KeysDown[GLFW_KEY_RIGHT_SHIFT];
+	io.KeyAlt = io.KeysDown[GLFW_KEY_LEFT_ALT] || io.KeysDown[GLFW_KEY_RIGHT_ALT];
+	io.KeySuper = io.KeysDown[GLFW_KEY_LEFT_SUPER] || io.KeysDown[GLFW_KEY_RIGHT_SUPER];
+}
+
+static void glfw_char_callback(GLFWwindow* window, unsigned int c)
+{
+	auto& io = ImGui::GetIO();
+	if (c > 0 && c < 0x10000)
+		io.AddInputCharacter((unsigned short)c);
 }
 
 static void glfw_mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -172,6 +194,7 @@ void GameApp::Init()
 	glfwSetMouseButtonCallback(m_Window, glfw_mouse_button_callback);
 	glfwSetScrollCallback(m_Window, glfw_scroll_callback);
 	glfwSetWindowIconifyCallback(m_Window, glfw_window_iconify_callback);
+	glfwSetCharCallback(m_Window, glfw_char_callback);
 
 	glfwSwapInterval(1);
 
@@ -189,6 +212,7 @@ void GameApp::Init()
 		s->m_Priority = 998;
 	}
 
+	m_Scene->AddSystem<DrawGizmosSystem>();
 	m_Scene->AddSystem<EditorSystem>()->m_Priority = 999;
 
 	Resize(m_WindowWidth, m_WindowHeight);

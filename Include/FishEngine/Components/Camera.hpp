@@ -2,6 +2,7 @@
 #include <FishEngine/ECS.hpp>
 #include <FishEngine/Components/Transform.hpp>
 #include <FishEngine/Screen.hpp>
+#include <FishEngine/Gizmos.hpp>
 
 enum class CameraType
 {
@@ -62,6 +63,18 @@ public:
 				return c;
 		}
 		return nullptr;
+	}
+	
+	void OnDrawGizmosSelected() const override
+	{
+		float aspectRatio = (float)Screen::width / (float)Screen::height;
+		Frustum frustum;
+		frustum.aspect = aspectRatio;
+		frustum.fov = m_FOV;
+		frustum.minRange = m_NearClipPlane;
+		frustum.maxRange = m_FarClipPlane;
+		Gizmos::color = Vector4(1, 0, 0, 1);
+		Gizmos::DrawFrustum(frustum, GetCameraToWorldMatrix());
 	}
 
 public:

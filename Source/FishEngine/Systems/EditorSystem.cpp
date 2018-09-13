@@ -124,6 +124,7 @@ void EditorSystem::Update()
 
 void EditorSystem::MainMenu()
 {
+	bool showHelpWindow = false;
 	ImGui::BeginMainMenuBar();
 	if (ImGui::BeginMenu("File"))
 	{
@@ -154,7 +155,34 @@ void EditorSystem::MainMenu()
 		ImGui::Checkbox("Enabled depth test", &Gizmos::s_EnableDepthTest);
 		ImGui::EndMenu();
 	}
+	if (ImGui::BeginMenu("Help"))
+	{
+		if (ImGui::MenuItem("Camera Control"))
+		{
+			showHelpWindow = true;
+//			ImGui::OpenPopup("Help-Control");
+		}
+		ImGui::EndMenu();
+	}
 	ImGui::EndMainMenuBar();
+	
+	if (showHelpWindow)
+		ImGui::OpenPopup("Help-Camera Control");
+	if (ImGui::BeginPopupModal("Help-Camera Control", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Text("Move(Pan): move mouse with MiddleMouseButton or Alt+Ctrl/Cmd+LeftMouseButton");
+		ImGui::Text("Orbit: Alt+LeftMouseButton");
+		ImGui::Text("Zoom: MouseScroll or Alt+RightMouseButton");
+		ImGui::Text("Rotate: RightMouseButton");
+		ImGui::Separator();
+		if (ImGui::Button("OK"))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+		
+		ImGui::EndPopup();
+	}
+	
 }
 
 void EditorSystem::Hierarchy()

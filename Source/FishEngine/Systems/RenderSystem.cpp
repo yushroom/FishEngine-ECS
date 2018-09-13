@@ -189,16 +189,6 @@ void RenderSystem::Draw()
 		viewProjMat = projMat * gameCamera->GetWorldToCameraMatrix();
 	}
 
-	{
-		Frustum frustum;
-		frustum.aspect = aspectRatio;
-		frustum.fov = gameCamera->m_FOV;
-		frustum.minRange = gameCamera->m_NearClipPlane;
-		frustum.maxRange = gameCamera->m_FarClipPlane;
-		Gizmos::color = Vector4(1, 0, 0, 1);
-		Gizmos::DrawFrustum(frustum, gameCamera->GetCameraToWorldMatrix());
-	}
-
 #endif
 
 #if 1

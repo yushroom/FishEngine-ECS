@@ -130,4 +130,4 @@ void Gizmos::__Draw()
 	}
 }
 
-bool Gizmos::s_EnableDepthTest = true;
+bool Gizmos::s_EnableDepthTest = false;

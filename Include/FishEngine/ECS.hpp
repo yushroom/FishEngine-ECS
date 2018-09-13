@@ -41,6 +41,10 @@ namespace ECS
 		{
 			return dynamic_cast<T*>(this);
 		}
+		
+		
+		virtual void OnDrawGizmos() const { }
+		virtual void OnDrawGizmosSelected() const { }
 
 		inline Transform* GetTransform() const;
 		
@@ -136,6 +140,7 @@ namespace ECS
 		{
 			return dynamic_cast<T*>(this);
 		}
+
 		
 		bool m_Enabled = true;
 
