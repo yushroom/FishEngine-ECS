@@ -8,6 +8,7 @@
 //namespace fs = std::experimental::filesystem;
 
 #include <FishEngine/Texture.hpp>
+#include <FishEngine/bgfxHelper.hpp>
 
 std::string ReadFileAsString(const std::string &path)
 {
@@ -51,12 +52,8 @@ void Mesh::StaticInit()
 
 void Mesh::__Upload()
 {
-	m_VertexBuffer = bgfx::createVertexBuffer(bgfx::makeRef(m_Vertices.data(), sizeof(decltype(m_Vertices)::value_type)*m_Vertices.size()),
-											  PUNTVertex::ms_decl);
-	
-	m_IndexBuffer = bgfx::createIndexBuffer(bgfx::makeRef(m_Indices.data(), sizeof(decltype(m_Indices)::value_type)*m_Indices.size())
-											, BGFX_BUFFER_INDEX32
-												  );
+	m_VertexBuffer = bgfx::createVertexBuffer(bgfxHelper::MakeRef(m_Vertices), PUNTVertex::ms_decl);
+	m_IndexBuffer = bgfx::createIndexBuffer(bgfxHelper::MakeRef(m_Indices), BGFX_BUFFER_INDEX32);
 }
 
 void Mesh::Bind(int subMeshIndex/* = -1*/, int bgfxStream/* = 0*/)
@@ -107,7 +104,7 @@ Mesh* MeshUtil::FromTextFile(const String & str)
 	SubMeshInfo info;
 	info.StartIndex = 0;
 	info.VertexOffset = 0;
-	info.Length = mesh->m_Indices.size();
+	info.Length = (int)mesh->m_Indices.size();
 	mesh->m_SubMeshInfos.push_back(info);
 	mesh->__Upload();
 

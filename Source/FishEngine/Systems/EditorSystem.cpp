@@ -68,8 +68,8 @@ void EditorSystem::OnAdded()
 
 void EditorSystem::Update()
 {
-	const int hierarchy_width = 250;
-	const int inspector_width = 250;
+	constexpr float hierarchy_width = 250;
+	constexpr float inspector_width = 250;
 	//printf("============here==========\n\n");
 	auto input = m_Scene->GetSingletonComponent<SingletonInput>();
 	if (input->IsButtonHeld(KeyCode::F1))
@@ -87,19 +87,19 @@ void EditorSystem::Update()
 		(input->IsButtonHeld(KeyCode::MouseRightButton) ? IMGUI_MBUT_RIGHT : 0) |
 		(input->IsButtonHeld(KeyCode::MouseMiddleButton) ? IMGUI_MBUT_MIDDLE : 0);
 	selected = selectionSystem->selected->GetTransform();
-	imguiBeginFrame(mousePos.x, mousePos.y, mouseBtns, input->GetAxis(Axis::MouseScrollWheel), Screen::width, Screen::height);
+	imguiBeginFrame((int)mousePos.x, (int)mousePos.y, mouseBtns, (int)input->GetAxis(Axis::MouseScrollWheel), Screen::width, Screen::height);
 
 	MainMenu();
 
-	const int main_menu_bar_height = 24;
+	constexpr float main_menu_bar_height = 24;
 
-	ImGui::SetNextWindowPos(ImVec2(0, main_menu_bar_height));
-	ImGui::SetNextWindowSize(ImVec2(hierarchy_width, Screen::height));
+	ImGui::SetNextWindowPos(ImVec2(0.0f, main_menu_bar_height));
+	ImGui::SetNextWindowSize(ImVec2(hierarchy_width, (float)Screen::height));
 	Hierarchy();
 	selectionSystem->selected = selected->m_GameObject;
 
-	ImGui::SetNextWindowPos(ImVec2(Screen::width - inspector_width, main_menu_bar_height));
-	ImGui::SetNextWindowSize(ImVec2(inspector_width, Screen::height));
+	ImGui::SetNextWindowPos(ImVec2((float)Screen::width - inspector_width, main_menu_bar_height));
+	ImGui::SetNextWindowSize(ImVec2(inspector_width, (float)Screen::height));
 	Inspector();
 
 #if 0
@@ -150,7 +150,7 @@ void EditorSystem::MainMenu()
 	}
 	if (ImGui::BeginMenu("Gizmos"))
 	{
-		if (ImGui::Checkbox("Enabled depth test", &Gizmos::s_EnableDepthTest));
+		ImGui::Checkbox("Enabled depth test", &Gizmos::s_EnableDepthTest);
 		ImGui::EndMenu();
 	}
 	ImGui::EndMainMenuBar();
@@ -264,11 +264,11 @@ void EditorSystem::Inspector()
 				else if (comp->Is<Camera>())
 				{
 					auto c = comp->As<Camera>();
-					int fov = c->m_FOV;
+					int fov = (int)c->m_FOV;
 					ImGui::SliderInt("Field of View", &fov, 1, 179);
-					c->m_FOV = fov;
-					ImGui::SliderFloat("Near", &c->m_NearClipPlane, 0.01, c->m_FarClipPlane);
-					ImGui::SliderFloat("Far", &c->m_FarClipPlane, 1, 1000);
+					c->m_FOV = (float)fov;
+					ImGui::SliderFloat("Near", &c->m_NearClipPlane, 0.01f, c->m_FarClipPlane);
+					ImGui::SliderFloat("Far", &c->m_FarClipPlane, 1.f, 1000.f);
 				}
 			}
 		}

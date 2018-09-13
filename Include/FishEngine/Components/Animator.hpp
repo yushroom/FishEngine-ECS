@@ -23,9 +23,9 @@ struct AnimationCurve
 	Vector3 SampleVector3(float time, const Vector3& initValue);
 
 private:
-	Vector3 _GetVector3(int idx);
+	Vector3 _GetVector3(size_t idx);
 
-	Quaternion _GetQuaternion(int idx);
+	Quaternion _GetQuaternion(size_t idx);
 };
 
 class AnimationClip : public Object

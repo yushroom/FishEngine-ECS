@@ -7,13 +7,6 @@
 #include <vector>
 
 
-template<class T>
-size_t Sizeof(const std::vector<T> v)
-{
-    return sizeof(T) * v.size();
-}
-
-
 class Gizmos : public Static
 {
     friend class RenderSystem;

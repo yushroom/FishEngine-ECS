@@ -4,6 +4,7 @@
 #include <FishEngine/Shader.hpp>
 #include <FishEngine/Mesh.hpp>
 #include <cassert>
+#include <FishEngine/bgfxHelper.hpp>
 
 void Gizmos::StaticInit()
 {
@@ -114,7 +115,7 @@ void Gizmos::__Draw()
 {
 	if (!s_Lines.empty())
 	{
-		bgfx::update(s_LineDynamicVertexBuffer, 0, bgfx::copy(s_Lines.data(), Sizeof(s_Lines)));
+		bgfx::update(s_LineDynamicVertexBuffer, 0, bgfxHelper::MakeCopy(s_Lines));
 		uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_PT_LINES;
 		if (s_EnableDepthTest)
 			state |= BGFX_STATE_DEPTH_TEST_LESS;
@@ -123,7 +124,7 @@ void Gizmos::__Draw()
 		bgfx::setState(state);
 		s_VertexColorMaterial->BindUniforms();
 		bgfx::setTransform(Matrix4x4::identity.data());
-		bgfx::setVertexBuffer(0, s_LineDynamicVertexBuffer, 0, s_Lines.size());
+		bgfx::setVertexBuffer(0, s_LineDynamicVertexBuffer, 0, (uint32_t)s_Lines.size());
 		bgfx::submit(0, s_VertexColorMaterial->GetShader()->GetProgram());
 		s_Lines.clear();
 	}

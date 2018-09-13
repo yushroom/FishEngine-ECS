@@ -207,7 +207,7 @@ void Transform::Translate(const Vector3& translation, Space relativeTo /*= Space
 		assert(index >= 0 && index < children.size());
 
 		auto pos = std::find(children.begin(), children.end(), this);
-		int old_index = std::distance(children.begin(), pos);
+		int old_index = (int)std::distance(children.begin(), pos);
 		//		int old_index = GetSiblingIndex();
 		if (old_index < index)
 		{
@@ -251,6 +251,6 @@ void Transform::Translate(const Vector3& translation, Space relativeTo /*= Space
 		//		}
 		//		return m_RootOrder;
 		auto pos = std::find(children.begin(), children.end(), this);
-		return std::distance(children.begin(), pos);
+		return (int)std::distance(children.begin(), pos);
 	}
 //}

@@ -164,7 +164,7 @@ namespace FishEngine
 		Vector3 GetCorner(int i)
 		{
 			assert(i >= 0 && i < 8);
-			int sign[] = { 1, -1 };
+			float sign[] = { 1.0f, -1.0f };
 			int x = i & 1;
 			int y = (i>>1) & 1;
 			int z = (i>>2) & 1;

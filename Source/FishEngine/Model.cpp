@@ -205,15 +205,15 @@ void ImportPrimitive(Mesh* mesh,
 	
 	{
 		auto& m = position_accessor.minValues;
-		Vector3 minv(m[0], m[1], m[2]);
+		Vector3 minv((float)m[0], (float)m[1], (float)m[2]);
 		auto& m2 = position_accessor.maxValues;
-		Vector3 maxv(m2[0], m2[1], m2[2]);
+		Vector3 maxv((float)m2[0], (float)m2[1], (float)m2[2]);
 		//mesh->bounds.SetMinMax(minv, maxv);
 		mesh->bounds.Encapsulate(minv);
 		mesh->bounds.Encapsulate(maxv);
 	}
 
-	int primitiveVertexCount = position_accessor.count;
+	auto primitiveVertexCount = position_accessor.count;
 
 	for (int i = 0; i < primitiveVertexCount; ++i)
 	{
@@ -278,7 +278,7 @@ void ImportPrimitive(Mesh* mesh,
 		auto& buffer = model.buffers[bufferView.buffer];
 		assert(accessor.count == primitiveVertexCount);
 
-		int offset = accessor.byteOffset + bufferView.byteOffset;
+		auto offset = accessor.byteOffset + bufferView.byteOffset;
 		auto ptr = buffer.data.data() + offset;
 
 		if (accessor.componentType == 5123)	// unsigned short
@@ -320,7 +320,7 @@ void ImportPrimitive(Mesh* mesh,
 		assert(accessor.componentType == 5126);		// float
 		assert(accessor.count == primitiveVertexCount);
 
-		int offset = accessor.byteOffset + bufferView.byteOffset;
+		auto offset = accessor.byteOffset + bufferView.byteOffset;
 		auto ptr = buffer.data.data() + offset;
 		memcpy(mesh->weights.data(), ptr, accessor.count * 4 * sizeof(float));
 	}
@@ -349,7 +349,7 @@ void ImportPrimitive(Mesh* mesh,
 	}
 
 	auto ptr = indices_buffer.data.data();
-	int offset = indices_bufferView.byteOffset + indices_accessor.byteOffset;
+	auto offset = indices_bufferView.byteOffset + indices_accessor.byteOffset;
 	ptr += offset;
 //	auto byteLen = size * indices_accessor.count;
 //	assert(indices_bufferView.byteLength == byteLen);
@@ -387,7 +387,7 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 {
 	uint32_t vertexCount = 0;
 	uint32_t indexCount = 0;
-	mesh->m_SubMeshCount = gltf_mesh.primitives.size();
+	mesh->m_SubMeshCount = (int)gltf_mesh.primitives.size();
 	mesh->m_SubMeshInfos.resize(mesh->m_SubMeshCount);
 	for (int i = 0; i < mesh->m_SubMeshCount; ++i)
 	{
@@ -402,15 +402,15 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 //				abort();
 //			}
 			info.VertexOffset = vertexCount;
-			vertexCount += accessor.count;
+			vertexCount += (uint32_t)accessor.count;
 		}
 
 		{
 			int id = primitive.indices;
 			auto& accessor = model.accessors[id];
 			info.StartIndex = indexCount;
-			info.Length = accessor.count;
-			indexCount += accessor.count;
+			info.Length = (int)accessor.count;
+			indexCount += (uint32_t)accessor.count;
 		}
 	}
 	mesh->m_VertexCount = vertexCount;
@@ -443,7 +443,7 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 void ImportAnimation(AnimationClip* animation, const tinygltf::Animation& anim, const tinygltf::Model& model, const std::vector<ECS::GameObject*>& gos)
 {
 	//auto& anim = model.animations[0];
-	int channelCount = anim.channels.size();
+	auto channelCount = anim.channels.size();
 	animation->curves.resize(channelCount);
 	for (int i = 0; i < channelCount; ++i)
 	{
@@ -464,8 +464,8 @@ void ImportAnimation(AnimationClip* animation, const tinygltf::Animation& anim, 
 		auto& sampler = anim.samplers[channel.sampler];
 
 		auto& inputAccessor = model.accessors[sampler.input];
-		float mintime = inputAccessor.minValues[0];
-		float maxtime = inputAccessor.maxValues[0];
+		float mintime = (float)inputAccessor.minValues[0];
+		float maxtime = (float)inputAccessor.maxValues[0];
 		
 
 		LoadBuffer(model, sampler.input, curve.input);
@@ -531,7 +531,7 @@ void ImportSkin(Skin* skin, const tinygltf::Skin& gltf_skin, const tinygltf::Mod
 
 	auto stride = accessor.ByteStride(bufferView);
 	assert(stride == 16 * sizeof(float));
-	int offset = accessor.byteOffset + bufferView.byteOffset;
+	auto offset = accessor.byteOffset + bufferView.byteOffset;
 	auto ptr = buffer.data.data() + offset;
 	memcpy(skin->inverseBindMatrices.data(), ptr, accessor.count * 16 * sizeof(float));
 
@@ -588,7 +588,7 @@ Material* ImportMaterial(const tinygltf::Material& gltf_material,
 		if (In(gltf_material.values, "baseColorFactor"))
 		{
 			auto color = Get(gltf_material.values, "baseColorFactor").ColorFactor();
-			Vector4 vcolor(color[0], color[1], color[2], color[3]);
+			Vector4 vcolor((float)color[0], (float)color[1], (float)color[2], (float)color[3]);
 			mat->SetVector("baseColorFactor", vcolor);
 		}
 	}
@@ -711,7 +711,7 @@ ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* sc
 			Matrix4x4 m;
 			for (int i = 0; i < 16; ++i)
 			{
-				m.m[i % 4][i / 4] = mtx[i];
+				m.m[i % 4][i / 4] = (float)mtx[i];
 			}
 			auto t = go->GetTransform();
 			RHS2LHS(m);
@@ -723,7 +723,7 @@ ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* sc
 			if (p.size() > 0)
 			{
 				//go->GetTransform()->SetLocalPosition(-p[0], p[1], p[2]);
-				Vector3 pos(p[0], p[1], p[2]);
+				Vector3 pos((float)p[0], (float)p[1], (float)p[2]);
 				RHS2LHS(pos);
 				go->GetTransform()->SetLocalPosition(pos);
 			}
@@ -731,13 +731,13 @@ ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* sc
 			auto& s = node.scale;
 			if (s.size() > 0)
 			{
-				go->GetTransform()->SetLocalScale(s[0], s[1], s[2]);
+				go->GetTransform()->SetLocalScale((float)s[0], (float)s[1], (float)s[2]);
 			}
 
 			auto& r = node.rotation;
 			if (r.size() > 0)
 			{
-				auto q = Quaternion(r[0], r[1], r[2], r[3]);
+				auto q = Quaternion((float)r[0], (float)r[1], (float)r[2], (float)r[3]);
 				RHS2LHS(q);
 				go->GetTransform()->SetLocalRotation(q);
 			}

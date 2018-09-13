@@ -4,7 +4,7 @@ Quaternion AnimationCurve::SampleQuat(float time, const Quaternion& initValue)
 {
 	if (input.empty())
 		return initValue;
-	int count = input.size();
+	auto count = input.size();
 	if (time >= input.back())
 		return _GetQuaternion(count - 1);
 	if (time < input.front())
@@ -29,7 +29,7 @@ Vector3 AnimationCurve::SampleVector3(float time, const Vector3& initValue)
 {
 	if (input.empty())
 		return initValue;
-	int count = input.size();
+	auto count = input.size();
 	if (time >= input.back())
 		return _GetVector3(count - 1);
 	if (time < input.front())
@@ -50,7 +50,7 @@ Vector3 AnimationCurve::SampleVector3(float time, const Vector3& initValue)
 	return Vector3::Lerp(left, right, t);
 }
 
-Vector3 AnimationCurve::_GetVector3(int idx)
+Vector3 AnimationCurve::_GetVector3(size_t idx)
 {
 	float x = output[idx * 3];
 	float y = output[idx * 3 + 1];
@@ -58,7 +58,7 @@ Vector3 AnimationCurve::_GetVector3(int idx)
 	return { x, y, z };
 }
 
-Quaternion AnimationCurve::_GetQuaternion(int idx)
+Quaternion AnimationCurve::_GetQuaternion(size_t idx)
 {
 	float x = output[idx * 4];
 	float y = output[idx * 4 + 1];

@@ -34,7 +34,7 @@ void InputSystem::PostUpdate()
 	for (auto& action : si->m_KeyPressed)
 	{
 		if (action == KeyAction::Normal)
-			;
+		{ }
 		if (action == KeyAction::Pressed)
 			action = KeyAction::Held;
 		else if (action == KeyAction::Released)

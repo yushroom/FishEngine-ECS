@@ -129,7 +129,7 @@ static void glfw_mouse_button_callback(GLFWwindow* window, int button, int actio
 void glfw_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	auto s = mainApp->GetScene()->GetSystem<InputSystem>();
-	s->UpdateAxis(Axis::MouseScrollWheel, yoffset);
+	s->UpdateAxis(Axis::MouseScrollWheel, (float)yoffset);
 }
 
 void glfw_window_iconify_callback(GLFWwindow* window, int iconified)
@@ -229,7 +229,7 @@ void GameApp::Run()
 		glfwGetCursorPos(m_Window, &cursor_x, &cursor_y);
 		cursor_x /= m_WindowWidth;
 		cursor_y /= m_WindowHeight;
-		m_Scene->GetSystem<InputSystem>()->SetMousePosition(cursor_x, cursor_y);
+		m_Scene->GetSystem<InputSystem>()->SetMousePosition((float)cursor_x, (float)cursor_y);
 
 		// Set view 0 default viewport.
 //		bgfx::setViewRect(0, 0, 0, uint16_t(m_WindowWidth*2), uint16_t(m_WindowHeight*2) );
