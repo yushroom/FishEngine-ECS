@@ -90,7 +90,13 @@ void RenderSystem::Draw()
 	float height = (float)GameApp::GetMainApp()->GetHeight();
 	float aspectRatio = width / height;
 	float proj[16];
-	bx::mtxProj(proj, camera->m_FOV, aspectRatio, camera->m_NearClipPlane, camera->m_FarClipPlane, bgfx::getCaps()->homogeneousDepth);
+	if (camera->m_IsPerspective)
+		bx::mtxProj(proj, camera->m_FOV, aspectRatio, camera->m_NearClipPlane, camera->m_FarClipPlane, bgfx::getCaps()->homogeneousDepth);
+	else {
+		float y = camera->m_OrthVerticalSize;
+		float x = y * aspectRatio;
+		bx::mtxOrtho(proj, -x, x, -y, y, camera->m_NearClipPlane, camera->m_FarClipPlane, 0, bgfx::getCaps()->homogeneousDepth);
+	}
 	Matrix4x4 viewT = viewMat.transpose();
 	bgfx::setViewTransform(0, viewT.data(), proj);
 	bgfx::setViewTransform(1, viewT.data(), proj);
@@ -221,16 +227,16 @@ void RenderSystem::Draw()
 
 			if (!insideFrustum)
 			{
-				Gizmos::color = Vector4(0, 0, 1, 1);
-				Gizmos::matrix = modelMat;
-				Gizmos::DrawBounds(rend->mesh->bounds);
+				//Gizmos::color = Vector4(0, 0, 1, 1);
+				//Gizmos::matrix = modelMat;
+				//Gizmos::DrawBounds(rend->mesh->bounds);
 				return;
 			}
 		}
 
-		Gizmos::color = Vector4(0, 1, 0, 1);
-		Gizmos::matrix = modelMat;
-		Gizmos::DrawBounds(rend->mesh->bounds);
+		//Gizmos::color = Vector4(0, 1, 0, 1);
+		//Gizmos::matrix = modelMat;
+		//Gizmos::DrawBounds(rend->mesh->bounds);
 		
 		if (rend->m_Materials.empty())
 		{

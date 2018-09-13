@@ -267,6 +267,9 @@ public:
 	Vector3 TransformDirection(const Vector3& direction) const;
 	void Translate(const Vector3& translation, Space relativeTo = Space::Self);
 	//void RotateAround(const Vector3& point, const Vector3& axis, float angle);
+
+	//Rotates the transform so the forward vector points at worldPosition.
+	void LookAt(const Vector3& worldPosition, const Vector3& worldUp = Vector3::up);
 	
 protected:
 

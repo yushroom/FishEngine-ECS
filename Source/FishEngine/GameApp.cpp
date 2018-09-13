@@ -229,7 +229,7 @@ void GameApp::Run()
 		glfwGetCursorPos(m_Window, &cursor_x, &cursor_y);
 		cursor_x /= m_WindowWidth;
 		cursor_y /= m_WindowHeight;
-		m_Scene->GetSystem<InputSystem>()->SetMousePosition((float)cursor_x, (float)cursor_y);
+		m_Scene->GetSystem<InputSystem>()->SetMousePosition((float)cursor_x, 1.0f-(float)cursor_y);
 
 		// Set view 0 default viewport.
 //		bgfx::setViewRect(0, 0, 0, uint16_t(m_WindowWidth*2), uint16_t(m_WindowHeight*2) );

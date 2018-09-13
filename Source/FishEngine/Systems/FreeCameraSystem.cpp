@@ -46,11 +46,13 @@ void FreeCameraSystem::UpdateCameraTransform(SingletonInput* input, ECS::GameObj
 		rotateCenter = t->GetPosition();
 	}
 
+	m_Scene->GetSystem<SelectionSystem>()->m_EnableTransform = (type == ControlType::None);
+
 	if (type == ControlType::Move)
 	{
 		float x = data->m_DragSpeed * input->GetAxis(Axis::MouseX);
 		float y = data->m_DragSpeed * input->GetAxis(Axis::MouseY);
-		Vector3 translation = -x * t->GetRight() + y * t->GetUp();
+		Vector3 translation = -x * t->GetRight() - y * t->GetUp();
 		t->Translate(translation, Space::World);
 	}
 	else if (type == ControlType::Rotate || type == ControlType::Orbit)
@@ -59,7 +61,7 @@ void FreeCameraSystem::UpdateCameraTransform(SingletonInput* input, ECS::GameObj
 		float y = data->m_RotateSpeed * input->GetAxis(Axis::MouseY);
 		Vector3 right = t->GetRight();
 		right.y = 0;
-		t->RotateAround(rotateCenter, right, y);
+		t->RotateAround(rotateCenter, right, -y);
 		t->RotateAround(rotateCenter, Vector3::up, x);
 	}
 	else if (type == ControlType::Zoom)
@@ -74,7 +76,7 @@ void FreeCameraSystem::UpdateCameraTransform(SingletonInput* input, ECS::GameObj
 		{
 			float x = data->m_DragSpeed * input->GetAxis(Axis::MouseX);
 			float y = data->m_DragSpeed * input->GetAxis(Axis::MouseY);
-			deltaZ = fabsf(x) > fabsf(y) ? x : -y;
+			deltaZ = fabsf(x) > fabsf(y) ? x : y;
 		}
 		t->Translate(deltaZ*forward, Space::World);
 	}
@@ -89,8 +91,9 @@ void FreeCameraSystem::UpdateCameraTransform(SingletonInput* input, ECS::GameObj
 	if (selected != nullptr && input->IsButtonHeld(KeyCode::F))
 	{
 		auto target = selected->GetTransform();
-		t->Translate(target->GetPosition() - data->m_OrbitCenter, Space::World);
+		//t->Translate(target->GetPosition() - data->m_OrbitCenter, Space::World);
 		data->m_OrbitCenter = target->GetPosition();
+		t->LookAt(target->GetPosition());
 	}
 }
 

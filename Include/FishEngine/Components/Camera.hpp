@@ -69,6 +69,9 @@ public:
 	float m_NearClipPlane = 0.1f;
 	float m_FarClipPlane = 100.f;
 	CameraType m_Type = CameraType::Game;
+
+	bool m_IsPerspective = true;
+	float m_OrthVerticalSize = 5;
 	
 	Matrix4x4 m_ProjectionMatrix;
 };

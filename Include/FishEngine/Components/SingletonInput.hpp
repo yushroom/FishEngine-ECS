@@ -349,7 +349,9 @@ public:
 	bool IsButtonHeld(KeyCode code) const;
 	bool IsButtonReleased(KeyCode code) const;
 
-	Vector3 GetMousePosition_Unity() const { return {m_MousePosition.x*Screen::width, (1-m_MousePosition.y)*Screen::height, 0}; }
+	// The bottom-left of the screen or window is at(0, 0).The top-right of the screen or window is at(Screen.width, Screen.height).
+	Vector3 GetMousePosition_Unity() const { return {m_MousePosition.x*Screen::width, m_MousePosition.y*Screen::height, 0}; }
+
 	Vector2 GetMousePosition() const { return m_MousePosition; }
 	float GetAxis(Axis axis) const { return m_Axis[(int)axis]; }
 

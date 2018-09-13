@@ -80,6 +80,7 @@ void EditorSystem::Update()
 	auto selectionSystem = m_Scene->GetSystem<SelectionSystem>();
 	assert(selectionSystem != nullptr);
 	Vector2 mousePos = input->GetMousePosition();
+	mousePos.y = 1.f - mousePos.y;
 	mousePos.x *= Screen::width;
 	mousePos.y *= Screen::height;
 	auto mouseBtns =
@@ -169,6 +170,9 @@ void EditorSystem::Hierarchy()
 void EditorSystem::Inspector()
 {
 	ImGui::Begin("Inspector", NULL, imgui_window_flags);
+	auto input = m_Scene->GetSingletonComponent<SingletonInput>();
+	Vector2 mp = input->GetMousePosition();
+	ImGui::InputFloat2("MousePos", mp.data());
 	if (selected != nullptr)
 	{
 		for (auto comp : selected->m_GameObject->GetComponents())
@@ -269,6 +273,7 @@ void EditorSystem::Inspector()
 					c->m_FOV = (float)fov;
 					ImGui::SliderFloat("Near", &c->m_NearClipPlane, 0.01f, c->m_FarClipPlane);
 					ImGui::SliderFloat("Far", &c->m_FarClipPlane, 1.f, 1000.f);
+					ImGui::Checkbox("Perspective", &c->m_IsPerspective);
 				}
 			}
 		}

@@ -7,7 +7,7 @@ namespace FishEngine {
 	
 	Vector3 Quaternion::eulerAngles() const
 	{
-#if 0
+#if 1
 		// http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/
 		// https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles#Quaternion_to_Euler_Angles_Conversion
 		float heading, attitude, bank;  // y, z, x

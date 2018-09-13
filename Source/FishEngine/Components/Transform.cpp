@@ -21,6 +21,13 @@ void Transform::Translate(const Vector3& translation, Space relativeTo /*= Space
 }
 
 
+void Transform::LookAt(const Vector3& worldPosition, const Vector3& worldUp /*= Vector3::up*/)
+{
+	auto rot = Matrix4x4::LookAt(GetPosition(), worldPosition, worldUp).inverse().ToRotation();
+	SetRotation(rot);
+	//SetForward((worldPosition - GetPosition()).normalized());
+}
+
 //
 //void Transform::RotateAround(const Vector3& point, const Vector3& axis, float angle)
 //{

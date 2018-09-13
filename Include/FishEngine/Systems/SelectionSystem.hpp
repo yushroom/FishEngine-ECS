@@ -10,12 +10,14 @@ public:
 	
 	ECS::GameObject* selected = nullptr;
 	
+	bool m_EnableTransform = true;
+
 private:
 	bool m_Dragging = false;
 	int m_SelectedAxis = -1;
 	Ray m_Ray;
 	Vector2 m_MousePosition;
-	Matrix4x4 clip2World;
+	Matrix4x4 m_Clip2World;
 	
 	void __OnDragBegin();
 	void __OnDragMove();

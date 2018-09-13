@@ -8,6 +8,7 @@
 #include "Math/Bounds.hpp"
 #include "Math/Ray.hpp"
 #include "Math/Frustum.hpp"
+#include "Math/Mathf.hpp"
 
 using FishEngine::Vector2;
 using FishEngine::Vector3;
@@ -17,3 +18,4 @@ using FishEngine::Matrix4x4;
 using FishEngine::Bounds;
 using FishEngine::Ray;
 using FishEngine::Frustum;
+using FishEngine::Mathf;
