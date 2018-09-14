@@ -1,7 +1,8 @@
 #include <FishEngine/Systems/FreeCameraSystem.hpp>
 #include <FishEngine/Components/Transform.hpp>
 #include <FishEngine/Components/SingletonInput.hpp>
-#include <FishEngine/Systems/SelectionSystem.hpp>
+#include <FishEngine/Components/SingletonSelection.hpp>
+#include <FishEditor/SceneViewSystem.hpp>
 
 void FreeCameraSystem::Update()
 {
@@ -46,7 +47,7 @@ void FreeCameraSystem::UpdateCameraTransform(SingletonInput* input, ECS::GameObj
 		rotateCenter = t->GetPosition();
 	}
 
-	m_Scene->GetSystem<SelectionSystem>()->m_EnableTransform = (type == ControlType::None);
+	m_Scene->GetSystem<SceneViewSystem>()->m_EnableTransform = (type == ControlType::None);
 
 	if (type == ControlType::Move)
 	{
@@ -87,8 +88,8 @@ void FreeCameraSystem::UpdateCameraTransform(SingletonInput* input, ECS::GameObj
 		t->SetLocalRotation(Quaternion::identity);
 	}
 
-	auto selected = m_Scene->GetSystem<SelectionSystem>()->selected;
-	if (selected != nullptr && input->IsButtonHeld(KeyCode::F))
+	auto selected = m_Scene->GetSingletonComponent<SingletonSelection>()->selected;
+	if (selected != nullptr && input->IsButtonHeld(KeyCode::F) && selected != cameraGO)
 	{
 		auto target = selected->GetTransform();
 		//t->Translate(target->GetPosition() - data->m_OrbitCenter, Space::World);

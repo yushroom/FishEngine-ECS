@@ -97,8 +97,13 @@ endmacro()
 # add_library(FishGUI ${SRCS} ${HEADERS})
 
 
-file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_LIST_DIR}/Include/FishEngine/*.hpp ${CMAKE_CURRENT_LIST_DIR}/Include/FishEngine/*.inl)
-file(GLOB_RECURSE SRCS ${CMAKE_CURRENT_LIST_DIR}/Source/FishEngine/*.cpp)
+file(GLOB_RECURSE HEADERS 
+    ${CMAKE_CURRENT_LIST_DIR}/Include/FishEngine/*.hpp 
+    ${CMAKE_CURRENT_LIST_DIR}/Include/FishEngine/*.inl
+    ${CMAKE_CURRENT_LIST_DIR}/Include/FishEditor/*.hpp)
+file(GLOB_RECURSE SRCS 
+    ${CMAKE_CURRENT_LIST_DIR}/Source/FishEngine/*.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/Source/FishEditor/*.cpp)
 add_library(FishEngine ${HEADERS} ${SRCS})
 
 AutoGroup(./Include/FishEngine Math Systems Components)

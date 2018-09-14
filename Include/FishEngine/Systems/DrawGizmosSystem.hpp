@@ -2,7 +2,7 @@
 
 #include "../ECS.hpp"
 
-#include "SelectionSystem.hpp"
+#include "../Components/SingletonSelection.hpp"
 #include "../Components/Camera.hpp"
 #include "../Gizmos.hpp"
 
@@ -14,7 +14,7 @@ public:
 	
 	void Update() override
 	{
-		auto selected = m_Scene->GetSystem<SelectionSystem>()->selected;
+		auto selected = m_Scene->GetSingletonComponent<SingletonSelection>()->selected;
 		for (auto comp : selected->GetComponents())
 		{
 			comp->OnDrawGizmosSelected();

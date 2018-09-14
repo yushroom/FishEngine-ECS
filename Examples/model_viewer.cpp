@@ -1,22 +1,5 @@
-#include <FishEngine/Material.hpp>
-#include <FishEngine/Mesh.hpp>
-#include <FishEngine/GameApp.hpp>
-#include <FishEngine/ECS.hpp>
-#include <FishEngine/Components/Transform.hpp>
-#include <FishEngine/Components/Camera.hpp>
-#include <FishEngine/Components/Light.hpp>
-#include <FishEngine/Components/Renderable.hpp>
-#include <FishEngine/Systems/FreeCameraSystem.hpp>
-#include <FishEngine/Systems/AnimationSystem.hpp>
-#include <FishEngine/Components/SingletonInput.hpp>
-#include <FishEngine/Assets.hpp>
-#include <FishEngine/Components/Animator.hpp>
-#include <FishEngine/Model.hpp>
-#include <FishEngine/Graphics.hpp>
-#include <FishEngine/Shader.hpp>
-#include <FishEngine/Gizmos.hpp>
-#include <FishEngine/Systems/SelectionSystem.hpp>
-
+#include <FishEngine.hpp>
+#include <FishEditor.hpp>
 #include <GLFW/glfw3.h>
 
 
@@ -90,7 +73,6 @@ public:
 //		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf";
 		path = GetglTFSample("Buggy");
 //		path = GetglTFSample("BrainStem");
-		auto rootGO = ModelUtil::FromGLTF(path, m_Scene);
 
 		{
 			auto go = m_Scene->CreateGameObject();
@@ -108,6 +90,7 @@ public:
 			go->m_Name = "Directional Light";
 		}
 		
+		auto rootGO = ModelUtil::FromGLTF(path, m_Scene);
 //		auto rootGO = m_Scene->CreateGameObject();
 //		auto r = m_Scene->GameObjectAddComponent<Renderable>(rootGO);
 //		r->mesh = Mesh::Cube;
@@ -142,9 +125,11 @@ public:
 		}
 		m_Scene->AddSystem<DrawSkeletonSystem>();
 
-		auto s=  m_Scene->AddSystem<SelectionSystem>();
-//		s->selected = rootGO->GetTransform()->GetChildAt(0)->GetChildAt(0)->GetChildAt(0)->m_GameObject;
-		s->selected = Camera::GetMainCamera()->m_GameObject;
+		//m_Scene->AddSystem<SelectionSystem>();
+		auto selection = m_EditorScene->GetSingletonComponent<SingletonSelection>();
+		selection->selected = Camera::GetMainCamera()->m_GameObject;
+
+		
 
 		{
 			auto cam = Camera::GetEditorCamera();

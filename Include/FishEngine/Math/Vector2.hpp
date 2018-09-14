@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Mathf.hpp"
-#include "../FishEngine.hpp"
+#include "../Engine.hpp"
 
 namespace FishEngine
 {
@@ -147,6 +147,11 @@ namespace FishEngine
 		Vector2 operator-(const Vector2& rhs) const
 		{
 			return Vector2(x - rhs.x, y - rhs.y);
+		}
+
+		Vector2 operator*(const Vector2& rhs) const
+		{
+			return Vector2(x * rhs.x, y * rhs.y);
 		}
 
 		Vector2 operator*(const float rhs) const

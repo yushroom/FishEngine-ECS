@@ -214,7 +214,7 @@ public:
 			}
 		}
 		
-		m_Scene->AddSystem(new FreeCameraSystem());
+		m_Scene->AddSystem<FreeCameraSystem>();
 		//m_Scene->AddSystem(new PickingSystem());
 	}
 

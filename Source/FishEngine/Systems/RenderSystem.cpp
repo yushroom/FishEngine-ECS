@@ -3,12 +3,12 @@
 #include "FishEngine/Components/Camera.hpp"
 #include "FishEngine/Components/Light.hpp"
 #include "FishEngine/Components/Renderable.hpp"
-#include "FishEngine/GameApp.hpp"
 #include "FishEngine/Graphics.hpp"
 #include "FishEngine/Material.hpp"
 #include <FishEngine/Mesh.hpp>
 #include <FishEngine/Gizmos.hpp>
 #include <FishEngine/Systems/SelectionSystem.hpp>
+#include <FishEngine/bgfxHelper.hpp>
 
 #include <bx/math.h>
 #include <FishEngine/Components/Animator.hpp>
@@ -86,8 +86,8 @@ void RenderSystem::Draw()
 	}
 	
 	
-	float width = (float)GameApp::GetMainApp()->GetWidth();
-	float height = (float)GameApp::GetMainApp()->GetHeight();
+	float width = (float)Screen::width;
+	float height = (float)Screen::height;
 	float aspectRatio = width / height;
 	float proj[16];
 	if (camera->m_IsPerspective)
@@ -156,7 +156,8 @@ void RenderSystem::Draw()
 				dv.normal = skinMatrix.MultiplyVector(v.normal);
 			}
 			
-			auto mem = bgfx::makeRef(mesh->m_DynamicVertices.data(), sizeof(PUNTVertex)*mesh->m_Vertices.size());
+			
+			auto mem = bgfxHelper::MakeRef(mesh->m_DynamicVertices);
 			if (!bgfx::isValid(mesh->m_DynamicVertexBuffer))
 			{
 				mesh->m_DynamicVertexBuffer = bgfx::createDynamicVertexBuffer(mem, PUNTVertex::ms_decl);

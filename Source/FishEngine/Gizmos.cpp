@@ -19,6 +19,17 @@ void Gizmos::StaticInit()
 
 	VertexPC temp;
 	s_LineDynamicVertexBuffer = bgfx::createDynamicVertexBuffer(bgfx::copy(&temp, sizeof(temp)), PUNTVertex::s_PC_decl, BGFX_BUFFER_ALLOW_RESIZE);
+
+	{
+		constexpr int circle_vertex_count = 180;
+		Vector3 vertices[circle_vertex_count];
+		for (int i = 0; i < circle_vertex_count; ++i)
+		{
+			float theta = 2 * Mathf::PI / 180;
+			vertices[i].Set(sin(theta), cos(theta), 0);
+		}
+		s_CircleVertexBuffer = bgfx::createVertexBuffer(bgfx::copy(vertices, sizeof(Vector3)*circle_vertex_count), PUNTVertex::s_P_decl);
+	}
 }
 
 void Gizmos::DrawCube(const Vector3& center, const Vector3& size)

@@ -1,5 +1,5 @@
 #pragma once
-#include "FishEngine/ECS.hpp"
+#include <FishEngine/ECS.hpp>
 
 class Material;
 class Mesh;
@@ -23,6 +23,8 @@ class Renderable : public ECS::Component
 //	void SetMaterial();
 //	void SetMaterial(int index);
 	
+	void OnDrawGizmosSelected() const override;
+
 public:
 	//Material* material = nullptr;
 	bool m_Enabled = true;

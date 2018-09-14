@@ -113,10 +113,13 @@ namespace FishEngine
 		result.y = m[1][0] * x + m[1][1] * y + m[1][2] * z + m[1][3];
 		result.z = m[2][0] * x + m[2][1] * y + m[2][2] * z + m[2][3];
 		float num = m[3][0] * x + m[3][1] * y + m[3][2] * z + m[3][3];
-		num = 1.f / num;
-		result.x *= num;
-		result.y *= num;
-		result.z *= num;
+		if (num > 1e-4 || num < -1e-4)
+		{
+			num = 1.f / num;
+			result.x *= num;
+			result.y *= num;
+			result.z *= num;
+		}
 		return result;
 	}
 

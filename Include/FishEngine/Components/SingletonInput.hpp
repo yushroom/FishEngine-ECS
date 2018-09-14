@@ -336,8 +336,9 @@ enum class Axis {
 
 class SingletonInput : public ECS::SingletonComponent
 {
-	friend class ECS::Scene;
+	SINGLETON_COMPONENT(SingletonInput);
 	friend class InputSystem;
+	friend class EditorSystem;
 protected:
 	SingletonInput()
 	{
@@ -357,7 +358,7 @@ public:
 
 	static constexpr int ButtonCount = 512;
 
-private:
+//private:
 	KeyAction m_KeyPressed[ButtonCount] = { KeyAction::Normal };
 	float m_Axis[(int)Axis::AxisCount] = { 0 };
 	Vector2 m_MousePosition;

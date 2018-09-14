@@ -1,6 +1,6 @@
 #include <FishEngine/Systems/EditorSystem.hpp>
-#include <FishEngine/Systems/SelectionSystem.hpp>
-#include <FishEngine/Screen.hpp>
+#include <FishEngine/Components/SingletonSelection.hpp>
+//#include <FishEngine/Screen.hpp>
 #include <FishEngine/Components/Transform.hpp>
 #include <FishEngine/Components/SingletonInput.hpp>
 #include <FishEngine/Components/Renderable.hpp>
@@ -11,6 +11,7 @@
 #include <FishEngine/Components/Camera.hpp>
 #include <FishEngine/Components/FreeCamera.hpp>
 #include <FishEngine/Systems/FreeCameraSystem.hpp>
+#include <FishEditor/SceneViewSystem.hpp>
 
 #include <imgui/imgui.h>
 
@@ -21,6 +22,9 @@ constexpr int imgui_window_flags = 0
 | ImGuiWindowFlags_NoSavedSettings
 | ImGuiWindowFlags_NoFocusOnAppearing
 ;
+
+constexpr float main_menu_bar_height = 24;
+constexpr float main_tool_bar_height = 40;
 
 Transform* selected = nullptr;
 
@@ -66,7 +70,7 @@ void EditorSystem::OnAdded()
 }
 
 
-void EditorSystem::Update()
+void EditorSystem::Draw()
 {
 	constexpr float hierarchy_width = 250;
 	constexpr float inspector_width = 250;
@@ -77,31 +81,38 @@ void EditorSystem::Update()
 		return;
 	}
 
-	auto selectionSystem = m_Scene->GetSystem<SelectionSystem>();
-	assert(selectionSystem != nullptr);
+	auto selection = m_Scene->GetSingletonComponent<SingletonSelection>();
+	assert(selection != nullptr);
 	Vector2 mousePos = input->GetMousePosition();
 	mousePos.y = 1.f - mousePos.y;
-	mousePos.x *= Screen::width;
-	mousePos.y *= Screen::height;
+	mousePos.x *= EditorScreen::width;
+	mousePos.y *= EditorScreen::height;
 	auto mouseBtns =
 		(input->IsButtonHeld(KeyCode::MouseLeftButton) ? IMGUI_MBUT_LEFT : 0) |
 		(input->IsButtonHeld(KeyCode::MouseRightButton) ? IMGUI_MBUT_RIGHT : 0) |
 		(input->IsButtonHeld(KeyCode::MouseMiddleButton) ? IMGUI_MBUT_MIDDLE : 0);
-	selected = selectionSystem->selected->GetTransform();
-	imguiBeginFrame((int)mousePos.x, (int)mousePos.y, mouseBtns, (int)input->GetAxis(Axis::MouseScrollWheel), Screen::width, Screen::height);
+	selected = selection->selected->GetTransform();
+	imguiBeginFrame((int)mousePos.x, (int)mousePos.y, mouseBtns, (int)input->GetAxis(Axis::MouseScrollWheel), EditorScreen::width, EditorScreen::height);
 
 	MainMenu();
+	MainToolBar();
 
-	constexpr float main_menu_bar_height = 24;
+	
+	constexpr float y_start = main_menu_bar_height + main_tool_bar_height;
 
-	ImGui::SetNextWindowPos(ImVec2(0.0f, main_menu_bar_height));
-	ImGui::SetNextWindowSize(ImVec2(hierarchy_width, (float)Screen::height));
+	ImGui::SetNextWindowPos(ImVec2(0.0f, y_start));
+	ImGui::SetNextWindowSize(ImVec2(hierarchy_width, (float)EditorScreen::height-y_start));
 	Hierarchy();
-	selectionSystem->selected = selected->m_GameObject;
+	selection->selected = selected->m_GameObject;
 
-	ImGui::SetNextWindowPos(ImVec2((float)Screen::width - inspector_width, main_menu_bar_height));
-	ImGui::SetNextWindowSize(ImVec2(inspector_width, (float)Screen::height));
+	ImGui::SetNextWindowPos(ImVec2((float)EditorScreen::width - inspector_width, y_start));
+	ImGui::SetNextWindowSize(ImVec2(inspector_width, (float)EditorScreen::height-y_start));
 	Inspector();
+
+	m_SceneViewRect.x = hierarchy_width;
+	m_SceneViewRect.y = y_start;
+	m_SceneViewRect.z = EditorScreen::width - hierarchy_width - inspector_width;
+	m_SceneViewRect.w = EditorScreen::height - y_start;
 
 #if 0
 	ImGui::SetNextWindowPos(ImVec2(Screen::width - inspector_width, Screen::height / 2));
@@ -143,6 +154,12 @@ void EditorSystem::MainMenu()
 	}
 	if (ImGui::BeginMenu("Systems"))
 	{
+		for (ISystem* s : m_GameScene->GetSystems())
+		{
+			ImGui::Checkbox(s->GetClassName(), &s->m_Enabled);
+			//ImGui::MenuItem(s->GetClassName(), nullptr, &s->m_Enabled);
+		}
+		ImGui::Separator();
 		for (ISystem* s : m_Scene->GetSystems())
 		{
 			ImGui::Checkbox(s->GetClassName(), &s->m_Enabled);
@@ -174,6 +191,7 @@ void EditorSystem::MainMenu()
 		ImGui::Text("Orbit: Alt+LeftMouseButton");
 		ImGui::Text("Zoom: MouseScroll or Alt+RightMouseButton");
 		ImGui::Text("Rotate: RightMouseButton");
+		ImGui::Text("F: Frame selected GameObject");
 		ImGui::Separator();
 		if (ImGui::Button("OK"))
 		{
@@ -185,10 +203,94 @@ void EditorSystem::MainMenu()
 	
 }
 
+void EditorSystem::MainToolBar()
+{
+	auto frame_padding = ImGui::GetStyle().FramePadding;
+	float padding = frame_padding.y * 2;
+	float height = 24 + padding;
+	ImVec2 toolbar_size(ImGui::GetIO().DisplaySize.x, height);
+
+	constexpr float main_menu_bar_height = 24;
+	ImGui::SetNextWindowPos(ImVec2(0.0f, main_menu_bar_height));
+	ImGui::SetNextWindowSize(ImVec2(EditorScreen::width, main_tool_bar_height));
+	auto flag = 0
+		| ImGuiWindowFlags_NoTitleBar
+		| ImGuiWindowFlags_NoScrollbar
+		| ImGuiWindowFlags_NoResize
+		;
+	//if (ImGui::BeginToolbar("MainToolBar", ImVec2(0, g_editorGUISettings.mainMenubarHeight), toolbar_size))
+	ImGui::Begin("MainToolBar", nullptr, flag);
+	{
+		ImGui::SameLine();
+		//if (FishEditorWindow::InPlayMode())
+		if (true)
+		{
+			if (ImGui::Button("Stop"))
+			{
+				//FishEditorWindow::Stop();
+			}
+		}
+		else
+		{
+			if (ImGui::Button("Play"))
+			{
+				//FishEditorWindow::Play();
+			}
+		}
+
+		auto sceneView = m_Scene->GetSystem<SceneViewSystem>();
+
+		ImGui::SameLine();
+		if (ImGui::Button("Translate"))
+		{
+			sceneView->m_transformToolType = TransformToolType::Translate;
+		}
+
+		ImGui::SameLine();
+		if (ImGui::Button("Rotate"))
+		{
+			sceneView->m_transformToolType = TransformToolType::Rotate;
+		}
+
+		ImGui::SameLine();
+		if (ImGui::Button("Scale"))
+		{
+			sceneView->m_transformToolType = TransformToolType::Scale;
+		}
+
+
+		ImGui::SameLine();
+		if (ImGui::Button("Pivot"))
+		{
+
+		}
+
+		ImGui::SameLine();
+		if (sceneView->m_transformSpace == TransformSpace::Global)
+		{
+			if (ImGui::Button("Global"))
+			{
+				sceneView->m_transformSpace = TransformSpace::Local;
+			}
+		}
+		else
+		{
+			if (ImGui::Button("Local"))
+			{
+				sceneView->m_transformSpace = TransformSpace::Global;
+			}
+		}
+		
+	}
+	ImGui::End();
+	//ImGui::EndToolbar();
+	//g_editorGUISettings.mainToolbarHeight = height;
+}
+
 void EditorSystem::Hierarchy()
 {
 	ImGui::Begin("Hierarchy", NULL, imgui_window_flags);
-	for (auto t : m_Scene->m_RootTransforms)
+	for (auto t : m_GameScene->m_RootTransforms)
 	{
 		HierarchyNode(t);
 	}
@@ -201,6 +303,8 @@ void EditorSystem::Inspector()
 	auto input = m_Scene->GetSingletonComponent<SingletonInput>();
 	Vector2 mp = input->GetMousePosition();
 	ImGui::InputFloat2("MousePos", mp.data());
+	Vector2 delta_mp(input->GetAxis(Axis::MouseX), input->GetAxis(Axis::MouseY));
+	ImGui::InputFloat2("axis", delta_mp.data());
 	if (selected != nullptr)
 	{
 		for (auto comp : selected->m_GameObject->GetComponents())

@@ -10,6 +10,8 @@
 
 #include <FishEngine/Systems/EditorSystem.hpp>
 #include <FishEngine/Systems/DrawGizmosSystem.hpp>
+#include <FishEngine/Systems/SelectionSystem.hpp>
+#include <FishEditor/SceneViewSystem.hpp>
 
 #include <GLFW/glfw3.h>
 #include <bgfx/bgfx.h>
@@ -85,7 +87,7 @@ static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int act
 	else
 		return;
 	
-	auto s = mainApp->GetScene()->GetSystem<InputSystem>();
+	auto s = mainApp->m_EditorScene->GetSystem<InputSystem>();
 
 	if (key >= GLFW_KEY_0 && key <= GLFW_KEY_9)
 		e.key = KeyCode(key);
@@ -131,7 +133,7 @@ static void glfw_char_callback(GLFWwindow* window, unsigned int c)
 
 static void glfw_mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-	auto s = mainApp->GetScene()->GetSystem<InputSystem>();
+	auto s = mainApp->m_EditorScene->GetSystem<InputSystem>();
 	KeyEvent e;
 	if (button == GLFW_MOUSE_BUTTON_LEFT)
 		e.key = KeyCode::MouseLeftButton;
@@ -150,7 +152,7 @@ static void glfw_mouse_button_callback(GLFWwindow* window, int button, int actio
 
 void glfw_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	auto s = mainApp->GetScene()->GetSystem<InputSystem>();
+	auto s = mainApp->m_EditorScene->GetSystem<InputSystem>();
 	s->UpdateAxis(Axis::MouseScrollWheel, (float)yoffset);
 }
 
@@ -212,8 +214,22 @@ void GameApp::Init()
 		s->m_Priority = 998;
 	}
 
-	m_Scene->AddSystem<DrawGizmosSystem>();
-	m_Scene->AddSystem<EditorSystem>()->m_Priority = 999;
+	m_EditorScene = new ECS::Scene();
+	m_EditorScene->AddSystem<InputSystem>();
+	auto es = m_EditorScene->AddSystem<EditorSystem>();
+	es->m_GameScene = m_Scene;
+	es->m_Priority = 999;
+	this->OnWindowSizeChanged += [es](int w, int h) {
+		es->m_WindowWidth = w;
+		es->m_WindowHeight = h;
+	};
+	m_EditorScene->AddSystem<DrawGizmosSystem>();
+	m_EditorScene->AddSystem<SelectionSystem>();
+	auto svs = m_EditorScene->AddSystem<SceneViewSystem>();
+	m_SceneViewSystem = svs;
+
+	m_EditorSystem = es;
+
 
 	Resize(m_WindowWidth, m_WindowHeight);
 }
@@ -225,6 +241,7 @@ void GameApp::Run()
 	Start();
 
 	m_Scene->Start();
+	m_EditorScene->Start();
 	
 	while (!glfwWindowShouldClose(m_Window))
 	{
@@ -236,7 +253,7 @@ void GameApp::Run()
 		//glfwWaitEvents();
 //		printf("============ frame begin ===========\n");
 
-		auto si = m_Scene->GetSingletonComponent<SingletonInput>();
+		auto si = m_EditorScene->GetSingletonComponent<SingletonInput>();
 		if (si->IsButtonPressed(KeyCode::Escape))
 			glfwSetWindowShouldClose(m_Window, 1);
 
@@ -253,18 +270,51 @@ void GameApp::Run()
 		glfwGetCursorPos(m_Window, &cursor_x, &cursor_y);
 		cursor_x /= m_WindowWidth;
 		cursor_y /= m_WindowHeight;
-		m_Scene->GetSystem<InputSystem>()->SetMousePosition((float)cursor_x, 1.0f-(float)cursor_y);
+		m_EditorScene->GetSystem<InputSystem>()->SetMousePosition((float)cursor_x, 1.0f-(float)cursor_y);
+
+		m_EditorSystem->Draw();
 
 		// Set view 0 default viewport.
 //		bgfx::setViewRect(0, 0, 0, uint16_t(m_WindowWidth*2), uint16_t(m_WindowHeight*2) );
-		bgfx::setViewRect(0, 0, 0, uint16_t(m_WindowWidth), uint16_t(m_WindowHeight) );
 		
 //		Update();
+		const int w = EditorScreen::width;
+		const int h = EditorScreen::height;
+		auto r = m_EditorSystem->m_SceneViewRect;
+		//r = r + Vector4(8, 8, -16, -16);
+		Screen::width = r.z;
+		Screen::height = r.w;
+		Vector2 old_mouse_position;
+		{
+			auto input1 = m_Scene->GetSingletonComponent<SingletonInput>();
+			auto input2 = m_EditorScene->GetSingletonComponent<SingletonInput>();
+			auto mp = input2->m_MousePosition;
+			old_mouse_position = mp;
+			mp.y = 1 - mp.y;
+			mp = mp * Vector2(w, h) - Vector2(r.x, r.y);
+			mp.x /= r.z;
+			mp.y /= r.w;
+			mp.y = 1 - mp.y;
+			input1->m_MousePosition = mp;
+			input2->m_MousePosition = mp;
+			//printf("%f %f\n", mp.x, mp.y);
+
+			memcpy(input1->m_Axis, input2->m_Axis, sizeof(float)*(int)Axis::AxisCount);
+			memcpy(input1->m_KeyPressed, input2->m_KeyPressed, sizeof(KeyAction)*SingletonInput::ButtonCount);
+		}
+
+		m_EditorScene->Update();
+		
+
 		m_Scene->Update();
-
+		//r = r * Vector4( w, h, w, h );
+		bgfx::setViewRect(0, r.x, r.y, r.z, r.w);
 		m_Scene->GetSystem<RenderSystem>()->Draw();
-
+		m_SceneViewSystem->DrawGizmos();
 		m_Scene->PostUpdate();
+		//Screen::width = w;
+		//Screen::height = h;
+		m_EditorScene->PostUpdate();
 
 		// Advance to next frame. Rendering thread will be kicked to
 		// process submitted rendering primitives.
@@ -272,6 +322,9 @@ void GameApp::Run()
 
 		/* Swap front and back buffers */
 		//glfwSwapBuffers(m_Window);
+
+		auto input2 = m_EditorScene->GetSingletonComponent<SingletonInput>();
+		input2->m_MousePosition = old_mouse_position;
 
 		/* Poll for and process events */
 		glfwPollEvents();
@@ -288,11 +341,13 @@ void GameApp::Resize(int width, int height)
 	m_WindowWidth = width;
 	m_WindowHeight = height;
 
-	Screen::width = width;
-	Screen::height = height;
+	EditorScreen::width = width;
+	EditorScreen::height = height;
 
 	auto rs = m_Scene->GetSystem<RenderSystem>();
 	rs->Resize(width, height);
+
+	OnWindowSizeChanged(width, height);
 }
 
 GameApp* GameApp::GetMainApp()

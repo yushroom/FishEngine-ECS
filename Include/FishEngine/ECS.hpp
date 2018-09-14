@@ -118,7 +118,7 @@ namespace ECS
 	public:
 		virtual void OnAdded() {}
 		virtual void Start() {}
-		virtual void Update() = 0;
+		virtual void Update() {};
 		virtual void PostUpdate() {};
 
 		int m_Priority = 0;
@@ -161,13 +161,15 @@ namespace ECS
 
 
 
-
 	class SingletonComponent
 	{
 		friend class Scene;
 	protected:
 		SingletonComponent() = default;
 	};
+
+#define SINGLETON_COMPONENT(T) \
+	friend class ECS::Scene;
 
 
 	class Scene
@@ -285,6 +287,7 @@ namespace ECS
 		template<class T>
 		T* AddSystem()
 		{
+			static_assert(std::is_base_of_v<ISystem, T>);
 			T* system = new T();	// did you forget to add SYSTEM(T) ?
 			m_Systems.push_back(system);
 			system->m_Scene = this;
@@ -295,9 +298,11 @@ namespace ECS
 		template<class T>
 		T* GetSystem()
 		{
+			static_assert(std::is_base_of_v<ISystem, T>);
 			for (ISystem* s : m_Systems)
 			{
-				T* t = dynamic_cast<T*>(s);
+				//T* t = dynamic_cast<T*>(s);
+				T* t = s->As<T>();
 				if (t != nullptr)
 					return t;
 			}

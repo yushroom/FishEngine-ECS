@@ -24,3 +24,19 @@ void Graphics::DrawMesh(Mesh* mesh, const Matrix4x4& matrix, Material* material,
 	// Submit primitive for rendering to view 0.
 	bgfx::submit(id, material->GetShader()->GetProgram());
 }
+
+void Graphics::DrawMesh2(Mesh* mesh, const Matrix4x4& matrix, Material* material, uint64_t state)
+{
+	if (mesh == nullptr || material == nullptr)
+		return;
+
+	// Set render states.
+	bgfx::setState(state);
+
+	// Set model matrix for rendering.
+	bgfx::setTransform(matrix.transpose().data());
+	material->BindUniforms();
+	mesh->Bind();
+	// Submit primitive for rendering to view 0.
+	bgfx::submit(0, material->GetShader()->GetProgram());
+}
