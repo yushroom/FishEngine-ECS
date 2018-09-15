@@ -5,6 +5,8 @@
 #include <FishEngine/Mesh.hpp>
 #include <cassert>
 #include <FishEngine/bgfxHelper.hpp>
+#include <FishEngine/Render/RenderViewType.hpp>
+
 
 void Gizmos::StaticInit()
 {
@@ -21,13 +23,12 @@ void Gizmos::StaticInit()
 	s_LineDynamicVertexBuffer = bgfx::createDynamicVertexBuffer(bgfx::copy(&temp, sizeof(temp)), PUNTVertex::s_PC_decl, BGFX_BUFFER_ALLOW_RESIZE);
 
 	{
-		constexpr int circle_vertex_count = 180;
-		Vector3 vertices[circle_vertex_count];
-		for (int i = 0; i < circle_vertex_count; ++i)
+		for (int i = 0; i < circle_vertex_count-1; ++i)
 		{
-			float theta = 2 * Mathf::PI / 180;
+			float theta = 2*Mathf::PI / (circle_vertex_count-1) * i;
 			vertices[i].Set(sin(theta), cos(theta), 0);
 		}
+		vertices[circle_vertex_count-1] = vertices[0];
 		s_CircleVertexBuffer = bgfx::createVertexBuffer(bgfx::copy(vertices, sizeof(Vector3)*circle_vertex_count), PUNTVertex::s_P_decl);
 	}
 }
@@ -86,7 +87,7 @@ void Gizmos::DrawBounds(const Bounds& bounds)
 
 	//auto mat = matrix;
 	auto mat = matrix;
-	auto ext = bounds.extents();
+//	auto ext = bounds.extents();
 	//matrix = Matrix4x4::Translate(bounds.center()) * Matrix4x4::Scale(bounds.extents()) * matrix;
 	matrix =  matrix * Matrix4x4::Translate(bounds.center()) * Matrix4x4::Scale(bounds.extents());
 	for (int i = 0; i < 12; ++i)
@@ -122,6 +123,36 @@ void Gizmos::DrawFrustum(const Frustum& frustum, const Matrix4x4& cameraToWorld)
 	matrix = mat;
 }
 
+
+void Gizmos::DrawCircle(const Vector3& center, float radius)
+{
+	uint64_t state = BGFX_STATE_WRITE_RGB
+		| BGFX_STATE_DEPTH_TEST_ALWAYS
+		| BGFX_STATE_PT_LINESTRIP;
+	Matrix4x4 m = Gizmos::matrix * Matrix4x4::Translate(center) *  Matrix4x4::Scale(radius);
+	bgfx::setTransform(m.transpose().data());
+	bgfx::setState(state);
+	bgfx::setVertexBuffer(0, Gizmos::s_CircleVertexBuffer);
+	s_ColorMaterial->SetVector("u_color", Gizmos::color);
+	s_ColorMaterial->BindUniforms();
+	bgfx::submit(0, s_ColorMaterial->GetShader()->GetProgram());
+//	for (auto v : vertices)
+//	float d = m.MultiplyPoint(center).z + 0.1f;
+//	matrix = Matrix4x4::identity;
+//	for (int i = 0; i < circle_vertex_count-1; ++i)
+//	{
+//		auto v1 = vertices[i];
+//		v1 = m.MultiplyPoint(v1);
+//		auto v2 = vertices[i+1];
+//		v2 = m.MultiplyPoint(v2);
+//		if (v1.z < d && v2.z < d)
+//		{
+//			DrawLine(v1, v2);
+//		}
+//	}
+}
+
+
 void Gizmos::__Draw()
 {
 	if (!s_Lines.empty())
@@ -132,13 +163,16 @@ void Gizmos::__Draw()
 			state |= BGFX_STATE_DEPTH_TEST_LESS;
 		else
 			state |= BGFX_STATE_DEPTH_TEST_ALWAYS;
+		state |= BGFX_STATE_LINEAA;
 		bgfx::setState(state);
 		s_VertexColorMaterial->BindUniforms();
 		bgfx::setTransform(Matrix4x4::identity.data());
-		bgfx::setVertexBuffer(0, s_LineDynamicVertexBuffer, 0, (uint32_t)s_Lines.size());
-		bgfx::submit(0, s_VertexColorMaterial->GetShader()->GetProgram());
+		auto viewId = (bgfx::ViewId)RenderViewType::Scene;
+		bgfx::setVertexBuffer(viewId, s_LineDynamicVertexBuffer, 0, (uint32_t)s_Lines.size());
+		bgfx::submit(viewId, s_VertexColorMaterial->GetShader()->GetProgram());
 		s_Lines.clear();
 	}
 }
+
 
 bool Gizmos::s_EnableDepthTest = false;

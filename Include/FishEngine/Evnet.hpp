@@ -189,7 +189,7 @@ public:
 		std::atomic_store(&m_events, std::atomic_load(&event.m_events));
 	}
 
-	void operator=(nullptr_t nullpointer)
+	void operator=(std::nullptr_t nullpointer)
 	{
 		while (true)
 		{
@@ -201,13 +201,13 @@ public:
 		}
 	}
 
-	bool operator==(nullptr_t nullpointer)
+	bool operator==(std::nullptr_t nullpointer)
 	{
 		auto events = std::atomic_load(&m_events);
 		return events == nullptr;
 	}
 
-	bool operator!=(nullptr_t nullpointer)
+	bool operator!=(std::nullptr_t nullpointer)
 	{
 		auto events = std::atomic_load(&m_events);
 		return events != nullptr;

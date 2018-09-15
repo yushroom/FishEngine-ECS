@@ -72,8 +72,8 @@ void EditorSystem::OnAdded()
 
 void EditorSystem::Draw()
 {
-	constexpr float hierarchy_width = 250;
-	constexpr float inspector_width = 250;
+	constexpr float hierarchy_width = 200;
+	constexpr float inspector_width = 220;
 	//printf("============here==========\n\n");
 	auto input = m_Scene->GetSingletonComponent<SingletonInput>();
 	if (input->IsButtonHeld(KeyCode::F1))
@@ -92,7 +92,10 @@ void EditorSystem::Draw()
 		(input->IsButtonHeld(KeyCode::MouseRightButton) ? IMGUI_MBUT_RIGHT : 0) |
 		(input->IsButtonHeld(KeyCode::MouseMiddleButton) ? IMGUI_MBUT_MIDDLE : 0);
 	selected = selection->selected->GetTransform();
-	imguiBeginFrame((int)mousePos.x, (int)mousePos.y, mouseBtns, (int)input->GetAxis(Axis::MouseScrollWheel), EditorScreen::width, EditorScreen::height);
+	
+	static float mouseScroll = 0;
+	mouseScroll += input->GetAxis(Axis::MouseScrollWheel);
+	imguiBeginFrame((int)mousePos.x, (int)mousePos.y, mouseBtns, mouseScroll, EditorScreen::width, EditorScreen::height);
 
 	MainMenu();
 	MainToolBar();
@@ -290,6 +293,7 @@ void EditorSystem::MainToolBar()
 void EditorSystem::Hierarchy()
 {
 	ImGui::Begin("Hierarchy", NULL, imgui_window_flags);
+	HierarchyNode(Camera::GetEditorCamera()->GetTransform());
 	for (auto t : m_GameScene->m_RootTransforms)
 	{
 		HierarchyNode(t);
@@ -400,12 +404,14 @@ void EditorSystem::Inspector()
 				else if (comp->Is<Camera>())
 				{
 					auto c = comp->As<Camera>();
-					int fov = (int)c->m_FOV;
+					int fov = (int)c->GetFieldOfView();
 					ImGui::SliderInt("Field of View", &fov, 1, 179);
-					c->m_FOV = (float)fov;
+					c->SetFieldOfView((float)fov);
 					ImGui::SliderFloat("Near", &c->m_NearClipPlane, 0.01f, c->m_FarClipPlane);
 					ImGui::SliderFloat("Far", &c->m_FarClipPlane, 1.f, 1000.f);
-					ImGui::Checkbox("Perspective", &c->m_IsPerspective);
+					bool perspective = c->GetOrthographic();
+					ImGui::Checkbox("Perspective", &perspective);
+					c->SetOrthographic(perspective);
 				}
 			}
 		}

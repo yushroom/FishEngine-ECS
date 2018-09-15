@@ -173,12 +173,12 @@ void ImportPrimitive(Mesh* mesh,
 	bool withJoints = false;
 	bool withWeights = false;
 	bool withUV = false;
-	int positionID = -1;
-	int normalID = -1;
-	int tangentID = -1;
-	int jointsID = -1;
-	int weightsID = -1;
-	int uvID = -1;
+//	int positionID = -1;
+//	int normalID = -1;
+//	int tangentID = -1;
+//	int jointsID = -1;
+//	int weightsID = -1;
+//	int uvID = -1;
 	for (auto& pair : primitive.attributes)
 	{
 		auto& attr = pair.first;
@@ -418,12 +418,12 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 	mesh->m_Indices.resize(indexCount);
 	mesh->m_TriangleCount = indexCount / 3;
 	
-	for (int i = 0; i < mesh->m_SubMeshCount; ++i)
-//	for (auto& info : mesh->m_SubMeshInfos)
-	{
-		auto& info = mesh->m_SubMeshInfos[i];
-		//printf("[ImportMesh]submesh: %d %d %d %d\n", i, info.StartIndex, info.Length, info.VertexOffset);
-	}
+//	for (int i = 0; i < mesh->m_SubMeshCount; ++i)
+////	for (auto& info : mesh->m_SubMeshInfos)
+//	{
+//		auto& info = mesh->m_SubMeshInfos[i];
+//		//printf("[ImportMesh]submesh: %d %d %d %d\n", i, info.StartIndex, info.Length, info.VertexOffset);
+//	}
 
 	for (int i = 0; i < mesh->m_SubMeshCount; ++i)
 	{
@@ -535,7 +535,7 @@ void ImportSkin(Skin* skin, const tinygltf::Skin& gltf_skin, const tinygltf::Mod
 	auto ptr = buffer.data.data() + offset;
 	memcpy(skin->inverseBindMatrices.data(), ptr, accessor.count * 16 * sizeof(float));
 
-	auto T = Matrix4x4::Scale(-1, 1, 1);
+//	auto T = Matrix4x4::Scale(-1, 1, 1);
 	for (auto& m : skin->inverseBindMatrices)
 	{
 		m = m.transpose();

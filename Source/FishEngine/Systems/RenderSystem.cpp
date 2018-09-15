@@ -9,6 +9,7 @@
 #include <FishEngine/Gizmos.hpp>
 #include <FishEngine/Systems/SelectionSystem.hpp>
 #include <FishEngine/bgfxHelper.hpp>
+#include <FishEngine/Render/RenderViewType.hpp>
 
 #include <bx/math.h>
 #include <FishEngine/Components/Animator.hpp>
@@ -47,35 +48,71 @@ void RenderSystem::OnAdded()
 
 void RenderSystem::Start()
 {
-	
+//	bgfx::setViewClear((bgfx::ViewId)RenderViewType::Scene,
+//					   BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
+//					   0x000000ff, 1.0f, 0);
+//	bgfx::setViewClear((bgfx::ViewId)RenderViewType::UI,
+//					   BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
+//					   0x000000ff, 1.0f, 0);
+//	bgfx::setViewClear((bgfx::ViewId)RenderViewType::Editor,
+//					   BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
+//					   0x000000ff, 1.0f, 0);
+//	bgfx::setViewClear((bgfx::ViewId)RenderViewType::SceneGizmos,
+//					   BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
+//					   0x000000ff, 1.0f, 0);
+//	bgfx::setViewClear((bgfx::ViewId)RenderViewType::Picking,
+//					   BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
+//					   0x000000ff, 1.0f, 0);
 }
 
 #include <FishEngine/Components/SingletonInput.hpp>
 #include <FishEngine/Screen.hpp>
 
+class CameraFrustumCulling
+{
+public:
+	CameraFrustumCulling(Camera* gameCamera, float aspectRatio)
+	{
+		viewProjMat = gameCamera->GetViewProjectionMatrix();
+		
+		if (bgfx::getCaps()->homogeneousDepth)
+			box_ndc.SetMinMax({ -1, -1, -1 }, { 1, 1, 1 });
+		else
+			box_ndc.SetMinMax({ -1, -1, 0 }, { 1, 1, 1 });
+	}
+	
+	bool Visiable(Mesh* mesh, const Matrix4x4& modelMat) const
+	{
+		auto mvp = viewProjMat * modelMat;
+		bool insideFrustum = false;
+		for (int i = 0; i < 8; ++i)
+		{
+			auto corner = mesh->bounds.GetCorner(i);
+			auto posV = mvp.MultiplyPoint(corner);
+			insideFrustum = box_ndc.Contains(posV);
+			if (insideFrustum)
+				break;
+		}
+		return insideFrustum;
+	}
+	
+private:
+	Matrix4x4 viewProjMat;
+	Bounds box_ndc;
+};
+
 
 void RenderSystem::Draw()
 {
-	bgfx::touch(0);
-//	bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL);
+//	bgfx::touch((bgfx::ViewId)RenderViewType::SceneGizmos);
 	Camera* camera = Camera::GetEditorCamera();
 	if (camera == nullptr)
 		return;
-	float cameraPos[4];
-	Matrix4x4 viewMat;
-	{
-		auto go = camera->m_GameObject;
-		auto p = go->GetTransform()->GetPosition();
-		cameraPos[0] = p.x;
-		cameraPos[1] = p.y;
-		cameraPos[2] = p.z;
-		cameraPos[3] = 1.0f;
-		viewMat = go->GetTransform()->GetWorldToLocalMatrix();
-	}
+	Vector4 cameraPos(camera->GetTransform()->GetPosition(), 1.0f);
 
 	auto renderState = m_Scene->GetSingletonComponent<SingletonRenderState>();
 
-	bgfx::setUniform(renderState->m_UniformCameraPos, cameraPos);
+	bgfx::setUniform(renderState->m_UniformCameraPos, cameraPos.data());
 
 	Light* light = m_Scene->FindComponent<Light>();
 	if (light != nullptr)
@@ -89,22 +126,12 @@ void RenderSystem::Draw()
 	float width = (float)Screen::width;
 	float height = (float)Screen::height;
 	float aspectRatio = width / height;
-	float proj[16];
-	if (camera->m_IsPerspective)
-		bx::mtxProj(proj, camera->m_FOV, aspectRatio, camera->m_NearClipPlane, camera->m_FarClipPlane, bgfx::getCaps()->homogeneousDepth);
-	else {
-		float y = camera->m_OrthVerticalSize;
-		float x = y * aspectRatio;
-		bx::mtxOrtho(proj, -x, x, -y, y, camera->m_NearClipPlane, camera->m_FarClipPlane, 0, bgfx::getCaps()->homogeneousDepth);
-	}
+	Matrix4x4 viewMat = camera->GetWorldToCameraMatrix();
+	Matrix4x4 projMat = camera->GetProjectionMatrix();
 	Matrix4x4 viewT = viewMat.transpose();
-	bgfx::setViewTransform(0, viewT.data(), proj);
-	bgfx::setViewTransform(1, viewT.data(), proj);
-	
-	Matrix4x4 projMat;
-	memcpy(projMat.data(), proj, sizeof(projMat));
-	projMat = projMat.transpose();
-	camera->m_ProjectionMatrix = projMat;
+	Matrix4x4 projT = projMat.transpose();
+	bgfx::setViewTransform((bgfx::ViewId)RenderViewType::Scene, viewT.data(), projT.data());
+	bgfx::setViewTransform((bgfx::ViewId)RenderViewType::SceneGizmos, viewT.data(), projT.data());
 	
 	// draw skybox first
 	auto old_state = renderState->m_State;
@@ -170,30 +197,13 @@ void RenderSystem::Draw()
 	});
 #endif
 	
-	auto viewProjMat = projMat * viewMat;
-	Bounds box_ndc;
-	if (bgfx::getCaps()->homogeneousDepth)
-		box_ndc.SetMinMax({ -1, -1, -1 }, { 1, 1, 1 });
-	else
-		box_ndc.SetMinMax({ -1, -1, 0 }, { 1, 1, 1 });
-
-#if 1
 	// test frustum culling
-	auto gameCamera = Camera::GetMainCamera();
-	{
-		float proj[16];
-		bx::mtxProj(proj, gameCamera->m_FOV, aspectRatio, gameCamera->m_NearClipPlane, gameCamera->m_FarClipPlane, bgfx::getCaps()->homogeneousDepth);
-		Matrix4x4 projMat;
-		memcpy(projMat.data(), proj, sizeof(projMat));
-		projMat = projMat.transpose();
-		gameCamera->m_ProjectionMatrix = projMat;
-		viewProjMat = projMat * gameCamera->GetWorldToCameraMatrix();
-	}
+//	auto gameCamera = Camera::GetMainCamera();
+	CameraFrustumCulling culling(camera, aspectRatio);
 
-#endif
 
 #if 1
-	m_Scene->ForEach<Renderable>([&viewProjMat, &box_ndc, renderState](ECS::GameObject* go, Renderable* rend)
+	m_Scene->ForEach<Renderable>([&culling, renderState](ECS::GameObject* go, Renderable* rend)
 	{
 		if (rend == nullptr || !rend->m_Enabled || rend->mesh == nullptr)
 			return;
@@ -201,33 +211,23 @@ void RenderSystem::Draw()
 		auto& modelMat = go->GetTransform()->GetLocalToWorldMatrix();
 
 
-
-		// camera frustum culling
+		bool visiable = true;
 		if (renderState->m_EnableFrustumCulling)
 		{
-			auto mvp = viewProjMat * modelMat;
-			bool insideFrustum = false;
-			for (int i = 0; i < 8; ++i)
-			{
-				auto corner = rend->mesh->bounds.GetCorner(i);
-				auto posV = mvp.MultiplyPoint(corner);
-				insideFrustum = box_ndc.Contains(posV);
-				if (insideFrustum)
-					break;
-			}
-
-			if (!insideFrustum)
-			{
-				//Gizmos::color = Vector4(0, 0, 1, 1);
-				//Gizmos::matrix = modelMat;
-				//Gizmos::DrawBounds(rend->mesh->bounds);
-				return;
-			}
+			visiable = culling.Visiable(rend->mesh, modelMat);
 		}
 
-		//Gizmos::color = Vector4(0, 1, 0, 1);
-		//Gizmos::matrix = modelMat;
-		//Gizmos::DrawBounds(rend->mesh->bounds);
+#if 0
+		if (visiable)
+			Gizmos::color = Vector4(0, 1, 0, 1);
+		else
+			Gizmos::color = Vector4(0, 0, 1, 1);
+		Gizmos::matrix = modelMat;
+		Gizmos::DrawBounds(rend->mesh->bounds);
+#endif
+		
+		if (!visiable)
+			return;
 		
 		if (rend->m_Materials.empty())
 		{

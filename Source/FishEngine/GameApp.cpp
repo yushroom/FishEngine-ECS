@@ -7,6 +7,7 @@
 #include "FishEngine/Screen.hpp"
 #include <FishEngine/Material.hpp>
 #include <FishEngine/Gizmos.hpp>
+#include <FishEngine/Render/RenderViewType.hpp>
 
 #include <FishEngine/Systems/EditorSystem.hpp>
 #include <FishEngine/Systems/DrawGizmosSystem.hpp>
@@ -272,6 +273,8 @@ void GameApp::Run()
 		cursor_y /= m_WindowHeight;
 		m_EditorScene->GetSystem<InputSystem>()->SetMousePosition((float)cursor_x, 1.0f-(float)cursor_y);
 
+		bgfx::setViewRect((bgfx::ViewId)RenderViewType::Editor, 0, 0, m_WindowWidth, m_WindowHeight);
+		
 		m_EditorSystem->Draw();
 
 		// Set view 0 default viewport.
@@ -308,7 +311,9 @@ void GameApp::Run()
 
 		m_Scene->Update();
 		//r = r * Vector4( w, h, w, h );
-		bgfx::setViewRect(0, r.x, r.y, r.z, r.w);
+		bgfx::setViewRect((bgfx::ViewId)RenderViewType::Scene, r.x, r.y, r.z, r.w);
+		bgfx::setViewRect((bgfx::ViewId)RenderViewType::SceneGizmos, r.x, r.y, r.z, r.w);
+		bgfx::setViewRect((bgfx::ViewId)RenderViewType::Picking, r.x, r.y, r.z, r.w);
 		m_Scene->GetSystem<RenderSystem>()->Draw();
 		m_SceneViewSystem->DrawGizmos();
 		m_Scene->PostUpdate();

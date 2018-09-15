@@ -4,6 +4,8 @@
 #include <FishEngine/Screen.hpp>
 #include <FishEngine/Gizmos.hpp>
 
+#include <bx/math.h>
+
 enum class CameraType
 {
 	Game,
@@ -15,6 +17,26 @@ class Camera : public ECS::Component
 	COMPONENT(Camera);
 public:
 
+	Matrix4x4 GetProjectionMatrix() const
+	{
+		float aspectRatio = Screen::GetAspectRatio();
+		float proj[16];
+		if (m_Orthographic)
+		{
+			float y = m_OrthographicSize;
+			float x = y * aspectRatio;
+			bx::mtxOrtho(proj, -x, x, -y, y, m_NearClipPlane, m_FarClipPlane, 0, bgfx::getCaps()->homogeneousDepth);
+
+		}
+		else
+		{
+			bx::mtxProj(proj, m_FieldOfView, aspectRatio, m_NearClipPlane, m_FarClipPlane, bgfx::getCaps()->homogeneousDepth);
+		}
+		memcpy(m_ProjectionMatrix.data(), proj, sizeof(Matrix4x4));
+		m_ProjectionMatrix = m_ProjectionMatrix.transpose();
+		return m_ProjectionMatrix;
+	}
+	
 	// Matrix that transforms from world to camera space (i.e. view matrix).
 	Matrix4x4 GetWorldToCameraMatrix() const
 	{
@@ -24,6 +46,11 @@ public:
 	Matrix4x4 GetCameraToWorldMatrix() const
 	{
 		return GetTransform()->GetLocalToWorldMatrix();
+	}
+	
+	Matrix4x4 GetViewProjectionMatrix() const
+	{
+		return GetProjectionMatrix() * GetWorldToCameraMatrix();
 	}
 	
 	// Returns a ray going from camera through a screen point.
@@ -67,24 +94,44 @@ public:
 	
 	void OnDrawGizmosSelected() const override
 	{
-		float aspectRatio = (float)Screen::width / (float)Screen::height;
-		Frustum frustum;
-		frustum.aspect = aspectRatio;
-		frustum.fov = m_FOV;
-		frustum.minRange = m_NearClipPlane;
-		frustum.maxRange = m_FarClipPlane;
-		Gizmos::color = Vector4(1, 0, 0, 1);
-		Gizmos::DrawFrustum(frustum, GetCameraToWorldMatrix());
+		Gizmos::color = Vector4(1, 1, 1, 1);
+		Gizmos::DrawFrustum(GetFrustum(), GetCameraToWorldMatrix());
 	}
-
-public:
-	float m_FOV = 60.0f;
-	float m_NearClipPlane = 0.1f;
-	float m_FarClipPlane = 100.f;
-	CameraType m_Type = CameraType::Game;
-
-	bool m_IsPerspective = true;
-	float m_OrthVerticalSize = 5;
 	
-	Matrix4x4 m_ProjectionMatrix;
+	float GetFarClipPlane() const { return m_FarClipPlane; }
+	void SetFarClipPlane(float value) { m_FarClipPlane = value; }
+	
+	
+	float GetNearClipPlane() const { return m_NearClipPlane; }
+	void SetNearClipPlane(float value) { m_NearClipPlane = value; }
+	
+	
+	float GetFieldOfView() const { return m_FieldOfView; }
+	void SetFieldOfView(float value) { m_FieldOfView = value; }
+	
+	
+	bool GetOrthographic() const { return m_Orthographic; }
+	void SetOrthographic(bool value) { m_Orthographic = value; }
+	
+	
+	float GetOrthographicSize() const { return m_OrthographicSize; }
+	void SetOrthographicSize(float value) { m_OrthographicSize = value; }
+
+
+	Frustum GetFrustum() const
+	{
+		return {m_FieldOfView, m_FarClipPlane, m_NearClipPlane, Screen::GetAspectRatio()};
+	}
+	
+	CameraType 	m_Type = CameraType::Game;
+	
+private:
+	float 		m_FieldOfView = 60.0f;
+	float 		m_NearClipPlane = 0.1f;
+	float 		m_FarClipPlane = 100.f;
+	bool  		m_Orthographic = false;
+	float 		m_OrthographicSize    = 5.f;	// Projection's half-size(vertical) when in orthographic mode.
+	//float 		m_OrthVerticalSize = 5;
+	
+	mutable Matrix4x4 	m_ProjectionMatrix;
 };

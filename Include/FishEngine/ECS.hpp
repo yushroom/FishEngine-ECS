@@ -62,6 +62,7 @@ namespace ECS
 		T() = default;                              \
 	private:                                        \
 		friend class ECS::Scene;                    \
+		friend class EditorSystem;					\
 		inline static std::vector<T*> components;										\
 		std::type_index GetTypeIndex() override { return std::type_index(typeid(T)); }	\
 		constexpr static const char* CLASS_NAME = #T; \
@@ -118,8 +119,10 @@ namespace ECS
 	public:
 		virtual void OnAdded() {}
 		virtual void Start() {}
-		virtual void Update() {};
-		virtual void PostUpdate() {};
+		virtual void Update() {}
+		virtual void PostUpdate() {}
+//		virtual void Draw() {}
+//		virtual void DrawOverlay() {}
 
 		int m_Priority = 0;
 		

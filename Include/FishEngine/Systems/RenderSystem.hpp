@@ -2,6 +2,7 @@
 #include "FishEngine/ECS.hpp"
 #include <bgfx/bgfx.h>
 
+
 class SingletonRenderState : public ECS::SingletonComponent
 {
 	friend class ECS::Scene;

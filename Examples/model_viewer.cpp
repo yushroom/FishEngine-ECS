@@ -94,29 +94,8 @@ public:
 //		auto rootGO = m_Scene->CreateGameObject();
 //		auto r = m_Scene->GameObjectAddComponent<Renderable>(rootGO);
 //		r->mesh = Mesh::Cube;
-#if 0
-		auto vs = FISHENGINE_ROOT "Shaders/runtime/PBR_vs.bin";
-		auto fs = FISHENGINE_ROOT "Shaders/runtime/PBR_fs.bin";
-		m_Shader = ShaderUtil::Compile(vs, fs);
-		Material* mat = new Material();
-		mat->SetShader(m_Shader);
-		Vector4 pbrparams(0, 0.5f, 0, 0);
-		mat->SetVector("BaseColor", Vector4::one);
-		mat->SetVector("PBRParams", pbrparams);
-#else
-		Material* mat = Material::Clone(Material::ColorMaterial);
-		mat->SetVector("u_color", Vector4(1, 1, 0, 1));
-#endif
-//		r->m_Materials.push_back( mat );
-
-//		m_Scene->ForEach<Renderable>([mat](ECS::GameObject* go, Renderable* r){
-//			r->mesh = nullptr;
-//		});
-
 		//rootGO->GetTransform()->SetLocalEulerAngles(-90, -90, 0);
 		rootGO->GetTransform()->SetLocalScale(0.1f);
-
-		//m_Scene->AddSystem<FreeCameraSystem>();
 
 		{
 			auto s = m_Scene->AddSystem<AnimationSystem>();
@@ -125,22 +104,30 @@ public:
 		}
 		m_Scene->AddSystem<DrawSkeletonSystem>();
 
-		//m_Scene->AddSystem<SelectionSystem>();
 		auto selection = m_EditorScene->GetSingletonComponent<SingletonSelection>();
 		selection->selected = Camera::GetMainCamera()->m_GameObject;
-
-		
-
 		{
 			auto cam = Camera::GetEditorCamera();
 			assert(cam != nullptr);
 			cam->GetTransform()->SetLocalPosition(2.5, 2.5, -11);
 			cam->GetTransform()->SetLocalEulerAngles(45, -60, 0);
 		}
+		
+		{
+			auto cam = Camera::GetMainCamera();
+			cam->SetFarClipPlane(40);
+			cam->SetNearClipPlane(5);
+			auto t = Camera::GetMainCamera()->GetTransform();
+			t->SetPosition(-12, 0, -12);
+		}
+		{
+			auto t = Camera::GetEditorCamera()->GetTransform();
+			t->SetPosition(-4, 8, -53);
+			t->SetLocalEulerAngles(0, 0, 0);
+		}
+		
+//		bgfx::setViewMode(0, bgfx::ViewMode::Sequential);
 	}
-	
-private:
-	Shader* m_Shader = nullptr;
 };
 
 

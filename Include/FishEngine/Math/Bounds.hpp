@@ -133,13 +133,13 @@ namespace FishEngine
 //        }
 
 		// Is point contained in the bounding box?
-		bool Contains(const Vector3& point)
+		bool Contains(const Vector3& point) const
 		{
 			if (!IsValid())
 				return false;
 			auto pmin = this->min();
 			auto pmax = this->max();
-			return (point.x > pmin.x) && (point.y < pmax.x) && (point.y > pmin.y) && (point.y < pmax.y) && (point.z > pmin.z) && (point.z < pmax.z);
+			return (point.x > pmin.x) && (point.x < pmax.x) && (point.y > pmin.y) && (point.y < pmax.y) && (point.z > pmin.z) && (point.z < pmax.z);
 		}
 
 		// The smallest squared distance between the point and this bounding box.
@@ -168,7 +168,7 @@ namespace FishEngine
 			int x = i & 1;
 			int y = (i>>1) & 1;
 			int z = (i>>2) & 1;
-			return m_center + m_extents * Vector3(sign[i&1], sign[y], sign[z]);
+			return m_center + m_extents * Vector3(sign[x], sign[y], sign[z]);
 		}
 	};
 	

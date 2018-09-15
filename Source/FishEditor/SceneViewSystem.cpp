@@ -1,11 +1,12 @@
 #include <FishEditor/SceneViewSystem.hpp>
 #include <FishEngine/Gizmos.hpp>
 #include <FishEngine/Components/Transform.hpp>
-#include <FishEngine/Components/Renderable.hpp>
+#include <FishEngine/Render/RenderViewType.hpp>
 #include <FishEngine/Mesh.hpp>
 #include <FishEngine/Components/Camera.hpp>
 #include <FishEngine/Components/SingletonInput.hpp>
 #include <FishEngine/Graphics.hpp>
+#include <FishEngine/Shader.hpp>
 
 #include <FishEngine/Components/SingletonSelection.hpp>
 
@@ -33,6 +34,158 @@ inline float get_gizmo_scale(float depth, float camera_fov)
 constexpr float s_axis_hover_threshold_pixels = 6;
 
 
+class TransformGizmo
+{
+public:
+//	virtual void Draw(Vector2 mousePos, Camera* camera, Transform* selected) = 0;
+	
+	virtual void OnLMBPressed()
+	{
+	}
+	
+	virtual void OnLMBHeld();
+	virtual void OnLMBReleased()
+	{
+		m_Dragging = false;
+	}
+	
+	int m_HoveringAxis = -1;
+	int m_SelectedAxis = -1;
+	bool m_Dragging = false;
+};
+
+class TTransformGizmo : public TransformGizmo
+{
+public:
+	void Update(TransformSpace space, Vector2 mouse_pos, Camera* camera, Transform* selectedT)
+	{
+		if (space == TransformSpace::Local)
+		{
+			auto l2w = selectedT->GetLocalToWorldMatrix();
+			for (auto& a : axes)
+				a = l2w.MultiplyVector(a).normalized();
+		}
+		
+		int hovered_axis = -1;
+		if (!m_Dragging)
+		{
+			const auto o = selectedT->GetPosition();
+			const auto world2clip = camera->GetViewProjectionMatrix();	// projViewMat
+			mouse_pos = mouse_pos * 2 - 1;
+			const auto mp = Vector3(mouse_pos.x, mouse_pos.y, 0);		// mouse position on the screen(NDC)
+			float min_dist = s_axis_hover_threshold_pixels / Screen::height * 2;
+			
+			auto axis_origin = world2clip.MultiplyPoint(o);
+			axis_origin.z = 0;
+			
+			const float depth = Vector3::Distance(camera->GetTransform()->GetPosition(), selectedT->GetPosition());
+			const float scale = get_gizmo_scale(depth, camera->GetFieldOfView());
+			
+			for (int i = 0; i < 3; ++i)
+			{
+				auto axis_end = o + axes[i] * scale;
+				axis_end = world2clip.MultiplyPoint(axis_end);
+				axis_end.z = 0;
+				
+				auto axis_dir = axis_end - axis_origin;
+				float t_unit = axis_dir.magnitude();
+				if (t_unit < 0.01f)	// parallel
+				{
+					show_axis[i] = false;
+					continue;
+				}
+				
+				axis_dir = axis_dir.normalized();		// Ray(axis_origin, axis_dir) is the axis on the screen(NDC)
+				
+				auto o_mp = mp - axis_origin;
+				float t = Vector3::Dot(o_mp, axis_dir);		// Dot(o_mp, axis_dir) / len(axis_dir)
+				
+				if (t >= 0 && t <= t_unit)
+				{
+					float dist = Vector3::Distance(mp, axis_dir*t + axis_origin);
+					if (dist < min_dist)
+					{
+						hovered_axis = i;
+						min_dist = dist;
+					}
+				}
+			}
+			//printf("%f\n", min_dist);
+			m_SelectedAxis = hovered_axis;
+		}
+		
+		Draw(space, camera, selectedT);
+	}
+	
+	
+	void Draw(TransformSpace space, Camera* camera, Transform* selectedT)
+	{
+		Quaternion rotations[] = {
+			Quaternion::AngleAxis(-90, { 0, 0, 1 }),
+			Quaternion::identity,
+			Quaternion::AngleAxis(90, { 1, 0, 0 }),
+		};
+		
+		for (int i = 0; i < 3; ++i)
+		{
+			if (!show_axis[i])
+				continue;
+			
+			Vector4 color = s_axis_colors[i];
+			if (m_SelectedAxis == i)
+				color = s_selected_axis_color;
+			else if (m_SelectedAxis != -1 && m_Dragging)	// grey other axis when dragging
+				color = Vector4(0.5f, 0.5f, 0.5f, 1);
+			
+			Vector3 p{ 0, 0, 0 };
+			p[i] = 1;
+			//auto p = axes[i];
+			
+			float depth = Vector3::Distance(camera->GetTransform()->GetPosition(), selectedT->GetPosition());
+			float scale = get_gizmo_scale(depth, camera->GetFieldOfView());
+			
+			//		Gizmos::matrix = t->GetLocalToWorldMatrix() * Matrix4x4::Scale(scale);
+			auto modelMat = selectedT->GetLocalToWorldMatrix();
+			auto pos = modelMat._MultiplyPoint(0, 0, 0);
+			if (space == TransformSpace::Global)
+				Gizmos::matrix = Matrix4x4::TRS(pos, Quaternion::identity, Vector3::one * scale);
+			else
+			{
+				auto rot = modelMat.ToRotation();
+				Gizmos::matrix = Matrix4x4::TRS(pos, rot, Vector3::one * scale);
+			}
+			Gizmos::color = color;
+			Gizmos::DrawLine(Vector3::zero, p);
+			
+			Quaternion r = rotations[i];
+			auto m = Gizmos::matrix * Matrix4x4::TRS(p, r, Vector3(1, 1.5, 1)*0.08f);
+			s_color_material->SetVector("u_color", color);
+			
+			uint64_t state = 0
+				| BGFX_STATE_WRITE_RGB
+				| BGFX_STATE_WRITE_A
+				| BGFX_STATE_WRITE_Z
+				| BGFX_STATE_DEPTH_TEST_ALWAYS
+				| BGFX_STATE_CULL_CCW;
+			Graphics::DrawMesh2(Mesh::Cone, m, s_color_material, state, (bgfx::ViewId)RenderViewType::SceneGizmos);
+		}
+	}
+	
+private:
+	Vector3 axes[3] = { { 1, 0, 0 },{ 0, 1, 0 },{ 0, 0, 1 } };
+	bool show_axis[3] = { true, true, true };
+};
+
+class RTransformGizmo : public TransformGizmo
+{
+	
+};
+
+class STransformGizmo : public TransformGizmo
+{
+	
+};
+
 
 void DrawTranslationGizmo(bool showAxis[3], int selectedAxis, bool dragging, 
 	Camera* camera, Transform* selectedT, TransformSpace space)
@@ -53,7 +206,7 @@ void DrawTranslationGizmo(bool showAxis[3], int selectedAxis, bool dragging,
 		//auto p = axes[i];
 
 		float depth = Vector3::Distance(camera->GetTransform()->GetPosition(), selectedT->GetPosition());
-		float scale = get_gizmo_scale(depth, camera->m_FOV);
+		float scale = get_gizmo_scale(depth, camera->GetFieldOfView());
 
 		//		Gizmos::matrix = t->GetLocalToWorldMatrix() * Matrix4x4::Scale(scale);
 		auto modelMat = selectedT->GetLocalToWorldMatrix();
@@ -69,7 +222,7 @@ void DrawTranslationGizmo(bool showAxis[3], int selectedAxis, bool dragging,
 		Gizmos::DrawLine(Vector3::zero, p);
 
 		Quaternion r;
-		float angle = 0;
+//		float angle = 0;
 		if (i == 0)
 			r = Quaternion::AngleAxis(-90, { 0, 0, 1 });
 		else if (i == 1)
@@ -80,18 +233,67 @@ void DrawTranslationGizmo(bool showAxis[3], int selectedAxis, bool dragging,
 		s_color_material->SetVector("u_color", color);
 
 		uint64_t state = 0 
-			| BGFX_STATE_WRITE_RGB 
-			| BGFX_STATE_WRITE_A 
+			| BGFX_STATE_WRITE_RGB
+			| BGFX_STATE_WRITE_A
+			| BGFX_STATE_WRITE_Z
 			| BGFX_STATE_DEPTH_TEST_ALWAYS
 			| BGFX_STATE_CULL_CCW;
-		Graphics::DrawMesh2(Mesh::Cone, m, s_color_material, state);
+		Graphics::DrawMesh2(Mesh::Cone, m, s_color_material, state, (bgfx::ViewId)RenderViewType::SceneGizmos);
 	}
 }
+
 
 
 void SceneViewSystem::OnAdded()
 {
 	s_color_material = Material::Clone(Material::ColorMaterial);
+}
+
+
+
+void DrawCircle2(const Vector3& cameraPos, const Matrix4x4& m, float depth)
+{
+//	Gizmos::color = {1, 0, 0, 1};
+//	Gizmos::matrix = Matrix4x4::identity;
+	float d = depth+0.2;
+	for (int i = 0; i < Gizmos::circle_vertex_count-1; ++i)
+	{
+		auto v1 = Gizmos::vertices[i];
+		v1 = m.MultiplyPoint(v1);
+		float d1 = Vector3::Distance(cameraPos, v1);
+		auto v2 = Gizmos::vertices[i+1];
+		v2 = m.MultiplyPoint(v2);
+		float d2 = Vector3::Distance(cameraPos, v2);
+		if (d1 < d && d2 < d)
+		{
+			Gizmos::DrawLine(v1, v2);
+		}
+	}
+}
+
+bool RaySphereIntersect(Vector3 o, float R, const Ray& ray, float* out_t)
+{
+	o = ray.origin - o;
+	// solve: || o+dt || = R
+	auto d = ray.direction.normalized();
+	float C = o.sqrMagnitude() - R*R;
+	float B = 2.f * Vector3::Dot(o, d);
+	float A = d.sqrMagnitude();
+	if (A < 1e-4)
+		return false;
+	
+	float delta = B*B - 4*A*C;
+	float sdelta = sqrtf(delta);
+	float t0 = (-B+sdelta)/(2*A);
+	float t1 = (-B-sdelta)/(2*A);
+	if (t0 > t1)
+		std::swap(t0, t1);
+	// t0 <= t1
+	
+	float t = t0 > 0 ? t0 : t1;
+	if (t > 0)
+		*out_t = t;
+	return t > 0;
 }
 
 
@@ -115,13 +317,12 @@ void SceneViewSystem::DrawGizmos()
 			a = l2w.MultiplyVector(a).normalized();
 	}
 
-#if 1
 	// get hovered axis
 	int hovered_axis = -1;
 	if (m_EnableTransform && !m_Dragging)
 	{
 		const auto o = selectedT->GetPosition();
-		const auto world2clip = camera->m_ProjectionMatrix * camera->GetWorldToCameraMatrix();	// projViewMat
+		const auto world2clip = camera->GetViewProjectionMatrix();	// projViewMat
 		auto mouse_pos = input->GetMousePosition();
 		mouse_pos = mouse_pos * 2 - 1;
 		const auto mp = Vector3(mouse_pos.x, mouse_pos.y, 0);		// mouse position on the screen(NDC)
@@ -132,7 +333,7 @@ void SceneViewSystem::DrawGizmos()
 		axis_origin.z = 0;
 
 		const float depth = Vector3::Distance(camera->GetTransform()->GetPosition(), selectedT->GetPosition());
-		const float scale = get_gizmo_scale(depth, camera->m_FOV);
+		const float scale = get_gizmo_scale(depth, camera->GetFieldOfView());
 
 		for (int i = 0; i < 3; ++i)
 		{
@@ -191,76 +392,120 @@ void SceneViewSystem::DrawGizmos()
 			}
 		}
 	}
-#else
-	auto view = camera->GetTransform()->GetForward().normalized();
-	for (int i = 0; i < 3; ++i)
-	{
-		if (Mathf::CompareApproximately(Mathf::Abs(Vector3::Dot(view, axes[i])), 1, 1e-3))	// parallel
-		{
-			show_axis[i] = false;
-		}
-	}
 
-	if (m_EnableTransform)
-	{
-		if (!m_Dragging)
-		{
-			int selectedAxis = -1;
-			Ray ray = camera->ScreenPointToRay(input->GetMousePosition_Unity());
-			//Gizmos::matrix = Matrix4x4::identity;
-			//Gizmos::DrawRay(ray.origin, ray.direction * 10);
-
-			Ray ray2;
-			auto w2l = selectedT->GetWorldToLocalMatrix();
-			ray2.origin = w2l.MultiplyPoint(ray.origin);
-			ray2.direction = w2l.MultiplyVector(ray.direction).normalized();
-
-			float min_dist = 0.05f;
-			const Vector3& D = ray2.origin; 	// D = ray2.origin - {0, 0, 0}
-
-			for (int i = 0; i < 3; ++i)
-			{
-				if (!show_axis[i])
-					continue;
-				auto& axis = axes[i];
-				Vector3 N = Vector3::Cross(ray2.direction, axis).normalized();
-				float dist = Vector3::Dot(N, D);
-				dist = ::fabsf(dist);
-				printf("%d: %f\n", i, dist);
-				if (dist < min_dist)
-					selectedAxis = i;
-			}
-
-			m_SelectedAxis = selectedAxis;
-			if (selectedAxis != -1 && input->IsButtonPressed(KeyCode::MouseLeftButton))
-			{
-				m_MousePosition = input->GetMousePosition();	// save old mouse position
-				__OnDragBegin();
-			}
-		}
-		else
-		{
-			if (input->IsButtonHeld(KeyCode::MouseLeftButton))
-			{
-				__OnDragMove();
-			}
-			else if (input->IsButtonReleased(KeyCode::MouseLeftButton))
-			{
-				__OnDragEnd();
-				m_SelectedAxis = -1;
-				m_Dragging = false;
-			}
-		}
-	}
-	else
-	{
-		m_SelectedAxis = -1;
-	}
-#endif
+	
+//	float proj[16];
+//	float y = 2.5;
+//	float x = y * Screen::GetAspectRatio();
+//	bx::mtxOrtho(proj, -x, x, -y, y, 0, 100, 0, bgfx::getCaps()->homogeneousDepth);
+//	bgfx::setViewTransform((bgfx::ViewId)RenderViewType::SceneGizmos, camera->GetWorldToCameraMatrix().transpose().data(), proj);
 
 	if (m_transformToolType == TransformToolType::Translate)
 	{
 		DrawTranslationGizmo(show_axis, m_SelectedAxis, m_Dragging, camera, selectedT, m_transformSpace);
+	}
+	else if (m_transformToolType == TransformToolType::Rotate)
+	{
+		auto cameraPos = camera->GetTransform()->GetPosition();
+		float depth = Vector3::Distance(cameraPos, selectedT->GetPosition());
+		float scale = get_gizmo_scale(depth, camera->GetFieldOfView());
+		//Matrix4x4 view = camera->GetWorldToCameraMatrix();
+		Vector3 pos = selectedT->GetPosition();
+		Quaternion rot = Quaternion::identity;
+		Vector3 s = Vector3::one*scale;
+		
+		int hovered_axis = -1;
+		Ray ray = camera->ScreenPointToRay(input->GetMousePosition_Unity());
+		float t = 0;
+		if (RaySphereIntersect(pos, scale, ray, &t))
+		{
+			auto i_pos = ray.GetPoint(t);
+			auto mat = Matrix4x4::TRS(pos, selectedT->GetLocalToWorldMatrix().ToRotation(), Vector3::one);
+			mat = mat.inverse();
+			i_pos = mat.MultiplyPoint( i_pos) / scale;
+			if (Mathf::CompareApproximately(i_pos.x, 0, 0.1f))
+				hovered_axis = 0;
+			else if (Mathf::CompareApproximately(i_pos.y, 0, 0.1f))
+				hovered_axis = 1;
+			else if (Mathf::CompareApproximately(i_pos.z, 0, 0.1f))
+				hovered_axis = 2;
+		}
+		else
+		{
+			rot = Quaternion::LookRotation(camera->GetTransform()->GetForward());
+			Gizmos::color = {1, 1, 1, 1};
+			Gizmos::matrix = Matrix4x4::TRS(pos, rot, s);
+			Gizmos::DrawCircle(Vector3::zero, 1.1);
+		}
+		
+		if (!m_Dragging)
+		{
+			if (hovered_axis != -1)
+			{
+				if (input->IsButtonPressed(KeyCode::MouseLeftButton))
+				{
+					
+				}
+			}
+		}
+		
+#if 1
+		rot = Quaternion::AngleAxis(90, {0, 1, 0});
+		Gizmos::color = {1, 0, 0, 1};
+		if (hovered_axis == 0)
+			Gizmos::color = {1, 1, 0, 1};
+		Gizmos::matrix = Matrix4x4::TRS(pos, rot, s);
+		Gizmos::DrawCircle(Vector3::zero, 1);
+		
+		rot = Quaternion::AngleAxis(90, {1, 0, 0});
+		Gizmos::color = {0, 1, 0, 1};
+		if (hovered_axis == 1)
+			Gizmos::color = {1, 1, 0, 1};
+		Gizmos::matrix = Matrix4x4::TRS(pos, rot, s);
+		Gizmos::DrawCircle(Vector3::zero, 1);
+
+
+		rot = Quaternion::identity;
+		Gizmos::color = {0, 0, 1, 1};
+		if (hovered_axis == 2)
+			Gizmos::color = {1, 1, 0, 1};
+		Gizmos::matrix = Matrix4x4::TRS(pos, rot, s);
+		Gizmos::DrawCircle(Vector3::zero, 1);
+#else
+		Gizmos::matrix = Matrix4x4::identity;
+		
+		auto m = Matrix4x4::TRS(pos, rot, s);
+		Gizmos::color = {1, 0, 0, 1};
+		if (hovered_axis == 0)
+			Gizmos::color = {1, 1, 0, 1};
+		DrawCircle2(cameraPos, m, depth);
+		
+		Gizmos::color = {0, 1, 0, 1};
+		if (hovered_axis == 1)
+			Gizmos::color = {1, 1, 0, 1};
+		rot = Quaternion::AngleAxis(90, {0, 1, 0});
+		m = Matrix4x4::TRS(pos, rot, s);
+		DrawCircle2(cameraPos, m, depth);
+		
+		Gizmos::color = {0, 0, 1, 1};
+		if (hovered_axis == 2)
+			Gizmos::color = {1, 1, 0, 1};
+		rot = Quaternion::AngleAxis(90, {1, 0, 0});
+		m = Matrix4x4::TRS(pos, rot, s);
+		DrawCircle2(cameraPos, m, depth);
+		
+		
+		
+//		Gizmos::color = {0, 1, 0, 1};
+//		rot = Quaternion::AngleAxis(90, {0, 1, 0});
+//		DrawCircle(m, pos);
+//
+//		Gizmos::color = {0, 0, 1, 1};
+//		rot = Quaternion::AngleAxis(90, {1, 0, 0});
+//		DrawCircle(view * m, pos);
+		
+#endif
+
 	}
 }
 
@@ -273,7 +518,7 @@ void SceneViewSystem::__OnDragBegin()
 	assert(selected != nullptr);
 	assert(m_SelectedAxis != -1);
 	auto camera = Camera::GetEditorCamera();
-	auto world2clip = camera->m_ProjectionMatrix * camera->GetWorldToCameraMatrix();	// projViewMat
+	auto world2clip = camera->GetViewProjectionMatrix();	// projViewMat
 	auto& ray = m_Ray;
 	auto posW = selected->GetTransform()->GetPosition();
 	ray.origin = posW;

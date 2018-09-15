@@ -26,7 +26,7 @@ namespace FishEngine
 		}
 
 		// Returns a point at distance units along the ray.
-		Vector3 GetPoint(float distance)
+		Vector3 GetPoint(float distance) const
 		{
 			return origin + direction * distance;
 		}

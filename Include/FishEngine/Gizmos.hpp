@@ -21,6 +21,7 @@ public:
     static void DrawWireSphere(const Vector3& center, float radius);
 	static void DrawBounds(const Bounds& bounds);
 	static void DrawFrustum(const Frustum& frustum, const Matrix4x4& cameraToWorld);
+	static void DrawCircle(const Vector3& center, float radius);
     
 private:
 	
@@ -33,7 +34,10 @@ private:
     inline static std::vector<VertexPC> s_Lines;
 	inline static bgfx::DynamicVertexBufferHandle s_LineDynamicVertexBuffer;
 	inline static bgfx::VertexBufferHandle s_CircleVertexBuffer;
-
+	
+	
 public:
+	inline static constexpr int circle_vertex_count = 64;
+	inline static Vector3 vertices[circle_vertex_count];
 	static bool s_EnableDepthTest;
 };
