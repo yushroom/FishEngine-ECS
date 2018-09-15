@@ -125,10 +125,9 @@ void RenderSystem::Draw()
 		if (mesh != nullptr && mesh->IsSkinned())
 		{
 			auto skin = r->skin;
-			auto p = skin->root->GetTransform()->GetParent();
-//			while (p->GetParent() != nullptr)
-//				p = p->GetParent();
-			const auto worldToObject = p->GetWorldToLocalMatrix();
+//			auto p = skin->root->GetTransform()->GetParent();
+//			const auto worldToObject = p->GetWorldToLocalMatrix();
+			const auto worldToObject = r->GetTransform()->GetWorldToLocalMatrix();
 //			auto worldToObject = Matrix4x4::identity;
 			for (int i = 0; i < skin->joints.size(); ++i)
 			{
@@ -144,11 +143,11 @@ void RenderSystem::Draw()
 				const Vector4& a_weight = mesh->weights[i];
 				const auto& a_joint = mesh->joints[i];
 				Matrix4x4 skinMatrix = u_jointMatrix[a_joint.x] * a_weight.x;
-//				if (a_weight.y > 0)
+				if (a_weight.y > 0)
 					skinMatrix += u_jointMatrix[a_joint.y] * a_weight.y;
-//				if (a_weight.z > 0)
+				if (a_weight.z > 0)
 					skinMatrix += u_jointMatrix[a_joint.z] * a_weight.z;
-//				if (a_weight.w > 0)
+				if (a_weight.w > 0)
 					skinMatrix += u_jointMatrix[a_joint.w] * a_weight.w;
 				auto& dv = mesh->m_DynamicVertices[i];
 				auto& v = mesh->m_Vertices[i];
@@ -187,7 +186,8 @@ void RenderSystem::Draw()
 		bool visiable = true;
 		if (renderState->m_EnableFrustumCulling)
 		{
-			visiable = culling.Visiable(rend->mesh, modelMat);
+			if (!rend->mesh->IsSkinned())
+				visiable = culling.Visiable(rend->mesh, modelMat);
 		}
 
 #if 0
