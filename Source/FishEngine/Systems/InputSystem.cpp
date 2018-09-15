@@ -1,22 +1,5 @@
 #include <FishEngine/Systems/InputSystem.hpp>
 
-bool SingletonInput::IsButtonPressed(KeyCode code) const
-{
-	int icode = (int)code;
-	return m_KeyPressed[icode] == KeyAction::Pressed;
-}
-
-bool SingletonInput::IsButtonHeld(KeyCode code) const
-{
-	int icode = (int)code;
-	return m_KeyPressed[icode] == KeyAction::Held;
-}
-
-bool SingletonInput::IsButtonReleased(KeyCode code) const
-{
-	int icode = (int)code;
-	return m_KeyPressed[icode] == KeyAction::Released;
-}
 
 void InputSystem::OnAdded()
 {
@@ -30,18 +13,31 @@ void InputSystem::Update()
 
 void InputSystem::PostUpdate()
 {
-	auto si = m_Scene->GetSingletonComponent<SingletonInput>();
-	for (auto& action : si->m_KeyPressed)
+	auto input = m_Scene->GetSingletonComponent<SingletonInput>();
+	for (int i = 0; i < SingletonInput::ButtonCount; ++i)
 	{
+		auto& action = input->m_KeyPressed[i];
 		if (action == KeyAction::Normal)
-		{ }
-		if (action == KeyAction::Pressed)
+		{
+		}
+		else if (action == KeyAction::Pressed)
+		{
 			action = KeyAction::Held;
+//			si->m_KeyHeldTime[i] = 0;
+		}
 		else if (action == KeyAction::Released)
+		{
 			action = KeyAction::Normal;
+			input->m_KeyHeldTime[i] = 0;
+		}
+		else
+		{
+			// TODO: use Time.deltaTime
+			input->m_KeyHeldTime[i] += 0.02f;
+		}
 	}
 	
-	for (auto& a : si->m_Axis)
+	for (auto& a : input->m_Axis)
 	{
 		a = 0.f;
 	}

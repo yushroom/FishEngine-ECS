@@ -605,7 +605,7 @@ void PrintHierarchy(Transform* t, int indent)
 {
 	for (int i = 0; i < indent; ++i)
 		putchar(' ');
-	printf("%s", t->m_GameObject->m_Name.c_str());
+	printf("%s", t->m_GameObject->name.c_str());
 	printf("    local pos: %s  pos: %s", t->GetLocalPosition().ToString().c_str(), t->GetPosition().ToString().c_str());
 	putchar('\n');
 	for (auto c : t->GetChildren())
@@ -673,7 +673,7 @@ ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* sc
 	}
 
 	model.rootGameObject = scene->CreateGameObject();
-	model.rootGameObject->m_Name = "Root";
+	model.rootGameObject->name = "Root";
 	
 	// loade all materials
 	for (auto& m : gltf_model.materials)
@@ -701,9 +701,9 @@ ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* sc
 		model.nodes.push_back(go);
 
 		if (!node.name.empty())
-			go->m_Name = node.name;
+			go->name = node.name;
 		else
-			go->m_Name = "node" + std::to_string(i);
+			go->name = "node" + std::to_string(i);
 
 		auto mtx = node.matrix;
 		if (mtx.size() > 0)

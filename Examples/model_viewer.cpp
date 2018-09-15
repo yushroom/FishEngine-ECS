@@ -21,7 +21,7 @@ public:
 				auto t = bone->GetTransform();
 				//Gizmos::matrix = t->GetLocalToWorldMatrix();
 				//Gizmos::DrawCube(Vector3::zero, Vector3::one * 0.05f);
-				Gizmos::DrawCube(t->GetPosition(), Vector3::one * 0.05f);
+				Gizmos::DrawCube(t->GetPosition(), Vector3::one * 0.5f);
 				
 				//auto p = t->GetParent();
 				//if (p != nullptr)
@@ -63,7 +63,7 @@ class ModelViewer : public GameApp
 public:
 	void Start() override
 	{
-		//const char* path = FISHENGINE_ROOT "Assets/Models/T-Rex.glb";
+//		const char* path = FISHENGINE_ROOT "Assets/Models/T-Rex.glb";
 		auto path = GetglTFSample("CesiumMan");
 		//path = GetglTFSample("RiggedSimple");
 		//path = GetglTFSample("TextureCoordinateTest");
@@ -71,7 +71,7 @@ public:
 //		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Triangle/glTF/Triangle.gltf";
 		//path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
 //		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf";
-		path = GetglTFSample("Buggy");
+//		path = GetglTFSample("Buggy");
 //		path = GetglTFSample("BrainStem");
 
 		{
@@ -79,7 +79,7 @@ public:
 			m_Scene->GameObjectAddComponent<Camera>(go);
 			go->GetTransform()->SetLocalPosition(0, 0, -10);
 			//m_Scene->GameObjectAddComponent<FreeCamera>(go);
-			go->m_Name = "Main Camera";
+			go->name = "Main Camera";
 		}
 		{
 			auto go = m_Scene->CreateGameObject();
@@ -87,15 +87,15 @@ public:
 			auto light = m_Scene->GameObjectAddComponent<Light>(go);
 			t->SetLocalEulerAngles(50, -30, 0);
 			t->SetLocalPosition(0, 3, 0);
-			go->m_Name = "Directional Light";
+			go->name = "Directional Light";
 		}
 		
 		auto rootGO = ModelUtil::FromGLTF(path, m_Scene);
 //		auto rootGO = m_Scene->CreateGameObject();
 //		auto r = m_Scene->GameObjectAddComponent<Renderable>(rootGO);
 //		r->mesh = Mesh::Cube;
-		//rootGO->GetTransform()->SetLocalEulerAngles(-90, -90, 0);
-		rootGO->GetTransform()->SetLocalScale(0.1f);
+//		rootGO->GetTransform()->SetLocalEulerAngles(-90, -90, 0);
+		rootGO->GetTransform()->SetLocalScale(10);
 
 		{
 			auto s = m_Scene->AddSystem<AnimationSystem>();
@@ -105,7 +105,8 @@ public:
 		m_Scene->AddSystem<DrawSkeletonSystem>();
 
 		auto selection = m_EditorScene->GetSingletonComponent<SingletonSelection>();
-		selection->selected = Camera::GetMainCamera()->m_GameObject;
+//		selection->selected = Camera::GetMainCamera()->m_GameObject;
+		selection->selected = rootGO;
 		{
 			auto cam = Camera::GetEditorCamera();
 			assert(cam != nullptr);

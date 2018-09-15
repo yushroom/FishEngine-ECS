@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../ECS.hpp"
+#include <FishEditor/HierarchyView.hpp>
 
 
 class EditorSystem : public ECS::ISystem
@@ -20,10 +21,13 @@ public:
 	ECS::Scene* m_GameScene = nullptr;
 
 	Vector4 m_SceneViewRect{ 0, 0, 1, 1 };
+	Transform* selected = nullptr;
 
 private:
 	void MainMenu();
 	void MainToolBar();
 	void Hierarchy();
 	void Inspector();
+	
+	HierarchyView m_HierarchyView;
 };

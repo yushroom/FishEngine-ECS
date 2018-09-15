@@ -110,6 +110,14 @@ static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int act
 		e.key = KeyCode::LeftCommand;
 	else if (key == GLFW_KEY_RIGHT_SUPER)
 		e.key = KeyCode::RightCommand;
+	else if (key == GLFW_KEY_LEFT)
+		e.key = KeyCode::LeftArrow;
+	else if (key == GLFW_KEY_RIGHT)
+		e.key = KeyCode::RightArrow;
+	else if (key == GLFW_KEY_UP)
+		e.key = KeyCode::UpArrow;
+	else if (key == GLFW_KEY_DOWN)
+		e.key = KeyCode::DownArrow;
 	s->PostKeyEvent(e);
 	
 	ImGuiIO& io = ImGui::GetIO();

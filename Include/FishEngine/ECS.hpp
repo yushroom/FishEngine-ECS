@@ -97,7 +97,7 @@ namespace ECS
 		
 		Scene* GetScene() { return m_Scene; }
 
-		std::string m_Name;
+//		std::string m_Name;
 
 	protected:
 		GameObject(EntityID entityID, Scene* scene);

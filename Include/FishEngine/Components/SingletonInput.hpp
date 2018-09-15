@@ -312,7 +312,7 @@ enum class KeyCode
 
 enum class KeyAction
 {
-	Normal,
+	Normal = 0,
 	Pressed,
 	Held,
 	Released
@@ -339,6 +339,7 @@ class SingletonInput : public ECS::SingletonComponent
 	SINGLETON_COMPONENT(SingletonInput);
 	friend class InputSystem;
 	friend class EditorSystem;
+	friend class GameApp;
 protected:
 	SingletonInput()
 	{
@@ -349,6 +350,7 @@ public:
 	bool IsButtonPressed(KeyCode code) const;
 	bool IsButtonHeld(KeyCode code) const;
 	bool IsButtonReleased(KeyCode code) const;
+	float GetButtonHeldTime(KeyCode code) const;
 
 	// The bottom-left of the screen or window is at(0, 0).The top-right of the screen or window is at(Screen.width, Screen.height).
 	Vector3 GetMousePosition_Unity() const { return {m_MousePosition.x*Screen::width, m_MousePosition.y*Screen::height, 0}; }
@@ -358,8 +360,35 @@ public:
 
 	static constexpr int ButtonCount = 512;
 
-//private:
+private:
 	KeyAction m_KeyPressed[ButtonCount] = { KeyAction::Normal };
+	float m_KeyHeldTime[ButtonCount] = { 0 };
 	float m_Axis[(int)Axis::AxisCount] = { 0 };
 	Vector2 m_MousePosition;
 };
+
+
+inline bool SingletonInput::IsButtonPressed(KeyCode code) const
+{
+	int icode = (int)code;
+	return m_KeyPressed[icode] == KeyAction::Pressed;
+}
+
+inline bool SingletonInput::IsButtonHeld(KeyCode code) const
+{
+	int icode = (int)code;
+	return m_KeyPressed[icode] == KeyAction::Held;
+}
+
+inline bool SingletonInput::IsButtonReleased(KeyCode code) const
+{
+	int icode = (int)code;
+	return m_KeyPressed[icode] == KeyAction::Released;
+}
+
+
+inline float SingletonInput::GetButtonHeldTime(KeyCode code) const
+{
+	int icode = (int)code;
+	return m_KeyHeldTime[icode];
+}

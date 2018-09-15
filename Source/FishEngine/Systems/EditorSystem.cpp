@@ -13,46 +13,11 @@
 #include <FishEngine/Systems/FreeCameraSystem.hpp>
 #include <FishEditor/SceneViewSystem.hpp>
 
+#include <GLFW/glfw3.h>
 #include <imgui/imgui.h>
-
-constexpr int imgui_window_flags = 0
-| ImGuiWindowFlags_NoResize
-| ImGuiWindowFlags_NoMove
-| ImGuiWindowFlags_NoCollapse
-| ImGuiWindowFlags_NoSavedSettings
-| ImGuiWindowFlags_NoFocusOnAppearing
-;
 
 constexpr float main_menu_bar_height = 24;
 constexpr float main_tool_bar_height = 40;
-
-Transform* selected = nullptr;
-
-void HierarchyNode(Transform* t)
-{
-	auto name = t->m_GameObject->m_Name;
-	if (name.empty())
-		name = "go:" + std::to_string(t->entityID);
-
-	ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-	if (selected == t)
-		node_flags |= ImGuiTreeNodeFlags_Selected;
-	bool isLeaf = t->GetChildren().empty();
-	if (t->GetChildren().empty())
-		node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
-	node_flags |= ImGuiTreeNodeFlags_DefaultOpen;
-	bool node_open = ImGui::TreeNodeEx((void*)t, node_flags, name.c_str());
-	if (ImGui::IsItemClicked())
-		selected = t;
-	if (!isLeaf && node_open)
-	{
-		for (auto c : t->GetChildren())
-		{
-			HierarchyNode(c);
-		}
-		ImGui::TreePop();
-	}
-};
 
 
 void EditorSystem::OnAdded()
@@ -60,7 +25,7 @@ void EditorSystem::OnAdded()
 	imguiCreate();
 
 	auto go = m_Scene->CreateGameObject();
-	go->m_Name = "EditorCamera";
+	go->name = "EditorCamera";
 	auto cam = m_Scene->GameObjectAddComponent<Camera>(go);
 	cam->m_Type = CameraType::Editor;
 	go->GetTransform()->SetLocalPosition(0, 0, -10);
@@ -106,7 +71,10 @@ void EditorSystem::Draw()
 	ImGui::SetNextWindowPos(ImVec2(0.0f, y_start));
 	ImGui::SetNextWindowSize(ImVec2(hierarchy_width, (float)EditorScreen::height-y_start));
 	Hierarchy();
-	selection->selected = selected->m_GameObject;
+	if (selected == nullptr)
+		selection->selected = nullptr;
+	else
+		selection->selected = selected->m_GameObject;
 
 	ImGui::SetNextWindowPos(ImVec2((float)EditorScreen::width - inspector_width, y_start));
 	ImGui::SetNextWindowSize(ImVec2(inspector_width, (float)EditorScreen::height-y_start));
@@ -290,16 +258,14 @@ void EditorSystem::MainToolBar()
 	//g_editorGUISettings.mainToolbarHeight = height;
 }
 
+
 void EditorSystem::Hierarchy()
 {
-	ImGui::Begin("Hierarchy", NULL, imgui_window_flags);
-	HierarchyNode(Camera::GetEditorCamera()->GetTransform());
-	for (auto t : m_GameScene->m_RootTransforms)
-	{
-		HierarchyNode(t);
-	}
-	ImGui::End();
+	m_HierarchyView.selected = selected;
+	m_HierarchyView.Draw(m_GameScene, m_Scene->GetSingletonComponent<SingletonInput>());
+	selected = m_HierarchyView.selected;
 }
+
 
 void EditorSystem::Inspector()
 {
@@ -352,22 +318,24 @@ void EditorSystem::Inspector()
 					if (skinned)
 					{
 						auto skin = r->skin;
-						ImGui::Text("root bone: %s", skin->root->m_Name.c_str());
-						for (auto bone : skin->joints)
-						{
-							ImGui::Text(bone->m_Name.c_str());
-						}
+						ImGui::Text("root bone: %s", skin->root->name.c_str());
+//						for (auto bone : skin->joints)
+//						{
+//							ImGui::Text(bone->m_Name.c_str());
+//						}
 					}
 
 					if (ImGui::CollapsingHeader("Materials", ImGuiTreeNodeFlags_DefaultOpen))
 					{
+						ImGui::Indent();
 						for (int i = 0; i < r->m_Materials.size(); ++i)
 						{
 							auto material = r->m_Materials[i];
-							auto header = "Material" + std::to_string(i);
+//							auto header = "Material" + std::to_string(i);
+							auto header = material->name;
 							if (ImGui::CollapsingHeader(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
 							{
-								ImGui::LabelText("name", material->name.c_str());
+//								ImGui::LabelText("name", material->name.c_str());
 								for (auto& p : material->m_UniformInfos)
 								{
 									auto name = p.first.c_str();
@@ -391,6 +359,7 @@ void EditorSystem::Inspector()
 								}
 							}
 						}
+						ImGui::Unindent();
 					}
 				}
 				else if (comp->Is<Animator>())

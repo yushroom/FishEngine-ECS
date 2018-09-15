@@ -28,3 +28,4 @@ public:
 	void UpdateAxis(Axis axis, float value);
 	void PostKeyEvent(const KeyEvent& e);
 };
+
