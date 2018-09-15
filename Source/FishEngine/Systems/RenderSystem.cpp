@@ -13,6 +13,7 @@
 
 #include <bx/math.h>
 #include <FishEngine/Components/Animator.hpp>
+#include <FishEngine/Render/CameraFrustumCulling.hpp>
 
 SingletonRenderState::SingletonRenderState()
 {
@@ -68,39 +69,7 @@ void RenderSystem::Start()
 #include <FishEngine/Components/SingletonInput.hpp>
 #include <FishEngine/Screen.hpp>
 
-class CameraFrustumCulling
-{
-public:
-	CameraFrustumCulling(Camera* gameCamera, float aspectRatio)
-	{
-		viewProjMat = gameCamera->GetViewProjectionMatrix();
-		
-		if (bgfx::getCaps()->homogeneousDepth)
-			box_ndc.SetMinMax({ -1, -1, -1 }, { 1, 1, 1 });
-		else
-			box_ndc.SetMinMax({ -1, -1, 0 }, { 1, 1, 1 });
-	}
-	
-	bool Visiable(Mesh* mesh, const Matrix4x4& modelMat) const
-	{
-		auto mvp = viewProjMat * modelMat;
-		bool insideFrustum = false;
-		for (int i = 0; i < 8; ++i)
-		{
-			auto corner = mesh->bounds.GetCorner(i);
-			auto posV = mvp.MultiplyPoint(corner);
-			insideFrustum = box_ndc.Contains(posV);
-			if (insideFrustum)
-				break;
-		}
-		return insideFrustum;
-	}
-	
-private:
-	Matrix4x4 viewProjMat;
-	Bounds box_ndc;
-};
-
+Matrix4x4 u_jointMatrix[256];
 
 void RenderSystem::Draw()
 {
@@ -145,8 +114,8 @@ void RenderSystem::Draw()
 
 #if 1
 	// CPU skinning
-	Matrix4x4 u_jointMatrix[256];
-	m_Scene->ForEach<Renderable>([&u_jointMatrix](ECS::GameObject* go, Renderable* r)
+	
+	m_Scene->ForEach<Renderable>([](ECS::GameObject* go, Renderable* r)
 	{
 		if (r == nullptr || !r->m_Enabled)
 		{
@@ -155,12 +124,16 @@ void RenderSystem::Draw()
 		auto mesh = r->mesh;
 		if (mesh != nullptr && mesh->IsSkinned())
 		{
-			auto worldToObject = r->skin->root->GetTransform()->GetWorldToLocalMatrix();
-			//auto worldToObject = Matrix4x4::identity;
-			for (int i = 0; i < r->skin->joints.size(); ++i)
+			auto skin = r->skin;
+			auto p = skin->root->GetTransform()->GetParent();
+//			while (p->GetParent() != nullptr)
+//				p = p->GetParent();
+			const auto worldToObject = p->GetWorldToLocalMatrix();
+//			auto worldToObject = Matrix4x4::identity;
+			for (int i = 0; i < skin->joints.size(); ++i)
 			{
-				auto bone = r->skin->joints[i]->GetTransform();
-				auto& bindpose = r->skin->inverseBindMatrices[i];
+				auto bone = skin->joints[i]->GetTransform();
+				auto& bindpose = skin->inverseBindMatrices[i];
 				u_jointMatrix[i] = worldToObject * bone->GetLocalToWorldMatrix() * bindpose;
 			}
 			
@@ -171,11 +144,11 @@ void RenderSystem::Draw()
 				const Vector4& a_weight = mesh->weights[i];
 				const auto& a_joint = mesh->joints[i];
 				Matrix4x4 skinMatrix = u_jointMatrix[a_joint.x] * a_weight.x;
-				if (a_weight.y > 0)
+//				if (a_weight.y > 0)
 					skinMatrix += u_jointMatrix[a_joint.y] * a_weight.y;
-				if (a_weight.z > 0)
+//				if (a_weight.z > 0)
 					skinMatrix += u_jointMatrix[a_joint.z] * a_weight.z;
-				if (a_weight.w > 0)
+//				if (a_weight.w > 0)
 					skinMatrix += u_jointMatrix[a_joint.w] * a_weight.w;
 				auto& dv = mesh->m_DynamicVertices[i];
 				auto& v = mesh->m_Vertices[i];

@@ -162,6 +162,11 @@ void glfw_window_iconify_callback(GLFWwindow* window, int iconified)
 	mainApp->m_WindowMinimized = (iconified == GLFW_TRUE);
 }
 
+void glfw_window_focus_callback(GLFWwindow* window, int focused)
+{
+	mainApp->m_WindowMinimized = (focused != GLFW_TRUE);
+}
+
 
 void GameApp::Init()
 {
@@ -198,6 +203,7 @@ void GameApp::Init()
 	glfwSetScrollCallback(m_Window, glfw_scroll_callback);
 	glfwSetWindowIconifyCallback(m_Window, glfw_window_iconify_callback);
 	glfwSetCharCallback(m_Window, glfw_char_callback);
+	glfwSetWindowFocusCallback(m_Window, glfw_window_focus_callback);
 
 	glfwSwapInterval(1);
 

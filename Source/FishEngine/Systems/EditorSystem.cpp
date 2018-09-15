@@ -333,7 +333,7 @@ void EditorSystem::Inspector()
 					auto s = t->GetLocalScale();
 					if (ImGui::InputFloat3("Scale", s.data()))
 					{
-						t->SetLocalEulerAngles(s);
+						t->SetLocalScale(s);
 					}
 
 					auto q = t->GetLocalRotation();
@@ -353,6 +353,10 @@ void EditorSystem::Inspector()
 					{
 						auto skin = r->skin;
 						ImGui::Text("root bone: %s", skin->root->m_Name.c_str());
+						for (auto bone : skin->joints)
+						{
+							ImGui::Text(bone->m_Name.c_str());
+						}
 					}
 
 					if (ImGui::CollapsingHeader("Materials", ImGuiTreeNodeFlags_DefaultOpen))
