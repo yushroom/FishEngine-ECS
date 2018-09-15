@@ -127,8 +127,8 @@ public:
 	
 private:
 	float 		m_FieldOfView = 60.0f;
-	float 		m_NearClipPlane = 0.1f;
-	float 		m_FarClipPlane = 100.f;
+	float 		m_NearClipPlane = 0.3f;
+	float 		m_FarClipPlane = 1000.f;
 	bool  		m_Orthographic = false;
 	float 		m_OrthographicSize    = 5.f;	// Projection's half-size(vertical) when in orthographic mode.
 	//float 		m_OrthVerticalSize = 5;

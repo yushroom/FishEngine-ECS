@@ -43,15 +43,4 @@ public:
 	TransformPivot m_transformPivot = TransformPivot::Center;
 	TransformSpace m_transformSpace = TransformSpace::Global;
 
-private:
-	bool m_Dragging = false;
-	int m_SelectedAxis = -1;
-	Ray m_Ray;
-	Vector2 m_MousePosition;
-	Matrix4x4 m_Clip2World;
-
-private:
-	void __OnDragBegin();
-	void __OnDragMove();
-	void __OnDragEnd();
 };
