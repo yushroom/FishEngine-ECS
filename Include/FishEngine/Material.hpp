@@ -33,6 +33,7 @@ public:
 	inline static Material* TextureMaterial = nullptr;
 	inline static Material* ErrorMaterial = nullptr;
 	inline static Material* pbrMetallicRoughness = nullptr;
+//	inline static Material* pbrMetallicRoughness_skinned = nullptr;
 	
 //protected:
 	Shader* m_Shader = nullptr;

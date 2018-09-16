@@ -141,6 +141,8 @@ void Material::StaticInit()
 	ErrorMaterial = CreateMaterialFromShadersDir("Error");
 
 	pbrMetallicRoughness = CreateMaterialFromShadersDir("pbrMetallicRoughness");
-	pbrMetallicRoughness->SetVector("baseColorFactor", Vector4::one);
-	pbrMetallicRoughness->SetTexture("baseColorTexture", Texture::s_WhiteTexture);
+//	pbrMetallicRoughness->SetVector("baseColorFactor", Vector4::one);
+//	pbrMetallicRoughness->SetTexture("baseColorTexture", Texture::s_WhiteTexture);
+	
+//	pbrMetallicRoughness_skinned = CreateMaterialFromShadersDir("pbrMetallicRoughness_skinned");
 }

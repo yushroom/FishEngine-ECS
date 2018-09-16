@@ -127,7 +127,13 @@ void RenderSystem::Draw()
 				u_jointMatrix[i] = worldToObject * bone->GetLocalToWorldMatrix() * bindpose;
 			}
 			
-			mesh->m_DynamicVertices = mesh->m_Vertices;
+			
+			if (mesh->m_DynamicVertices.size() != mesh->m_Vertices.size())
+			{
+//				mesh->m_DynamicVertices.resize(mesh->m_Vertices.size());
+//				memcpy(mesh->m_DynamicVertices.data(), mesh->m_Vertices.data(), sizeof(mesh->m_Vertices));
+				mesh->m_DynamicVertices = mesh->m_Vertices;
+			}
 			for (int i = 0; i < mesh->m_Vertices.size(); ++i)
 			{
 				const Vector4& a_weight = mesh->weights[i];

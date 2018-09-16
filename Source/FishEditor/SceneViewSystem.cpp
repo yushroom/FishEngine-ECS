@@ -341,7 +341,7 @@ public:
 		Quaternion rot = Quaternion::identity;
 		Vector3 s = Vector3::one*scale;
 		
-		int hovered_axis = -1;
+		m_HoveringAxis = -1;
 		Ray ray = camera->ScreenPointToRay(input->GetMousePosition_Unity());
 		float t = 0;
 		if (RaySphereIntersect(pos, scale, ray, &t))
@@ -351,11 +351,11 @@ public:
 			mat = mat.inverse();
 			i_pos = mat.MultiplyPoint( i_pos) / scale;
 			if (Mathf::CompareApproximately(i_pos.x, 0, 0.1f))
-				hovered_axis = 0;
+				m_HoveringAxis = 0;
 			else if (Mathf::CompareApproximately(i_pos.y, 0, 0.1f))
-				hovered_axis = 1;
+				m_HoveringAxis = 1;
 			else if (Mathf::CompareApproximately(i_pos.z, 0, 0.1f))
-				hovered_axis = 2;
+				m_HoveringAxis = 2;
 		}
 		else
 		{

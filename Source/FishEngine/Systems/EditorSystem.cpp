@@ -318,18 +318,19 @@ void EditorSystem::Inspector()
 					
 //					if (r->mesh->m_SubMeshCount)
 //					ImGui::LabelText("Submesh Count", "%d", r->mesh->m_SubMeshCount);
-					ImGui::Text("Submesh count: %d", r->mesh->m_SubMeshCount);
-					for (auto& x : r->mesh->m_SubMeshInfos)
-					{
-						ImGui::Text("  %d", x.Length);
-					}
+					ImGui::Text("Submesh Count: %d", r->mesh->m_SubMeshCount);
+//					for (auto& x : r->mesh->m_SubMeshInfos)
+//					{
+//						ImGui::Text("  %d", x.Length);
+//					}
 
 					bool skinned = r->skin != nullptr;
 					//ImGui::Checkbox("skinned", &skinned);
 					if (skinned)
 					{
 						auto skin = r->skin;
-						ImGui::Text("root bone: %s", skin->root->name.c_str());
+						ImGui::Text("Bone Count: %d", r->skin->joints.size());
+						ImGui::Text("Root Bone: %s", skin->root->name.c_str());
 //						for (auto bone : skin->joints)
 //						{
 //							ImGui::Text(bone->m_Name.c_str());
