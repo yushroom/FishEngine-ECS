@@ -50,6 +50,7 @@ void Mesh::StaticInit()
 	Sphere = MeshUtil::FromTextFile(ReadFileAsString(FISHENGINE_ROOT "Assets/Models/Sphere.txt"));
 	Cylinder = MeshUtil::FromTextFile(ReadFileAsString(FISHENGINE_ROOT "Assets/Models/Cylinder.txt"));
 	Cone = MeshUtil::FromTextFile(ReadFileAsString(FISHENGINE_ROOT "Assets/Models/Cone.txt"));
+	Plane = MeshUtil::FromTextFile(ReadFileAsString(FISHENGINE_ROOT "Assets/Models/Plane.txt"));
 }
 
 void Mesh::__Upload()

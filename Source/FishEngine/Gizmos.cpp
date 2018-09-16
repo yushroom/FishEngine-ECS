@@ -163,7 +163,8 @@ void Gizmos::__Draw()
 			state |= BGFX_STATE_DEPTH_TEST_LESS;
 		else
 			state |= BGFX_STATE_DEPTH_TEST_ALWAYS;
-		state |= BGFX_STATE_LINEAA;
+//		state |= BGFX_STATE_LINEAA;
+		state |= BGFX_STATE_MSAA;
 		bgfx::setState(state);
 		s_VertexColorMaterial->BindUniforms();
 		bgfx::setTransform(Matrix4x4::identity.data());

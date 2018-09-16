@@ -23,3 +23,17 @@ bgfx::TextureHandle loadTexture2(void* data, uint32_t size,
 								 bgfx::TextureInfo* _info = nullptr,
 								 bimg::Orientation::Enum* _orientation = nullptr
 								 );
+
+#include "Assets.hpp"
+#include "Object.hpp"
+
+class Texture : public Object
+{
+public:
+	
+	static void StaticInit()
+	{
+		s_WhiteTexture = TextureUtils::LoadTexture(FISHENGINE_ROOT "Assets/Textures/white.png");
+	}
+	inline static bgfx::TextureHandle s_WhiteTexture;
+};

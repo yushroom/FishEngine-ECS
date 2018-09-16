@@ -44,7 +44,7 @@ public:
 	{
 		if (m_Clips.empty() || m_CurrentClipIndex == -1)
 			return nullptr;
-		assert(m_CurrentClipIndex < m_Clips.size());
+		assert(m_CurrentClipIndex >= 0 && m_CurrentClipIndex < m_Clips.size());
 		return m_Clips[m_CurrentClipIndex];
 	}
 

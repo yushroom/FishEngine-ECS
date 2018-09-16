@@ -1,26 +1,18 @@
-#include "FishEngine/Systems/RenderSystem.hpp"
+#include <FishEngine/Systems/RenderSystem.hpp>
 #include <FishEngine/Components/Transform.hpp>
-#include "FishEngine/Components/Camera.hpp"
-#include "FishEngine/Components/Light.hpp"
-#include "FishEngine/Components/Renderable.hpp"
-#include "FishEngine/Graphics.hpp"
-#include "FishEngine/Material.hpp"
+#include <FishEngine/Components/Camera.hpp>
+#include <FishEngine/Components/Light.hpp>
+#include <FishEngine/Components/Renderable.hpp>
+#include <FishEngine/Components/SingletonRenderState.hpp>
+#include <FishEngine/Graphics.hpp>
+#include <FishEngine/Material.hpp>
 #include <FishEngine/Mesh.hpp>
 #include <FishEngine/Gizmos.hpp>
 #include <FishEngine/Systems/SelectionSystem.hpp>
 #include <FishEngine/bgfxHelper.hpp>
 #include <FishEngine/Render/RenderViewType.hpp>
-
-#include <bx/math.h>
 #include <FishEngine/Components/Animator.hpp>
 #include <FishEngine/Render/CameraFrustumCulling.hpp>
-
-SingletonRenderState::SingletonRenderState()
-{
-	m_UniformLightDir = bgfx::createUniform("lightDir", bgfx::UniformType::Vec4);
-	m_UniformCameraPos = bgfx::createUniform("CameraPos", bgfx::UniformType::Vec4);
-	m_UniformJointMatrix = bgfx::createUniform("u_jontMatrix", bgfx::UniformType::Vec4, 128);
-}
 
 
 void RenderSystem::OnAdded()
@@ -29,7 +21,7 @@ void RenderSystem::OnAdded()
 	init.type = bgfx::RendererType::Enum::OpenGL;
 	init.resolution.width = 800;
 	init.resolution.height = 600;
-//	init.resolution.reset = BGFX_RESET_VSYNC | BGFX_RESET_MSAA_X2;
+	init.resolution.reset = BGFX_RESET_VSYNC | BGFX_RESET_MSAA_X8;
 	init.resolution.reset = BGFX_RESET_VSYNC;
 	bgfx::init(init);
 //	bgfx::setDebug(BGFX_DEBUG_STATS);
@@ -45,6 +37,8 @@ void RenderSystem::OnAdded()
 		| BGFX_STATE_CULL_CCW
 //		| BGFX_STATE_MSAA
 		;
+	
+	//assert(bgfx::getCaps()->supported & BGFX_CAPS_COMPUTE);
 }
 
 void RenderSystem::Start()

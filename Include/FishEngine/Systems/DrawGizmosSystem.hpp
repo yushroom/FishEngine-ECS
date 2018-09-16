@@ -15,6 +15,8 @@ public:
 	void Update() override
 	{
 		auto selected = m_Scene->GetSingletonComponent<SingletonSelection>()->selected;
+		if (selected == nullptr)
+			return;
 		for (auto comp : selected->GetComponents())
 		{
 			comp->OnDrawGizmosSelected();

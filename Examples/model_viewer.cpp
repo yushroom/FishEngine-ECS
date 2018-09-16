@@ -21,7 +21,7 @@ public:
 				auto t = bone->GetTransform();
 				//Gizmos::matrix = t->GetLocalToWorldMatrix();
 				//Gizmos::DrawCube(Vector3::zero, Vector3::one * 0.05f);
-				Gizmos::DrawCube(t->GetPosition(), Vector3::one * 0.5f);
+				Gizmos::DrawCube(t->GetPosition(), Vector3::one * 0.1f);
 				
 				//auto p = t->GetParent();
 				//if (p != nullptr)
@@ -90,12 +90,20 @@ public:
 			go->name = "Directional Light";
 		}
 		
+		{
+			auto plane = m_Scene->CreateGameObject();
+			plane->name = "Plane";
+			auto r = m_Scene->GameObjectAddComponent<Renderable>(plane);
+			r->mesh = Mesh::Plane;
+			auto mat = Material::Clone(Material::ColorMaterial);
+			r->m_Materials.push_back(mat);
+		}
 		auto rootGO = ModelUtil::FromGLTF(path, m_Scene);
 //		auto rootGO = m_Scene->CreateGameObject();
 //		auto r = m_Scene->GameObjectAddComponent<Renderable>(rootGO);
 //		r->mesh = Mesh::Cube;
 //		rootGO->GetTransform()->SetLocalEulerAngles(-90, -90, 0);
-		rootGO->GetTransform()->SetLocalScale(10);
+//		rootGO->GetTransform()->SetLocalScale(10);
 
 		{
 			auto s = m_Scene->AddSystem<AnimationSystem>();
@@ -114,16 +122,16 @@ public:
 			cam->GetTransform()->SetLocalEulerAngles(45, -60, 0);
 		}
 		
-		{
-			auto cam = Camera::GetMainCamera();
-			cam->SetFarClipPlane(40);
-			cam->SetNearClipPlane(5);
-			auto t = Camera::GetMainCamera()->GetTransform();
-			t->SetPosition(-12, 0, -12);
-		}
+//		{
+//			auto cam = Camera::GetMainCamera();
+//			cam->SetFarClipPlane(40);
+//			cam->SetNearClipPlane(5);
+//			auto t = Camera::GetMainCamera()->GetTransform();
+//			t->SetPosition(-12, 0, -12);
+//		}
 		{
 			auto t = Camera::GetEditorCamera()->GetTransform();
-			t->SetPosition(-4, 8, -53);
+//			t->SetPosition(-4, 8, -53);
 			t->SetLocalEulerAngles(0, 0, 0);
 		}
 		

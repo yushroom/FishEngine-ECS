@@ -37,6 +37,7 @@ public:
 	inline static Mesh* Sphere = nullptr;
 	inline static Mesh* Cylinder = nullptr;
 	inline static Mesh* Cone = nullptr;
+	inline static Mesh* Plane = nullptr;
 
 	static void StaticInit();
 

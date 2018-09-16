@@ -1,10 +1,10 @@
 #include "FishEngine/Graphics.hpp"
 
-#include <FishEngine/Systems/RenderSystem.hpp>
-#include "FishEngine/Engine.hpp"
-#include "FishEngine/Mesh.hpp"
+#include <FishEngine/Components/SingletonRenderState.hpp>
+#include <FishEngine/Engine.hpp>
+#include <FishEngine/Mesh.hpp>
 #include <FishEngine/Shader.hpp>
-#include "FishEngine/Material.hpp"
+#include <FishEngine/Material.hpp>
 
 #include "FishEngine/GameApp.hpp"
 

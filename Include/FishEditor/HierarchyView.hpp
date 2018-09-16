@@ -18,33 +18,44 @@ constexpr int imgui_window_flags = 0
 
 struct HierarchyView
 {
+	void Reset()
+	{
+		hierarchyList.clear();
+		timeSinceLastKey += 0.02f;
+//		selectedLeft = false;
+//		selectedRight = false;
+//		m_ScrollToSelected = false;
+	}
+	
 	void Draw(ECS::Scene* gameScene, SingletonInput* input)
 	{
 		this->scene = gameScene;
 		this->input = input;
-		hierarchyList.clear();
-		timeSinceLastKey += 0.02f;
+		Reset();
 		
 		ImGui::Begin("Hierarchy", NULL, imgui_window_flags);
+		m_LeftMouseButtonClicked = ImGui::IsWindowHovered() && input->IsButtonPressed(KeyCode::MouseLeftButton);
+		
 		HierarchyNode(Camera::GetEditorCamera()->GetTransform());
 		for (auto t : scene->m_RootTransforms)
 		{
 			HierarchyNode(t);
 		}
-		ImGui::End();
 		
+		m_ScrollToSelected = false;
 		selectedLeft = false;
 		selectedRight = false;
-		int idx = std::distance(hierarchyList.begin(), std::find(hierarchyList.begin(), hierarchyList.end(), selected));
-		if (idx == hierarchyList.size())
-			idx = -1;
 		
-		bool is_leaf = selected->GetChildren().empty();
-		int count = hierarchyList.size();
-		bool keyDown = false;
-		
-//		if (timeSinceLastKey >= c_KeyTimeStep)
+		if (ImGui::IsWindowFocused() && selected != nullptr)
 		{
+			int idx = std::distance(hierarchyList.begin(), std::find(hierarchyList.begin(), hierarchyList.end(), selected));
+			if (idx == hierarchyList.size())
+				idx = -1;
+			
+			bool is_leaf = selected->GetChildren().empty();
+			int count = hierarchyList.size();
+//			printf("%d\n", count);
+			bool keyDown = false;
 			if (__IsKeyDown(KeyCode::DownArrow))
 			{
 				idx++;
@@ -73,12 +84,20 @@ struct HierarchyView
 			}
 			idx = Mathf::Clamp(idx, 0, count-1);
 			selected = hierarchyList[idx];
+			
+			if (keyDown)
+			{
+				timeSinceLastKey = 0;
+				m_ScrollToSelected = true;
+			}
+			
+			if (m_LeftMouseButtonClicked)
+			{
+				selected = nullptr;
+			}
 		}
 		
-		if (keyDown)
-		{
-			timeSinceLastKey = 0;
-		}
+		ImGui::End();
 	}
 	
 	
@@ -105,11 +124,15 @@ struct HierarchyView
 		node_flags |= ImGuiTreeNodeFlags_DefaultOpen;
 		bool node_open = ImGui::TreeNodeEx((void*)t, node_flags, name.c_str());
 		if (ImGui::IsItemClicked())
+		{
 			selected = t;
+			m_LeftMouseButtonClicked = false;
+		}
 		
 		if (selected == t && !ImGui::IsItemVisible())
 		{
-			ImGui::SetScrollHere();
+			if (m_ScrollToSelected)
+				ImGui::SetScrollHere();
 		}
 		
 		if (!isLeaf && node_open)
@@ -139,9 +162,11 @@ private:
 	ECS::Scene* scene = nullptr;
 	SingletonInput* input = nullptr;
 	std::vector<Transform*> hierarchyList;
+	bool m_LeftMouseButtonClicked = false;
 	bool selectedLeft = false;
 	bool selectedRight = false;
 	bool selectedIsOpen = false;
+	bool m_ScrollToSelected = false;
 	
 	// seconds
 	float timeSinceLastKey = c_KeyTimeStep;

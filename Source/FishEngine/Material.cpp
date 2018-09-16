@@ -1,7 +1,16 @@
 #include <FishEngine/Material.hpp>
 #include <FishEngine/Shader.hpp>
+#include <FishEngine/Texture.hpp>
 
 #include <cassert>
+
+
+bool IsInernalUniform(const char* name)
+{
+	if (strcmp(name, "lightDir") == 0)
+		return true;
+	return false;
+}
 
 
 void Material::SetShader(Shader* shader)
@@ -24,6 +33,12 @@ void Material::SetShader(Shader* shader)
 				bgfx::getUniformInfo(u, info);
 				//printf("%s\n", info.name);
 				m_UniformInfos[info.name] = std::make_pair(u, info);
+				if (IsInernalUniform(info.name))
+					continue;
+				if (info.type == bgfx::UniformType::Vec4)
+					m_MaterialProperties.vec4s[info.name] = Vector4(1, 1, 1, 1);
+				else
+					m_MaterialProperties.textures[info.name] = Texture::s_WhiteTexture;
 			}
 		}
 	}
@@ -125,9 +140,7 @@ void Material::StaticInit()
 	TextureMaterial = CreateMaterialFromShadersDir("Texture");
 	ErrorMaterial = CreateMaterialFromShadersDir("Error");
 
-	auto white = TextureUtils::LoadTexture(FISHENGINE_ROOT "Assets/Textures/white.png");
-
 	pbrMetallicRoughness = CreateMaterialFromShadersDir("pbrMetallicRoughness");
 	pbrMetallicRoughness->SetVector("baseColorFactor", Vector4::one);
-	pbrMetallicRoughness->SetTexture("baseColorTexture", white);
+	pbrMetallicRoughness->SetTexture("baseColorTexture", Texture::s_WhiteTexture);
 }

@@ -56,7 +56,9 @@ void EditorSystem::Draw()
 		(input->IsButtonHeld(KeyCode::MouseLeftButton) ? IMGUI_MBUT_LEFT : 0) |
 		(input->IsButtonHeld(KeyCode::MouseRightButton) ? IMGUI_MBUT_RIGHT : 0) |
 		(input->IsButtonHeld(KeyCode::MouseMiddleButton) ? IMGUI_MBUT_MIDDLE : 0);
-	selected = selection->selected->GetTransform();
+	selected = nullptr;
+	if (selection->selected != nullptr)
+		selected = selection->selected->GetTransform();
 	
 	static float mouseScroll = 0;
 	mouseScroll += input->GetAxis(Axis::MouseScrollWheel);
@@ -270,11 +272,11 @@ void EditorSystem::Hierarchy()
 void EditorSystem::Inspector()
 {
 	ImGui::Begin("Inspector", NULL, imgui_window_flags);
-	auto input = m_Scene->GetSingletonComponent<SingletonInput>();
-	Vector2 mp = input->GetMousePosition();
-	ImGui::InputFloat2("MousePos", mp.data());
-	Vector2 delta_mp(input->GetAxis(Axis::MouseX), input->GetAxis(Axis::MouseY));
-	ImGui::InputFloat2("axis", delta_mp.data());
+//	auto input = m_Scene->GetSingletonComponent<SingletonInput>();
+//	Vector2 mp = input->GetMousePosition();
+//	ImGui::InputFloat2("MousePos", mp.data());
+//	Vector2 delta_mp(input->GetAxis(Axis::MouseX), input->GetAxis(Axis::MouseY));
+//	ImGui::InputFloat2("axis", delta_mp.data());
 	if (selected != nullptr)
 	{
 		for (auto comp : selected->m_GameObject->GetComponents())

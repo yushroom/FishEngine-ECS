@@ -1,10 +1,11 @@
 #include <FishEngine/GameApp.hpp>
-#include "FishEngine/Mesh.hpp"
+#include <FishEngine/Mesh.hpp>
 //#include "ECS.hpp"
-#include "FishEngine/Systems/TransformSystem.hpp"
-#include "FishEngine/Systems/RenderSystem.hpp"
-#include "FishEngine/Systems/InputSystem.hpp"
-#include "FishEngine/Screen.hpp"
+#include <FishEngine/Systems/TransformSystem.hpp>
+#include <FishEngine/Systems/RenderSystem.hpp>
+#include <FishEngine/Systems/InputSystem.hpp>
+#include <FishEngine/Screen.hpp>
+#include <FishEngine/Texture.hpp>
 #include <FishEngine/Material.hpp>
 #include <FishEngine/Gizmos.hpp>
 #include <FishEngine/Render/RenderViewType.hpp>
@@ -212,6 +213,8 @@ void GameApp::Init()
 	glfwSetWindowIconifyCallback(m_Window, glfw_window_iconify_callback);
 	glfwSetCharCallback(m_Window, glfw_char_callback);
 	glfwSetWindowFocusCallback(m_Window, glfw_window_focus_callback);
+	
+	glfwSetWindowSizeLimits(m_Window, 800, 600, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
 	glfwSwapInterval(1);
 
@@ -221,6 +224,7 @@ void GameApp::Init()
 	rs->m_Priority = 1000;
 
 	Mesh::StaticInit();
+	Texture::StaticInit();
 	Material::StaticInit();
 	Gizmos::StaticInit();
 	
