@@ -6,24 +6,18 @@
 #include <FishEngine/Shader.hpp>
 #include <FishEngine/Material.hpp>
 
-#include "FishEngine/GameApp.hpp"
+//#include "FishEngine/GameApp.hpp"
 
 void Graphics::DrawMesh(Mesh* mesh, const Matrix4x4& matrix, Material* material, bgfx::ViewId id, int submeshID)
 {
 	if (mesh == nullptr || material == nullptr)
 		return;
 
-	// Set render states.
-	auto state = GameApp::GetMainApp()->GetScene()->GetSingletonComponent<SingletonRenderState>();
-	bgfx::setState(state->GetState());
+	auto state = ECS::Scene::s_Current->GetSingletonComponent<SingletonRenderState>()->GetState();
 	
-	// Set model matrix for rendering.
-	bgfx::setTransform(matrix.transpose().data());
-	material->BindUniforms();
-	mesh->Bind(submeshID, id);
-	// Submit primitive for rendering to view 0.
-	bgfx::submit(id, material->GetShader()->GetProgram());
+	Graphics::DrawMesh2(mesh, matrix, material, state, id, submeshID);
 }
+
 
 void Graphics::DrawMesh2(Mesh* mesh, const Matrix4x4& matrix, Material* material, uint64_t state, bgfx::ViewId id, int submeshID)
 {

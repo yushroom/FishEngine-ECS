@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ClassDef.hpp"
-#include "Evnet.hpp"
+#include <FishEngine/ClassDef.hpp>
+#include <FishEngine/Evnet.hpp>
 
 struct GLFWwindow;
 namespace ECS

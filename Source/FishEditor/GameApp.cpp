@@ -1,19 +1,18 @@
-#include <FishEngine/GameApp.hpp>
+#include <FishEditor/GameApp.hpp>
 #include <FishEngine/Mesh.hpp>
-//#include "ECS.hpp"
-#include <FishEngine/Systems/TransformSystem.hpp>
-#include <FishEngine/Systems/RenderSystem.hpp>
-#include <FishEngine/Systems/InputSystem.hpp>
 #include <FishEngine/Screen.hpp>
 #include <FishEngine/Texture.hpp>
 #include <FishEngine/Material.hpp>
 #include <FishEngine/Gizmos.hpp>
 #include <FishEngine/Render/RenderViewType.hpp>
+#include <FishEngine/Systems/TransformSystem.hpp>
+#include <FishEngine/Systems/RenderSystem.hpp>
+#include <FishEngine/Systems/InputSystem.hpp>
 
-#include <FishEngine/Systems/EditorSystem.hpp>
-#include <FishEngine/Systems/DrawGizmosSystem.hpp>
-#include <FishEngine/Systems/SelectionSystem.hpp>
-#include <FishEditor/SceneViewSystem.hpp>
+#include <FishEditor/Systems/SelectionSystem.hpp>
+#include <FishEditor/Systems/DrawGizmosSystem.hpp>
+#include <FishEditor/Systems/EditorSystem.hpp>
+#include <FishEditor/Systems/SceneViewSystem.hpp>
 
 #include <GLFW/glfw3.h>
 #include <bgfx/bgfx.h>
@@ -219,6 +218,7 @@ void GameApp::Init()
 	glfwSwapInterval(1);
 
 	m_Scene = new ECS::Scene();
+	ECS::Scene::s_Current = m_Scene;
 	m_Scene->AddSystem<InputSystem>();
 	auto rs = m_Scene->AddSystem<RenderSystem>();
 	rs->m_Priority = 1000;

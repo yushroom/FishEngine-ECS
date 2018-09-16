@@ -1,8 +1,8 @@
-#include <FishEngine/Systems/FreeCameraSystem.hpp>
+#include <FishEditor/Systems/FreeCameraSystem.hpp>
 #include <FishEngine/Components/Transform.hpp>
 #include <FishEngine/Components/SingletonInput.hpp>
-#include <FishEngine/Components/SingletonSelection.hpp>
-#include <FishEditor/SceneViewSystem.hpp>
+#include <FishEditor/Components/SingletonSelection.hpp>
+#include <FishEditor/Systems/SceneViewSystem.hpp>
 
 void FreeCameraSystem::Update()
 {

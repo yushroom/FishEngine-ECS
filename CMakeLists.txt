@@ -97,14 +97,22 @@ endmacro()
 # add_library(FishGUI ${SRCS} ${HEADERS})
 
 
-file(GLOB_RECURSE HEADERS 
+file(GLOB_RECURSE HEADERS
+    ${CMAKE_CURRENT_LIST_DIR}/Include/FishEngine.hpp
     ${CMAKE_CURRENT_LIST_DIR}/Include/FishEngine/*.hpp 
-    ${CMAKE_CURRENT_LIST_DIR}/Include/FishEngine/*.inl
-    ${CMAKE_CURRENT_LIST_DIR}/Include/FishEditor/*.hpp)
+    ${CMAKE_CURRENT_LIST_DIR}/Include/FishEngine/*.inl)
 file(GLOB_RECURSE SRCS 
-    ${CMAKE_CURRENT_LIST_DIR}/Source/FishEngine/*.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/Source/FishEditor/*.cpp)
+    ${CMAKE_CURRENT_LIST_DIR}/Source/FishEngine/*.cpp)
 add_library(FishEngine ${HEADERS} ${SRCS})
+
+
+file(GLOB_RECURSE HEADERS
+    ${CMAKE_CURRENT_LIST_DIR}/Include/FishEditor.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/Include/FishEditor/*.hpp)
+file(GLOB_RECURSE SRCS
+    ${CMAKE_CURRENT_LIST_DIR}/Source/FishEditor/*.cpp)
+add_library(FishEditor ${HEADERS} ${SRCS})
+
 
 AutoGroup(./Include/FishEngine Math Systems Components)
 AutoGroup(./Source/FishEngine Math Systems Components)
@@ -128,7 +136,7 @@ SET_TARGET_PROPERTIES(imgui PROPERTIES FOLDER "ThirdParty")
 
 target_link_libraries(FishEngine glfw)
 target_link_libraries(FishEngine imgui)
-target_compile_definitions(FishEngine PRIVATE _ITERATOR_DEBUG_LEVEL=0)
+target_link_libraries(FishEditor FishEngine)
 
 if (MSVC)
 	target_compile_definitions(FishEngine PRIVATE _ITERATOR_DEBUG_LEVEL=0)
@@ -166,20 +174,21 @@ target_link_libraries(demo1 FishEngine)
 add_executable(demo2 "./Examples/demo2.cpp")
 target_link_libraries(demo2 FishEngine)
 
-add_executable(modelViewer "./Examples/model_viewer.cpp")
-target_link_libraries(modelViewer FishEngine)
+add_executable(Editor "./Examples/model_viewer.cpp")
+target_link_libraries(Editor FishEditor)
 
 if (MSVC)
+    target_compile_definitions(FishEngine PRIVATE _ITERATOR_DEBUG_LEVEL=0)
 	target_compile_definitions(imgui PRIVATE _ITERATOR_DEBUG_LEVEL=0)
     target_compile_definitions(demo1 PRIVATE _ITERATOR_DEBUG_LEVEL=0)
     target_compile_definitions(demo2 PRIVATE _ITERATOR_DEBUG_LEVEL=0)
-    target_compile_definitions(modelViewer PRIVATE _ITERATOR_DEBUG_LEVEL=0)
+    target_compile_definitions(Editor PRIVATE _ITERATOR_DEBUG_LEVEL=0)
 else()
     target_compile_definitions(demo1 PRIVATE BGFX_CONFIG_RENDERER_OPENGL=410)
     target_compile_definitions(imgui PRIVATE BGFX_CONFIG_RENDERER_OPENGL=410)
     target_compile_definitions(demo2 PRIVATE BGFX_CONFIG_RENDERER_OPENGL=410)
-    target_compile_definitions(modelViewer PRIVATE BGFX_CONFIG_RENDERER_OPENGL=410)
+    target_compile_definitions(Editor PRIVATE BGFX_CONFIG_RENDERER_OPENGL=410)
     set_target_properties(demo1 PROPERTIES LINK_FLAGS "-framework OpenGL -framework Cocoa -framework metal -framework QuartzCore")
     set_target_properties(demo2 PROPERTIES LINK_FLAGS "-framework OpenGL -framework Cocoa -framework metal -framework QuartzCore")
-    set_target_properties(modelViewer PROPERTIES LINK_FLAGS "-framework OpenGL -framework Cocoa -framework metal -framework QuartzCore")
+    set_target_properties(Editor PROPERTIES LINK_FLAGS "-framework OpenGL -framework Cocoa -framework metal -framework QuartzCore")
 endif()

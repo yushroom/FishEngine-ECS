@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../ECS.hpp"
+#include <FishEngine/ECS.hpp>
+#include <FishEngine/Gizmos.hpp>
+#include <FishEngine/Components/Camera.hpp>
 
-#include "../Components/SingletonSelection.hpp"
-#include "../Components/Camera.hpp"
-#include "../Gizmos.hpp"
+#include <FishEditor/Components/SingletonSelection.hpp>
 
 class DrawGizmosSystem : public ECS::ISystem
 {

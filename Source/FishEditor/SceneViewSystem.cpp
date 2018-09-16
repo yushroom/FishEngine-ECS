@@ -1,4 +1,4 @@
-#include <FishEditor/SceneViewSystem.hpp>
+#include <FishEditor/Systems/SceneViewSystem.hpp>
 #include <FishEngine/Gizmos.hpp>
 #include <FishEngine/Components/Transform.hpp>
 #include <FishEngine/Render/RenderViewType.hpp>
@@ -8,7 +8,7 @@
 #include <FishEngine/Graphics.hpp>
 #include <FishEngine/Shader.hpp>
 
-#include <FishEngine/Components/SingletonSelection.hpp>
+#include <FishEditor/Components/SingletonSelection.hpp>
 
 Material* s_color_material = nullptr;
 Vector4 s_selected_axis_color{ 1, 1, 0, 1 };

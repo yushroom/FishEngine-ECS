@@ -1,7 +1,7 @@
 #pragma once
 
 #include <FishEngine/ECS.hpp>
-#include <FishEngine/Components/FreeCamera.hpp>
+#include <FishEditor/Components/FreeCamera.hpp>
 
 class SingletonInput;
 

@@ -1,5 +1,5 @@
 #pragma once
-#include "../ECS.hpp"
+#include <FishEngine/ECS.hpp>
 
 class SingletonSelection : ECS::SingletonComponent
 {

@@ -182,6 +182,8 @@ namespace ECS
 		//EntityID CreateGameObject();
 		GameObject* CreateGameObject();
 		
+		inline static Scene* s_Current = nullptr;
+		
 		template<class T>
 		T* GameObjectAddComponent(GameObject* go)
 		{

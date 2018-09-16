@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../ECS.hpp"
+#include <FishEngine/ECS.hpp>
 #include <FishEditor/HierarchyView.hpp>
 
 

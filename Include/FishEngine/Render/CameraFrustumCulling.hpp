@@ -1,5 +1,7 @@
 #pragma once
 
+#include <FishEngine/Components/Camera.hpp>
+#include <FishEngine/Mesh.hpp>
 
 class CameraFrustumCulling
 {

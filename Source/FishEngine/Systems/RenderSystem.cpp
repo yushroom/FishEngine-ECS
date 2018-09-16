@@ -8,7 +8,7 @@
 #include <FishEngine/Material.hpp>
 #include <FishEngine/Mesh.hpp>
 #include <FishEngine/Gizmos.hpp>
-#include <FishEngine/Systems/SelectionSystem.hpp>
+//#include <FishEngine/Systems/SelectionSystem.hpp>
 #include <FishEngine/bgfxHelper.hpp>
 #include <FishEngine/Render/RenderViewType.hpp>
 #include <FishEngine/Components/Animator.hpp>

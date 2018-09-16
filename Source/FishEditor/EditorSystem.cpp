@@ -1,18 +1,17 @@
-#include <FishEngine/Systems/EditorSystem.hpp>
-#include <FishEngine/Components/SingletonSelection.hpp>
-//#include <FishEngine/Screen.hpp>
+#include <FishEditor/Systems/EditorSystem.hpp>
+#include <FishEngine/Material.hpp>
+#include <FishEngine/Gizmos.hpp>
+#include <FishEngine/Mesh.hpp>
 #include <FishEngine/Components/Transform.hpp>
 #include <FishEngine/Components/SingletonInput.hpp>
 #include <FishEngine/Components/Renderable.hpp>
 #include <FishEngine/Components/Animator.hpp>
-#include <FishEngine/Material.hpp>
-#include <FishEngine/Gizmos.hpp>
-#include <FishEngine/Mesh.hpp>
-
 #include <FishEngine/Components/Camera.hpp>
-#include <FishEngine/Components/FreeCamera.hpp>
-#include <FishEngine/Systems/FreeCameraSystem.hpp>
-#include <FishEditor/SceneViewSystem.hpp>
+
+#include <FishEditor/Components/FreeCamera.hpp>
+#include <FishEditor/Components/SingletonSelection.hpp>
+#include <FishEditor/Systems/FreeCameraSystem.hpp>
+#include <FishEditor/Systems/SceneViewSystem.hpp>
 
 #include <GLFW/glfw3.h>
 #include <imgui/imgui.h>

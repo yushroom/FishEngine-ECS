@@ -1,4 +1,3 @@
-./compile_shader.sh
-cd build
+mkdir -p build && cd build
 cmake .. -G Xcode
-cmake --build . --target demo1 --config Debug
+cmake --build . --target Editor --config Debug
