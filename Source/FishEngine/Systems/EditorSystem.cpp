@@ -7,6 +7,7 @@
 #include <FishEngine/Components/Animator.hpp>
 #include <FishEngine/Material.hpp>
 #include <FishEngine/Gizmos.hpp>
+#include <FishEngine/Mesh.hpp>
 
 #include <FishEngine/Components/Camera.hpp>
 #include <FishEngine/Components/FreeCamera.hpp>
@@ -314,6 +315,14 @@ void EditorSystem::Inspector()
 				{
 					auto r = comp->As<Renderable>();
 					ImGui::Checkbox("enabled", &r->m_Enabled);
+					
+//					if (r->mesh->m_SubMeshCount)
+//					ImGui::LabelText("Submesh Count", "%d", r->mesh->m_SubMeshCount);
+					ImGui::Text("Submesh count: %d", r->mesh->m_SubMeshCount);
+					for (auto& x : r->mesh->m_SubMeshInfos)
+					{
+						ImGui::Text("  %d", x.Length);
+					}
 
 					bool skinned = r->skin != nullptr;
 					//ImGui::Checkbox("skinned", &skinned);

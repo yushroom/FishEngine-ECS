@@ -72,7 +72,7 @@ public:
 		//path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
 //		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf";
 //		path = GetglTFSample("Buggy");
-//		path = GetglTFSample("BrainStem");
+		path = GetglTFSample("BrainStem");
 
 		{
 			auto go = m_Scene->CreateGameObject();

@@ -165,7 +165,8 @@ inline void RHS2LHS(Matrix4x4& m)
 void ImportPrimitive(Mesh* mesh,
 	const tinygltf::Model& model,
 	const SubMeshInfo& info,
-	const tinygltf::Primitive& primitive)
+	const tinygltf::Primitive& primitive,
+	bool skinned)
 {
 	bool withPosition = In(primitive.attributes, "POSITION");
 	bool withNormal = false;
@@ -195,6 +196,17 @@ void ImportPrimitive(Mesh* mesh,
 	}
 	
 	assert(withPosition);
+	
+	if (skinned)
+	{
+		assert(withJoints);
+		assert(withWeights);
+	}
+	else
+	{
+		assert(!withJoints);
+		assert(!withWeights);
+	}
 
 	// TODO: primitive.mode
 
@@ -286,10 +298,11 @@ void ImportPrimitive(Mesh* mesh,
 			auto p = (unsigned short*)ptr;
 			for (int i = 0; i < accessor.count; ++i)
 			{
-				mesh->joints[i].x = *p; ++p;
-				mesh->joints[i].y = *p; ++p;
-				mesh->joints[i].z = *p; ++p;
-				mesh->joints[i].w = *p; ++p;
+				auto& joint = mesh->joints[i+info.VertexOffset];
+				joint.x = *p; ++p;
+				joint.y = *p; ++p;
+				joint.z = *p; ++p;
+				joint.w = *p; ++p;
 			}
 		}
 		else if (accessor.componentType == 5121)	// unsigned byte
@@ -297,10 +310,11 @@ void ImportPrimitive(Mesh* mesh,
 			auto p = (unsigned char*)ptr;
 			for (int i = 0; i < accessor.count; ++i)
 			{
-				mesh->joints[i].x = *p; ++p;
-				mesh->joints[i].y = *p; ++p;
-				mesh->joints[i].z = *p; ++p;
-				mesh->joints[i].w = *p; ++p;
+				auto& joint = mesh->joints[i+info.VertexOffset];
+				joint.x = *p; ++p;
+				joint.y = *p; ++p;
+				joint.z = *p; ++p;
+				joint.w = *p; ++p;
 			}
 		}
 		else
@@ -311,7 +325,7 @@ void ImportPrimitive(Mesh* mesh,
 
 	if (withWeights)
 	{
-		mesh->weights.resize(mesh->m_VertexCount);
+//		mesh->weights.resize(mesh->m_VertexCount);
 		id = Get(primitive.attributes, "WEIGHTS_0");
 		auto& accessor = model.accessors[id];
 		auto& bufferView = model.bufferViews[accessor.bufferView];
@@ -322,7 +336,8 @@ void ImportPrimitive(Mesh* mesh,
 
 		auto offset = accessor.byteOffset + bufferView.byteOffset;
 		auto ptr = buffer.data.data() + offset;
-		memcpy(mesh->weights.data(), ptr, accessor.count * 4 * sizeof(float));
+		auto dst = mesh->weights.data() + info.VertexOffset;
+		memcpy(dst, ptr, accessor.count * 4 * sizeof(float));
 	}
 
 
@@ -389,6 +404,7 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 	uint32_t indexCount = 0;
 	mesh->m_SubMeshCount = (int)gltf_mesh.primitives.size();
 	mesh->m_SubMeshInfos.resize(mesh->m_SubMeshCount);
+	bool skinned = false;
 	for (int i = 0; i < mesh->m_SubMeshCount; ++i)
 	{
 		auto& primitive = gltf_mesh.primitives[i];
@@ -396,13 +412,17 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 		{
 			int id = primitive.attributes["POSITION"];
 			auto& accessor = model.accessors[id];
-			
 //			if (vertexCount + accessor.count > std::numeric_limits<unsigned short>::max())
 //			{
 //				abort();
 //			}
 			info.VertexOffset = vertexCount;
 			vertexCount += (uint32_t)accessor.count;
+			
+			if (In(primitive.attributes, "JOINTS_0"))
+			{
+				skinned = true;
+			}
 		}
 
 		{
@@ -415,6 +435,11 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 	}
 	mesh->m_VertexCount = vertexCount;
 	mesh->m_Vertices.resize(vertexCount);
+	if (skinned)
+	{
+		mesh->joints.resize(vertexCount);
+		mesh->weights.resize(vertexCount);
+	}
 	mesh->m_Indices.resize(indexCount);
 	mesh->m_TriangleCount = indexCount / 3;
 	
@@ -429,7 +454,7 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 	{
 		auto& primitive = gltf_mesh.primitives[i];
 		auto& info = mesh->m_SubMeshInfos[i];
-		ImportPrimitive(mesh, model, info, primitive);
+		ImportPrimitive(mesh, model, info, primitive, skinned);
 	}
 
 //	int count = sizeof(decltype(mesh->m_Vertices)::value_type);

@@ -119,17 +119,13 @@ void RenderSystem::Draw()
 		if (mesh != nullptr && mesh->IsSkinned())
 		{
 			auto skin = r->skin;
-//			auto p = skin->root->GetTransform()->GetParent();
-//			const auto worldToObject = p->GetWorldToLocalMatrix();
 			const auto worldToObject = r->GetTransform()->GetWorldToLocalMatrix();
-//			auto worldToObject = Matrix4x4::identity;
 			for (int i = 0; i < skin->joints.size(); ++i)
 			{
 				auto bone = skin->joints[i]->GetTransform();
 				auto& bindpose = skin->inverseBindMatrices[i];
 				u_jointMatrix[i] = worldToObject * bone->GetLocalToWorldMatrix() * bindpose;
 			}
-			
 			
 			mesh->m_DynamicVertices = mesh->m_Vertices;
 			for (int i = 0; i < mesh->m_Vertices.size(); ++i)
