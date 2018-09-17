@@ -1,6 +1,10 @@
 #pragma once
 
-#include "../ECS.hpp"
+#include "../ECS/Component.hpp"
+#include "../Math/Vector3.hpp"
+#include "../Math/Quaternion.hpp"
+#include "../Math/Matrix4x4.hpp"
+
 
 namespace FishEngine
 {

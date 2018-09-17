@@ -1,5 +1,5 @@
 #pragma once
-#include <FishEngine/ECS.hpp>
+#include <FishEngine/ECS/System.hpp>
 #include <FishEngine/Components/Transform.hpp>
 
 namespace FishEngine

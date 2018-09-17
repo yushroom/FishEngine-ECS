@@ -114,7 +114,7 @@ file(GLOB_RECURSE SRCS
 add_library(FishEditor ${HEADERS} ${SRCS})
 
 
-AutoGroup(./Include/FishEngine Math Systems Components)
+AutoGroup(./Include/FishEngine Math Systems Components ECS Render)
 AutoGroup(./Source/FishEngine Math Systems Components)
 
 include_directories("./ThirdParty/tinygltf")

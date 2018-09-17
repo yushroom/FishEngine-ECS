@@ -1,4 +1,7 @@
-#include <FishEngine/ECS.hpp>
+#include <FishEngine/ECS/Component.hpp>
+#include <FishEngine/ECS/GameObject.hpp>
+#include <FishEngine/ECS/Scene.hpp>
+#include <FishEngine/ECS/System.hpp>
 #include <FishEngine/Components/Transform.hpp>
 
 using namespace FishEngine;
@@ -6,6 +9,37 @@ using namespace FishEngine;
 GameObject::GameObject(EntityID entityID, Scene* scene) : ID(entityID)
 {
 }
+
+void Scene::Start()
+{
+	std::sort(m_Systems.begin(), m_Systems.end(), [](System* a, System* b) {
+		return a->m_Priority < b->m_Priority;
+	});
+	
+	for (System* s : m_Systems)
+	{
+		s->Start();
+	}
+}
+
+void Scene::Update()
+{
+	for (System* s : m_Systems)
+	{
+		if (s->m_Enabled)
+			s->Update();
+	}
+}
+
+void Scene::PostUpdate()
+{
+	for (System* s : m_Systems)
+	{
+		s->PostUpdate();
+	}
+}
+
+
 
 GameObject* Scene::CreateGameObject()
 {

@@ -3,6 +3,7 @@
 #include <FishEngine/Components/SingletonInput.hpp>
 #include <FishEngine/Components/Transform.hpp>
 #include <FishEngine/Components/Camera.hpp>
+#include <FishEngine/ECS/Scene.hpp>
 
 #include <imgui/imgui.h>
 
@@ -39,6 +40,9 @@ struct HierarchyView
 		m_LeftMouseButtonClicked = ImGui::IsWindowHovered() && input->IsButtonPressed(FishEngine::KeyCode::MouseLeftButton);
 		
 		ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 4);
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 		
 		HierarchyNode(FishEngine::Camera::GetEditorCamera()->GetTransform());
 		for (auto t : scene->m_RootTransforms)
@@ -46,7 +50,7 @@ struct HierarchyView
 			HierarchyNode(t);
 		}
 		
-		ImGui::PopStyleVar();
+		ImGui::PopStyleVar(4);
 		
 		m_ScrollToSelected = false;
 		selectedLeft = false;

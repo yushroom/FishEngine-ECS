@@ -3,7 +3,7 @@
 #include <FishEngine/ECS.hpp>
 #include <FishEngine/Gizmos.hpp>
 #include <FishEngine/Components/Camera.hpp>
-
+#include <FishEngine/ECS/Scene.hpp>
 #include <FishEditor/Components/SingletonSelection.hpp>
 
 namespace FishEditor

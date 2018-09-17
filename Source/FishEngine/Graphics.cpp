@@ -1,5 +1,5 @@
-#include "FishEngine/Graphics.hpp"
-
+#include <FishEngine/Graphics.hpp>
+#include <FishEngine/ECS/Scene.hpp>
 #include <FishEngine/Components/SingletonRenderState.hpp>
 #include <FishEngine/Engine.hpp>
 #include <FishEngine/Mesh.hpp>

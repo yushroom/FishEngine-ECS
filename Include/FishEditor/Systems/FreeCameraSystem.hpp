@@ -1,6 +1,6 @@
 #pragma once
 
-#include <FishEngine/ECS.hpp>
+#include <FishEngine/ECS/System.hpp>
 #include <FishEditor/Components/FreeCamera.hpp>
 
 namespace FishEngine

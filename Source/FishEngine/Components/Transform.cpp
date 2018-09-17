@@ -1,4 +1,6 @@
 #include <FishEngine/Components/Transform.hpp>
+#include <FishEngine/ECS/GameObject.hpp>
+#include <FishEngine/ECS/Scene.hpp>
 #include <cassert>
 
 using namespace FishEngine;

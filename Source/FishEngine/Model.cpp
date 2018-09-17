@@ -4,6 +4,8 @@
 #include <FishEngine/Components/Renderable.hpp>
 #include <FishEngine/Components/Transform.hpp>
 #include <FishEngine/Material.hpp>
+#include <FishEngine/ECS/GameObject.hpp>
+#include <FishEngine/ECS/Scene.hpp>
 
 #define TINYGLTF_NO_STB_IMAGE
 #define TINYGLTF_NO_STB_IMAGE_WRITE

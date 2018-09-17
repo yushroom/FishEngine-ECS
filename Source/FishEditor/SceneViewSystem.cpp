@@ -7,6 +7,7 @@
 #include <FishEngine/Components/SingletonInput.hpp>
 #include <FishEngine/Graphics.hpp>
 #include <FishEngine/Shader.hpp>
+#include <FishEngine/ECS/Scene.hpp>
 
 #include <FishEditor/Components/SingletonSelection.hpp>
 

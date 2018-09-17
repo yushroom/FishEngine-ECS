@@ -1,7 +1,9 @@
 #pragma once
 
-#include "../ECS.hpp"
+#include "../ECS/SingletonSystem.hpp"
 #include "../Screen.hpp"
+#include "../Math/Vector2.hpp"
+#include "../Math/Vector3.hpp"
 
 // see: https://github.com/Unity-Technologies/UnityCsReference/blob/master/Runtime/Export/KeyCode.cs
 

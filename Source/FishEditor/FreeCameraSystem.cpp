@@ -3,6 +3,7 @@
 #include <FishEngine/Components/SingletonInput.hpp>
 #include <FishEditor/Components/SingletonSelection.hpp>
 #include <FishEditor/Systems/SceneViewSystem.hpp>
+#include <FishEngine/ECS/Scene.hpp>
 
 using namespace FishEditor;
 using namespace FishEngine;

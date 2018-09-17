@@ -1,6 +1,7 @@
 #pragma once
 
-#include <FishEngine/ECS.hpp>
+#include <FishEngine/ECS/Component.hpp>
+#include <FishEngine/Math/Vector3.hpp>
 
 namespace FishEditor
 {

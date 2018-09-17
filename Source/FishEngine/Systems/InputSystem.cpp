@@ -1,4 +1,5 @@
 #include <FishEngine/Systems/InputSystem.hpp>
+#include <FishEngine/ECS/Scene.hpp>
 
 using namespace FishEngine;
 

@@ -35,6 +35,7 @@
 
 namespace FishEngine
 {
+	using EntityID = uint32_t;
 	class Vector3;
 	class Vector4;
 	class Ray;

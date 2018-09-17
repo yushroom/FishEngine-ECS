@@ -1,5 +1,5 @@
 #pragma once
-#include <FishEngine/ECS.hpp>
+#include <FishEngine/ECS/SingletonSystem.hpp>
 
 namespace FishEditor
 {

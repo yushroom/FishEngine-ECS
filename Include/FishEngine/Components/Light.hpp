@@ -1,5 +1,6 @@
 #pragma once
-#include "FishEngine/ECS.hpp"
+
+#include "../ECS/Component.hpp"
 
 using namespace FishEngine;
 
