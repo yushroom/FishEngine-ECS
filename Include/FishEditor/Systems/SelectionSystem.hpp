@@ -4,7 +4,7 @@
 
 namespace FishEditor
 {
-	class SelectionSystem : public FishEngine::ISystem
+	class SelectionSystem : public FishEngine::System
 	{
 		SYSTEM(SelectionSystem);
 	public:

@@ -30,7 +30,7 @@ union Params
 };
 
 
-class PickingSystem : public ISystem
+class PickingSystem : public System
 {
 	static constexpr int ID_DIM = 4;	// Size of the ID buffer
 public:

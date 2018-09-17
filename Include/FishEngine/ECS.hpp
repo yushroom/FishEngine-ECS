@@ -118,7 +118,7 @@ namespace FishEngine
 	};
 
 
-	class ISystem
+	class System
 	{
 		friend Scene;
 	public:
@@ -133,7 +133,7 @@ namespace FishEngine
 		
 		virtual std::type_index GetTypeIndex() = 0;
 
-		constexpr static const char* CLASS_NAME = "ISystem";
+		constexpr static const char* CLASS_NAME = "System";
 		virtual const char* GetClassName() { return CLASS_NAME; }
 		
 		template<class T>
@@ -297,7 +297,7 @@ namespace FishEngine
 		template<class T>
 		T* AddSystem()
 		{
-			static_assert(std::is_base_of_v<ISystem, T>);
+			static_assert(std::is_base_of_v<System, T>);
 			T* system = new T();	// did you forget to add SYSTEM(T) ?
 			m_Systems.push_back(system);
 			system->m_Scene = this;
@@ -308,8 +308,8 @@ namespace FishEngine
 		template<class T>
 		T* GetSystem()
 		{
-			static_assert(std::is_base_of_v<ISystem, T>);
-			for (ISystem* s : m_Systems)
+			static_assert(std::is_base_of_v<System, T>);
+			for (System* s : m_Systems)
 			{
 				//T* t = dynamic_cast<T*>(s);
 				T* t = s->As<T>();
@@ -321,11 +321,11 @@ namespace FishEngine
 
 		void Start()
 		{
-			std::sort(m_Systems.begin(), m_Systems.end(), [](ISystem* a, ISystem* b) {
+			std::sort(m_Systems.begin(), m_Systems.end(), [](System* a, System* b) {
 				return a->m_Priority < b->m_Priority;
 			});
 
-			for (ISystem* s : m_Systems)
+			for (System* s : m_Systems)
 			{
 				s->Start();
 			}
@@ -333,7 +333,7 @@ namespace FishEngine
 		
 		void Update()
 		{
-			for (ISystem* s : m_Systems)
+			for (System* s : m_Systems)
 			{
 				if (s->m_Enabled)
 					s->Update();
@@ -342,7 +342,7 @@ namespace FishEngine
 
 		void PostUpdate()
 		{
-			for (ISystem* s : m_Systems)
+			for (System* s : m_Systems)
 			{
 				s->PostUpdate();
 			}
@@ -356,7 +356,7 @@ namespace FishEngine
 			return it->second;
 		}
 		
-		const std::vector<ISystem*>& GetSystems() const
+		const std::vector<System*>& GetSystems() const
 		{
 			return m_Systems;
 		}
@@ -370,7 +370,7 @@ namespace FishEngine
 		
 	protected:
 		std::unordered_map<EntityID, GameObject*> m_GameObjects;
-		std::vector<ISystem*> m_Systems;
+		std::vector<System*> m_Systems;
 		std::unordered_map<std::type_index, SingletonComponent*> m_SingletonComponents;
 		
 	private:

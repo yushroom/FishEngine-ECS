@@ -5,7 +5,7 @@
 namespace FishEngine
 {
 
-class RenderSystem : public ISystem
+class RenderSystem : public System
 {
 	SYSTEM(RenderSystem);
 public:

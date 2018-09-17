@@ -15,7 +15,7 @@ inline bool IsValid(const Quaternion& v)
 	return !v.hasNaNs() && !(isinf(v.x) && isinf(v.y) && isinf(v.z));
 }
 
-class AnimationSystem : public ISystem
+class AnimationSystem : public System
 {
 	SYSTEM(AnimationSystem);
 public:

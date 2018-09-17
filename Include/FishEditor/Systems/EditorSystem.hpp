@@ -5,7 +5,7 @@
 
 namespace FishEditor
 {
-	class EditorSystem : public FishEngine::ISystem
+	class EditorSystem : public FishEngine::System
 	{
 		SYSTEM(EditorSystem);
 	public:

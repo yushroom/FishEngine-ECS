@@ -11,7 +11,7 @@ namespace FishEngine
 
 namespace FishEditor
 {
-	class FreeCameraSystem : public FishEngine::ISystem
+	class FreeCameraSystem : public FishEngine::System
 	{
 		SYSTEM(FreeCameraSystem);
 	public:

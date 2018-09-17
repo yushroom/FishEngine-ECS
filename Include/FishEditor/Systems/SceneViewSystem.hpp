@@ -31,7 +31,7 @@ namespace FishEditor
 		ShadedWireframe,
 	};
 
-	class SceneViewSystem : public FishEngine::ISystem
+	class SceneViewSystem : public FishEngine::System
 	{
 		SYSTEM(SceneViewSystem);
 	public:

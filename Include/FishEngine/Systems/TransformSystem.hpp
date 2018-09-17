@@ -5,7 +5,7 @@
 namespace FishEngine
 {
 
-class TransformSystem : public ISystem
+class TransformSystem : public System
 {
 	SYSTEM(TransformSystem);
 public:

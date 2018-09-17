@@ -93,7 +93,7 @@ void EditorSystem::Draw()
 	ImGui::SetNextWindowPos(ImVec2(Screen::width - inspector_width, Screen::height / 2));
 	ImGui::SetNextWindowSize(ImVec2(inspector_width, Screen::height / 2));
 	ImGui::Begin("Systems", NULL, imgui_window_flags);
-	for (ISystem* s : m_Scene->GetSystems())
+	for (System* s : m_Scene->GetSystems())
 	{
 		ImGui::PushID((void*)s);
 		if (ImGui::CollapsingHeader(s->GetClassName(), ImGuiTreeNodeFlags_DefaultOpen))
@@ -129,13 +129,13 @@ void EditorSystem::MainMenu()
 	}
 	if (ImGui::BeginMenu("Systems"))
 	{
-		for (ISystem* s : m_GameScene->GetSystems())
+		for (System* s : m_GameScene->GetSystems())
 		{
 			ImGui::Checkbox(s->GetClassName(), &s->m_Enabled);
 			//ImGui::MenuItem(s->GetClassName(), nullptr, &s->m_Enabled);
 		}
 		ImGui::Separator();
-		for (ISystem* s : m_Scene->GetSystems())
+		for (System* s : m_Scene->GetSystems())
 		{
 			ImGui::Checkbox(s->GetClassName(), &s->m_Enabled);
 			//ImGui::MenuItem(s->GetClassName(), nullptr, &s->m_Enabled);

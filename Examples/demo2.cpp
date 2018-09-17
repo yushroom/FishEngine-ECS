@@ -23,7 +23,7 @@ public:
 	Vector3 axis = { 0, 0, 1 };
 };
 
-class RotatorSystem : public ISystem
+class RotatorSystem : public System
 {
 public:
 	void Update() override

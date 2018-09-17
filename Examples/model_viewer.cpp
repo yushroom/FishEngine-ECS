@@ -5,7 +5,7 @@
 using namespace FishEngine;
 using namespace FishEditor;
 
-class DrawSkeletonSystem : public ISystem
+class DrawSkeletonSystem : public System
 {
 	SYSTEM(DrawSkeletonSystem);
 public:

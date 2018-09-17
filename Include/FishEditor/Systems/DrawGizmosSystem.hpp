@@ -9,7 +9,7 @@
 namespace FishEditor
 {
 
-	class DrawGizmosSystem : public FishEngine::ISystem
+	class DrawGizmosSystem : public FishEngine::System
 	{
 		SYSTEM(DrawGizmosSystem);
 	public:

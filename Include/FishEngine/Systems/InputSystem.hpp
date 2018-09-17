@@ -12,7 +12,7 @@ struct KeyEvent
 };
 
 
-class InputSystem : public ISystem
+class InputSystem : public System
 {
 	SYSTEM(InputSystem);
 public:
