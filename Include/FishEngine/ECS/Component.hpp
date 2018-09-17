@@ -14,6 +14,7 @@ namespace FishEngine
 	class Transform;
 	class Scene;
 	
+	
 	class Component
 	{
 	public:
@@ -41,7 +42,6 @@ namespace FishEngine
 		virtual void OnDrawGizmos() const { }
 		virtual void OnDrawGizmosSelected() const { }
 		
-		inline Transform* GetTransform() const;
 		
 	protected:
 		Component() = default;
@@ -49,19 +49,20 @@ namespace FishEngine
 	public:
 		// temp
 		GameObject* m_GameObject = nullptr;
+		inline Transform* GetTransform() const;
 	};
 	
 	
 #define COMPONENT(T)                            \
 	protected:                                      \
-	T() = default;                              \
+		T() = default;                              \
 	private:                                        \
-	friend class FishEngine::Scene;                    \
-	friend class FishEditor::EditorSystem;					\
-	inline static std::vector<T*> components;										\
-	std::type_index GetTypeIndex() override { return std::type_index(typeid(T)); }	\
-	constexpr static const char* CLASS_NAME = #T; \
-	const char* GetClassName() override { return CLASS_NAME; }						\
-	static T* Create() { T* t = new T(); components.push_back(t); return t; }		\
+		friend class FishEngine::Scene;                    \
+		friend class FishEditor::EditorSystem;					\
+		inline static std::vector<T*> components;										\
+		std::type_index GetTypeIndex() override { return std::type_index(typeid(T)); }	\
+		constexpr static const char* CLASS_NAME = #T; \
+		const char* GetClassName() override { return CLASS_NAME; }						\
+		static T* Create() { T* t = new T(); components.push_back(t); return t; }		\
 
 }
