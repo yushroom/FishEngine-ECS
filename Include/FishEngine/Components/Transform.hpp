@@ -2,16 +2,19 @@
 
 #include "../ECS.hpp"
 
+namespace FishEngine
+{
+
 enum class Space
 {
 	World,
 	Self
 };
 
-class Transform : public ECS::Component
+class Transform : public Component
 {
 	COMPONENT(Transform);
-	friend class ::TransformSystem;
+	friend class TransformSystem;
 public:
 	virtual ~Transform() = default;
 
@@ -287,3 +290,5 @@ protected:
 
 	void MakeDirty() const;
 };
+
+}

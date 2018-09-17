@@ -6,6 +6,8 @@
 #include "MeshVertex.hpp"
 #include <vector>
 
+namespace FishEngine
+{
 
 class Gizmos : public Static
 {
@@ -41,3 +43,5 @@ public:
 	inline static Vector3 vertices[circle_vertex_count];
 	static bool s_EnableDepthTest;
 };
+
+}

@@ -1,5 +1,8 @@
 #pragma once
 
+namespace FishEngine
+{
+
 class NonCopyable
 {
 public:
@@ -22,3 +25,5 @@ class Static
 public:
     Static() = delete;
 };
+
+}

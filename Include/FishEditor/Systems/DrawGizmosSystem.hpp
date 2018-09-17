@@ -6,20 +6,25 @@
 
 #include <FishEditor/Components/SingletonSelection.hpp>
 
-class DrawGizmosSystem : public ECS::ISystem
+namespace FishEditor
 {
-	SYSTEM(DrawGizmosSystem);
-public:
-	// void OnAdded() override;
-	
-	void Update() override
+
+	class DrawGizmosSystem : public FishEngine::ISystem
 	{
-		auto selected = m_Scene->GetSingletonComponent<SingletonSelection>()->selected;
-		if (selected == nullptr)
-			return;
-		for (auto comp : selected->GetComponents())
+		SYSTEM(DrawGizmosSystem);
+	public:
+		// void OnAdded() override;
+		
+		void Update() override
 		{
-			comp->OnDrawGizmosSelected();
+			auto selected = m_Scene->GetSingletonComponent<SingletonSelection>()->selected;
+			if (selected == nullptr)
+				return;
+			for (auto comp : selected->GetComponents())
+			{
+				comp->OnDrawGizmosSelected();
+			}
 		}
-	}
-};
+	};
+
+}

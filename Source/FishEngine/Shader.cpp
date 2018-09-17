@@ -10,6 +10,8 @@
 #include <cstdio>
 #define DBG printf
 
+using namespace FishEngine;
+
 static const bgfx::Memory* loadMem(bx::FileReaderI* _reader, const char* _filePath)
 {
 	if (bx::open(_reader, _filePath) )

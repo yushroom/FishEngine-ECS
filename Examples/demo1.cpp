@@ -30,7 +30,7 @@ union Params
 };
 
 
-class PickingSystem : public ECS::ISystem
+class PickingSystem : public ISystem
 {
 	static constexpr int ID_DIM = 4;	// Size of the ID buffer
 public:
@@ -80,14 +80,6 @@ public:
 
 		m_idMaterial = new Material();
 		m_idMaterial->SetShader(m_idProgram);
-
-		// ID buffer clears to black, which represnts clicking on nothing (background)
-		bgfx::setViewClear(RENDER_PASS_ID
-			, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH
-			, 0x0000ffff
-			, 1.0f
-			, 0
-		);
 	}
 
 	void Update() override
@@ -101,7 +93,7 @@ public:
 		//auto& view = 
 		std::map<Renderable*, Vector4> colors;
 		bx::RngMwc mwc;  // Random number generator
-		m_Scene->ForEach<Renderable>([&colors, &mwc, this](ECS::GameObject* go, Renderable* r) {
+		m_Scene->ForEach<Renderable>([&colors, &mwc, this](GameObject* go, Renderable* r) {
 			Mesh* mesh = r->mesh;
 			//Material* mat = r->material;
 			uint32_t rr = mwc.gen() % 256;

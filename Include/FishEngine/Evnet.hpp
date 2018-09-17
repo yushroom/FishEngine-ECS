@@ -8,6 +8,9 @@
 #include <atomic>
 #include <cstring>
 
+namespace FishEngine
+{
+
 template <typename TFunc>
 class Event;
 
@@ -349,3 +352,5 @@ int main(int argc, char* argv[])
     t2.Event2 = nullptr;
 }
 #endif
+
+}

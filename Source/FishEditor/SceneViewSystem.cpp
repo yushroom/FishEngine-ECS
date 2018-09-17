@@ -10,6 +10,9 @@
 
 #include <FishEditor/Components/SingletonSelection.hpp>
 
+using namespace FishEditor;
+using namespace FishEngine;
+
 Material* s_color_material = nullptr;
 Vector4 s_selected_axis_color{ 1, 1, 0, 1 };
 Vector4 s_axis_colors[3] = {

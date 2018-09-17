@@ -1,8 +1,9 @@
 #pragma once
 #include "FishEngine/ECS.hpp"
 
+using namespace FishEngine;
 
-class Light : public ECS::Component
+class Light : public Component
 {
 	COMPONENT(Light);
 public:

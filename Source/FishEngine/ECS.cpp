@@ -1,7 +1,7 @@
 #include <FishEngine/ECS.hpp>
 #include <FishEngine/Components/Transform.hpp>
 
-using namespace ECS;
+using namespace FishEngine;
 
 GameObject::GameObject(EntityID entityID, Scene* scene) : ID(entityID)
 {

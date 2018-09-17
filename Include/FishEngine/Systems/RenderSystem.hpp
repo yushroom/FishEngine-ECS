@@ -2,8 +2,10 @@
 #include "FishEngine/ECS.hpp"
 #include <bgfx/bgfx.h>
 
+namespace FishEngine
+{
 
-class RenderSystem : public ECS::ISystem
+class RenderSystem : public ISystem
 {
 	SYSTEM(RenderSystem);
 public:
@@ -14,3 +16,5 @@ public:
 
 	void Draw();
 };
+
+}

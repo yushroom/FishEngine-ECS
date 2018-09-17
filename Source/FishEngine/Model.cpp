@@ -17,10 +17,12 @@
 // set this flag to converted to left handed system(lhs)
 #define LOAD_GLTF_AS_LHS 0
 
+using namespace FishEngine;
+
 struct Model
 {
-	ECS::GameObject* rootGameObject = nullptr;
-	std::vector<ECS::GameObject*> nodes;
+	GameObject* rootGameObject = nullptr;
+	std::vector<GameObject*> nodes;
 	std::vector<Mesh*> meshes;
 	std::vector<Skin*> skins;
 	std::vector<bgfx::TextureHandle> images;
@@ -465,7 +467,7 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 }
 
 
-void ImportAnimation(AnimationClip* animation, const tinygltf::Animation& anim, const tinygltf::Model& model, const std::vector<ECS::GameObject*>& gos)
+void ImportAnimation(AnimationClip* animation, const tinygltf::Animation& anim, const tinygltf::Model& model, const std::vector<GameObject*>& gos)
 {
 	//auto& anim = model.animations[0];
 	auto channelCount = anim.channels.size();
@@ -533,7 +535,7 @@ void ImportAnimation(AnimationClip* animation, const tinygltf::Animation& anim, 
 	}
 }
 
-void ImportSkin(Skin* skin, const tinygltf::Skin& gltf_skin, const tinygltf::Model& model, const std::vector<ECS::GameObject*>& gos)
+void ImportSkin(Skin* skin, const tinygltf::Skin& gltf_skin, const tinygltf::Model& model, const std::vector<GameObject*>& gos)
 {
 	skin->name = gltf_skin.name;
 	assert(gltf_skin.skeleton > 0);
@@ -662,7 +664,7 @@ bool gltfLoadImageData(tinygltf::Image *image, std::string *err, std::string *wa
 	return true;
 }
 
-ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* scene)
+GameObject* ModelUtil::FromGLTF(const std::string& filePath, Scene* scene)
 {
 	Model model;
 	//tinygltf::Model& gltf_model = model.gltfModel;
@@ -773,7 +775,7 @@ ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* sc
 	for (int nodeID = 0; nodeID < gltf_model.nodes.size(); ++nodeID)
 	{
 		auto& node = gltf_model.nodes[nodeID];
-		ECS::GameObject* go = model.nodes[nodeID];
+		GameObject* go = model.nodes[nodeID];
 		for (int childID : node.children)
 		{
 			model.nodes[childID]->GetTransform()->SetParent(go->GetTransform(), false);
@@ -847,7 +849,7 @@ ECS::GameObject* ModelUtil::FromGLTF(const std::string& filePath, ECS::Scene* sc
 	auto rootT = model.rootGameObject->GetTransform();
 	for (int nodeID : defaultScene.nodes)
 	{
-		ECS::GameObject* go = model.nodes[nodeID];
+		GameObject* go = model.nodes[nodeID];
 		assert(go->GetTransform()->GetParent() == nullptr);
 		go->GetTransform()->SetParent(rootT, false);
 	}

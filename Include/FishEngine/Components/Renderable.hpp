@@ -2,6 +2,9 @@
 #include <FishEngine/ECS.hpp>
 #include <bgfx/bgfx.h>
 
+namespace FishEngine
+{
+
 class Material;
 class Mesh;
 class Camera;
@@ -12,13 +15,13 @@ class Skin : public NonCopyable
 	//COMPONENT(Skin);
 public:
 	std::vector<Matrix4x4> inverseBindMatrices;
-	ECS::GameObject* root = nullptr;
-	std::vector<ECS::GameObject*> joints;
+	GameObject* root = nullptr;
+	std::vector<GameObject*> joints;
 	std::string name;
 };
 
 
-class Renderable : public ECS::Component
+class Renderable : public Component
 {
 	COMPONENT(Renderable);
 	
@@ -36,7 +39,7 @@ public:
 };
 
 
-class Skybox : public ECS::Component
+class Skybox : public Component
 {
 	COMPONENT(Skybox);
 public:
@@ -65,3 +68,6 @@ struct DrawCall
 	uint64_t state = 0;
 	Matrix4x4 modelMatrix;
 };
+	
+
+}

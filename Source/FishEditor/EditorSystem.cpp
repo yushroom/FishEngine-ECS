@@ -19,6 +19,8 @@
 constexpr float main_menu_bar_height = 24;
 constexpr float main_tool_bar_height = 40;
 
+using namespace FishEditor;
+using namespace FishEngine;
 
 void EditorSystem::OnAdded()
 {

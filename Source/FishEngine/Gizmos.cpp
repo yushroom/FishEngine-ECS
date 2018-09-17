@@ -7,6 +7,7 @@
 #include <FishEngine/bgfxHelper.hpp>
 #include <FishEngine/Render/RenderViewType.hpp>
 
+using namespace FishEngine;
 
 void Gizmos::StaticInit()
 {

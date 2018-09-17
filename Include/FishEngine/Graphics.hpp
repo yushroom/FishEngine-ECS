@@ -6,6 +6,8 @@
 
 #include <bgfx/bgfx.h>
 
+namespace FishEngine
+{
 
 class Mesh;
 class Material;
@@ -17,3 +19,5 @@ public:
 
 	static void DrawMesh2(Mesh* mesh, const Matrix4x4& matrix, Material* material, uint64_t state, bgfx::ViewId id=0, int submeshID = -1);
 };
+
+}

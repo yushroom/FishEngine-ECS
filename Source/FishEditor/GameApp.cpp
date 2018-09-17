@@ -33,6 +33,9 @@
 #include <thread>
 
 
+using namespace FishEditor;
+using namespace FishEngine;
+
 static void* glfwNativeWindowHandle(GLFWwindow* _window)
 {
 #	if BX_PLATFORM_LINUX || BX_PLATFORM_BSD
@@ -217,8 +220,8 @@ void GameApp::Init()
 
 	glfwSwapInterval(1);
 
-	m_Scene = new ECS::Scene();
-	ECS::Scene::s_Current = m_Scene;
+	m_Scene = new Scene();
+	Scene::s_Current = m_Scene;
 	m_Scene->AddSystem<InputSystem>();
 	auto rs = m_Scene->AddSystem<RenderSystem>();
 	rs->m_Priority = 1000;
@@ -233,7 +236,7 @@ void GameApp::Init()
 		s->m_Priority = 998;
 	}
 
-	m_EditorScene = new ECS::Scene();
+	m_EditorScene = new Scene();
 	m_EditorScene->AddSystem<InputSystem>();
 	auto es = m_EditorScene->AddSystem<EditorSystem>();
 	es->m_GameScene = m_Scene;

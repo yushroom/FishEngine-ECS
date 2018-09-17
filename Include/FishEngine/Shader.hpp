@@ -4,6 +4,9 @@
 
 #include <bgfx/bgfx.h>
 
+namespace FishEngine
+{
+
 class Shader : public Object
 {
 	friend class ShaderUtil;
@@ -25,3 +28,5 @@ class ShaderUtil : public Static
 public:
 	static Shader* Compile(const std::string& vs_path, const std::string& fs_path);
 };
+
+}

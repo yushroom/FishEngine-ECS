@@ -3,6 +3,9 @@
 #include <FishEngine/Components/Camera.hpp>
 #include <FishEngine/Mesh.hpp>
 
+namespace FishEngine
+{
+
 class CameraFrustumCulling
 {
 public:
@@ -36,3 +39,4 @@ private:
     Bounds box_ndc;
 };
 
+}

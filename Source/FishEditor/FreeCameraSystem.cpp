@@ -4,15 +4,18 @@
 #include <FishEditor/Components/SingletonSelection.hpp>
 #include <FishEditor/Systems/SceneViewSystem.hpp>
 
+using namespace FishEditor;
+using namespace FishEngine;
+
 void FreeCameraSystem::Update()
 {
 	SingletonInput* input = m_Scene->GetSingletonComponent<SingletonInput>();
-	m_Scene->ForEach<FreeCamera>([this, input](ECS::GameObject* go, FreeCamera* data) {
+	m_Scene->ForEach<FreeCamera>([this, input](GameObject* go, FreeCamera* data) {
 		UpdateCameraTransform(input, go, data);
 	});
 }
 
-void FreeCameraSystem::UpdateCameraTransform(SingletonInput* input, ECS::GameObject* cameraGO, FreeCamera* data)
+void FreeCameraSystem::UpdateCameraTransform(SingletonInput* input, GameObject* cameraGO, FreeCamera* data)
 {
 	Transform* t = cameraGO->GetTransform();
 	

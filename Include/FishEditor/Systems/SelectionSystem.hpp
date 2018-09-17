@@ -2,10 +2,13 @@
 
 #include <FishEngine/ECS.hpp>
 
-class SelectionSystem : public ECS::ISystem
+namespace FishEditor
 {
-	SYSTEM(SelectionSystem);
-public:
+	class SelectionSystem : public FishEngine::ISystem
+	{
+		SYSTEM(SelectionSystem);
+	public:
 
-	void OnAdded() override;
-};
+		void OnAdded() override;
+	};
+}

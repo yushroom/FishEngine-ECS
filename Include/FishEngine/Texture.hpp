@@ -4,6 +4,12 @@
 #include <bgfx/bgfx.h>
 #include <bimg/bimg.h>
 
+#include "Assets.hpp"
+#include "Object.hpp"
+
+
+namespace FishEngine
+{
 
 class TextureUtils : public Static
 {
@@ -24,9 +30,6 @@ bgfx::TextureHandle loadTexture2(void* data, uint32_t size,
 								 bimg::Orientation::Enum* _orientation = nullptr
 								 );
 
-#include "Assets.hpp"
-#include "Object.hpp"
-
 class Texture : public Object
 {
 public:
@@ -37,3 +40,6 @@ public:
 	}
 	inline static bgfx::TextureHandle s_WhiteTexture;
 };
+
+
+}

@@ -3,6 +3,7 @@
 #include <FishEngine/Components/Transform.hpp>
 #include <FishEngine/Mesh.hpp>
 
+using namespace FishEngine;
 
 void Renderable::OnDrawGizmosSelected() const
 {

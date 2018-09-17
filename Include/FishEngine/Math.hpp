@@ -10,12 +10,12 @@
 #include "Math/Frustum.hpp"
 #include "Math/Mathf.hpp"
 
-using FishEngine::Vector2;
-using FishEngine::Vector3;
-using FishEngine::Vector4;
-using FishEngine::Quaternion;
-using FishEngine::Matrix4x4;
-using FishEngine::Bounds;
-using FishEngine::Ray;
-using FishEngine::Frustum;
-using FishEngine::Mathf;
+//using FishEngine::Vector2;
+//using FishEngine::Vector3;
+//using FishEngine::Vector4;
+//using FishEngine::Quaternion;
+//using FishEngine::Matrix4x4;
+//using FishEngine::Bounds;
+//using FishEngine::Ray;
+//using FishEngine::Frustum;
+//using FishEngine::Mathf;

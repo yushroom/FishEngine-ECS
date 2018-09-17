@@ -14,6 +14,8 @@ constexpr int imgui_window_flags = 0
 	| ImGuiWindowFlags_NoFocusOnAppearing
 ;
 
+namespace FishEditor
+{
 
 
 struct HierarchyView
@@ -27,20 +29,24 @@ struct HierarchyView
 //		m_ScrollToSelected = false;
 	}
 	
-	void Draw(ECS::Scene* gameScene, SingletonInput* input)
+	void Draw(FishEngine::Scene* gameScene, FishEngine::SingletonInput* input)
 	{
 		this->scene = gameScene;
 		this->input = input;
 		Reset();
 		
 		ImGui::Begin("Hierarchy", NULL, imgui_window_flags);
-		m_LeftMouseButtonClicked = ImGui::IsWindowHovered() && input->IsButtonPressed(KeyCode::MouseLeftButton);
+		m_LeftMouseButtonClicked = ImGui::IsWindowHovered() && input->IsButtonPressed(FishEngine::KeyCode::MouseLeftButton);
 		
-		HierarchyNode(Camera::GetEditorCamera()->GetTransform());
+		ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 4);
+		
+		HierarchyNode(FishEngine::Camera::GetEditorCamera()->GetTransform());
 		for (auto t : scene->m_RootTransforms)
 		{
 			HierarchyNode(t);
 		}
+		
+		ImGui::PopStyleVar();
 		
 		m_ScrollToSelected = false;
 		selectedLeft = false;
@@ -56,17 +62,17 @@ struct HierarchyView
 			int count = hierarchyList.size();
 //			printf("%d\n", count);
 			bool keyDown = false;
-			if (__IsKeyDown(KeyCode::DownArrow))
+			if (__IsKeyDown(FishEngine::KeyCode::DownArrow))
 			{
 				idx++;
 				keyDown = true;
 			}
-			else if (__IsKeyDown(KeyCode::UpArrow))
+			else if (__IsKeyDown(FishEngine::KeyCode::UpArrow))
 			{
 				idx--;
 				keyDown = true;
 			}
-			else if (__IsKeyDown(KeyCode::LeftArrow))
+			else if (__IsKeyDown(FishEngine::KeyCode::LeftArrow))
 			{
 				if (is_leaf || !selectedIsOpen)
 					idx--;
@@ -74,7 +80,7 @@ struct HierarchyView
 					selectedLeft = true;
 				keyDown = true;
 			}
-			else if (__IsKeyDown(KeyCode::RightArrow))
+			else if (__IsKeyDown(FishEngine::KeyCode::RightArrow))
 			{
 				if (is_leaf || selectedIsOpen)
 					idx++;
@@ -82,7 +88,7 @@ struct HierarchyView
 					selectedRight = true;
 				keyDown = true;
 			}
-			idx = Mathf::Clamp(idx, 0, count-1);
+			idx = FishEngine::Mathf::Clamp(idx, 0, count-1);
 			selected = hierarchyList[idx];
 			
 			if (keyDown)
@@ -101,7 +107,7 @@ struct HierarchyView
 	}
 	
 	
-	void HierarchyNode(Transform* t)
+	void HierarchyNode(FishEngine::Transform* t)
 	{
 		hierarchyList.push_back(t);
 		auto name = t->m_GameObject->name;
@@ -149,19 +155,19 @@ struct HierarchyView
 	};
 	
 	
-	Transform* selected = nullptr;
+	FishEngine::Transform* selected = nullptr;
 
 private:
 	
-	inline bool __IsKeyDown(KeyCode key)
+	inline bool __IsKeyDown(FishEngine::KeyCode key)
 	{
 		return input->IsButtonPressed(key) ||
 			(input->GetButtonHeldTime(key) >= c_KeyTimeStep && timeSinceLastKey >= c_KeyTimeStep);
 	}
 	
-	ECS::Scene* scene = nullptr;
-	SingletonInput* input = nullptr;
-	std::vector<Transform*> hierarchyList;
+	FishEngine::Scene* scene = nullptr;
+	FishEngine::SingletonInput* input = nullptr;
+	std::vector<FishEngine::Transform*> hierarchyList;
 	bool m_LeftMouseButtonClicked = false;
 	bool selectedLeft = false;
 	bool selectedRight = false;
@@ -172,3 +178,5 @@ private:
 	float timeSinceLastKey = c_KeyTimeStep;
 	static constexpr float c_KeyTimeStep = 0.1f;
 };
+	
+}

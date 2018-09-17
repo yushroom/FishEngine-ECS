@@ -1,6 +1,8 @@
 #pragma once
 #include <bgfx/bgfx.h>
 
+namespace FishEngine
+{
 
 enum class RenderViewType : bgfx::ViewId
 {
@@ -13,3 +15,5 @@ enum class RenderViewType : bgfx::ViewId
 	SceneGizmos = 3,
 	Picking 	= 4,
 };
+	
+}

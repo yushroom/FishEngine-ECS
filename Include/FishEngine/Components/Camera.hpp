@@ -6,13 +6,16 @@
 
 #include <bx/math.h>
 
+namespace FishEngine
+{
+
 enum class CameraType
 {
 	Game,
 	Editor
 };
 
-class Camera : public ECS::Component
+class Camera : public Component
 {
 	COMPONENT(Camera);
 public:
@@ -135,3 +138,5 @@ private:
 	
 	mutable Matrix4x4 	m_ProjectionMatrix;
 };
+
+}

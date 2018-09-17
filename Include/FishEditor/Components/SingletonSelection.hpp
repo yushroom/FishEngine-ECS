@@ -1,9 +1,14 @@
 #pragma once
 #include <FishEngine/ECS.hpp>
 
-class SingletonSelection : ECS::SingletonComponent
+namespace FishEditor
 {
-	SINGLETON_COMPONENT(SingletonSelection);
-public:
-	ECS::GameObject* selected = nullptr;
-};
+
+	class SingletonSelection : FishEngine::SingletonComponent
+	{
+		SINGLETON_COMPONENT(SingletonSelection);
+	public:
+		FishEngine::GameObject* selected = nullptr;
+	};
+
+}

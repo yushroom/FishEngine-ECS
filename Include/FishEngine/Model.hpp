@@ -5,18 +5,18 @@
 #include <vector>
 #include <string>
 
-class Mesh;
-class Skin;
-
-namespace ECS
+namespace FishEngine
 {
+	
+	class Mesh;
+	class Skin;
 	class GameObject;
 	class Scene;
+
+	class ModelUtil : public Static
+	{
+	public:
+		static GameObject* FromGLTF(const std::string& filePath, Scene* scene);
+	};
+
 }
-
-class ModelUtil : public Static
-{
-public:
-	static ECS::GameObject* FromGLTF(const std::string& filePath, ECS::Scene* scene);
-};
-

@@ -10,6 +10,8 @@
 #include <FishEngine/Texture.hpp>
 #include <FishEngine/bgfxHelper.hpp>
 
+using namespace FishEngine;
+
 std::string ReadFileAsString(const std::string &path)
 {
 //	assert(fs::exists(path));

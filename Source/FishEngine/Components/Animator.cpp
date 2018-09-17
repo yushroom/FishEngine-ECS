@@ -1,5 +1,7 @@
 #include <FishEngine/Components/Animator.hpp>
 
+using namespace FishEngine;
+
 Quaternion AnimationCurve::SampleQuat(float time, const Quaternion& initValue)
 {
 	if (input.empty())

@@ -7,6 +7,9 @@
 #include <string>
 #include "Math.hpp"
 
+namespace FishEngine
+{
+
 struct MaterialProperties
 {
 	std::map<std::string, Vector4> vec4s;
@@ -40,3 +43,5 @@ public:
 	std::map<std::string, std::pair<bgfx::UniformHandle, bgfx::UniformInfo>> m_UniformInfos;
 	MaterialProperties m_MaterialProperties;
 };
+	
+}

@@ -2,6 +2,9 @@
 
 #include <FishEngine/Components/Animator.hpp>
 
+namespace FishEngine
+{
+
 inline bool IsValid(const Vector3& v)
 {
 	return !v.hasNaNs() && !(isinf(v.x) && isinf(v.y) && isinf(v.z));
@@ -12,7 +15,7 @@ inline bool IsValid(const Quaternion& v)
 	return !v.hasNaNs() && !(isinf(v.x) && isinf(v.y) && isinf(v.z));
 }
 
-class AnimationSystem : public ECS::ISystem
+class AnimationSystem : public ISystem
 {
 	SYSTEM(AnimationSystem);
 public:
@@ -23,7 +26,7 @@ public:
 	void Update() override
 	{
 		//float time = glfwGetTime();
-		m_Scene->ForEach<Animator>([](ECS::GameObject* go, Animator* animator)
+		m_Scene->ForEach<Animator>([](GameObject* go, Animator* animator)
 		{
 			auto& tt = animator->m_LocalTimer;
 			tt += 0.01667f;
@@ -60,3 +63,5 @@ public:
 		});
 	}
 };
+
+}

@@ -2,6 +2,9 @@
 
 #include "ClassDef.hpp"
 
+namespace FishEngine
+{
+
 class Screen : public Static
 {
 public:
@@ -20,3 +23,5 @@ public:
 	inline static int width = 16;
 	inline static int height = 16;
 };
+
+}

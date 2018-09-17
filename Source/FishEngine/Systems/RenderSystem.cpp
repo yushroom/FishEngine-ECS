@@ -14,6 +14,7 @@
 #include <FishEngine/Components/Animator.hpp>
 #include <FishEngine/Render/CameraFrustumCulling.hpp>
 
+using namespace FishEngine;
 
 void RenderSystem::OnAdded()
 {
@@ -99,7 +100,7 @@ void RenderSystem::Draw()
 	// draw skybox first
 	auto old_state = renderState->m_State;
 	renderState->m_State = BGFX_STATE_CULL_CW | BGFX_STATE_WRITE_MASK | BGFX_STATE_DEPTH_TEST_LESS;
-	m_Scene->ForEach<Skybox>([cameraPos](ECS::GameObject* go, Skybox* skybox)
+	m_Scene->ForEach<Skybox>([cameraPos](GameObject* go, Skybox* skybox)
 	{
 		auto mat = Matrix4x4::TRS(Vector3(cameraPos[0], cameraPos[1], cameraPos[2]), Quaternion::identity, Vector3::one*100);
 		Graphics::DrawMesh(Mesh::Sphere, mat, skybox->m_skyboxMaterial);
@@ -109,7 +110,7 @@ void RenderSystem::Draw()
 #if 1
 	// CPU skinning
 	
-	m_Scene->ForEach<Renderable>([](ECS::GameObject* go, Renderable* r)
+	m_Scene->ForEach<Renderable>([](GameObject* go, Renderable* r)
 	{
 		if (r == nullptr || !r->m_Enabled)
 		{
@@ -171,7 +172,7 @@ void RenderSystem::Draw()
 
 
 #if 1
-	m_Scene->ForEach<Renderable>([&culling, renderState](ECS::GameObject* go, Renderable* rend)
+	m_Scene->ForEach<Renderable>([&culling, renderState](GameObject* go, Renderable* rend)
 	{
 		if (rend == nullptr || !rend->m_Enabled || rend->mesh == nullptr)
 			return;

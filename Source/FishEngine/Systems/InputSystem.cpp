@@ -1,5 +1,6 @@
 #include <FishEngine/Systems/InputSystem.hpp>
 
+using namespace FishEngine;
 
 void InputSystem::OnAdded()
 {

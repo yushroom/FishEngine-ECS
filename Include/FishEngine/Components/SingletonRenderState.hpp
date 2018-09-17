@@ -1,9 +1,12 @@
 #pragma once
 #include "../ECS.hpp"
 
-class SingletonRenderState : public ECS::SingletonComponent
+namespace FishEngine
 {
-    friend class ECS::Scene;
+
+class SingletonRenderState : public SingletonComponent
+{
+    friend class Scene;
     friend class RenderSystem;
 public:
     uint64_t GetState() const { return m_State; }
@@ -27,4 +30,6 @@ inline SingletonRenderState::SingletonRenderState()
     m_UniformLightDir = bgfx::createUniform("lightDir", bgfx::UniformType::Vec4);
     m_UniformCameraPos = bgfx::createUniform("CameraPos", bgfx::UniformType::Vec4);
     m_UniformJointMatrix = bgfx::createUniform("u_jontMatrix", bgfx::UniformType::Vec4, 128);
+}
+
 }

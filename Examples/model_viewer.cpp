@@ -2,14 +2,16 @@
 #include <FishEditor.hpp>
 #include <GLFW/glfw3.h>
 
+using namespace FishEngine;
+using namespace FishEditor;
 
-class DrawSkeletonSystem : public ECS::ISystem
+class DrawSkeletonSystem : public ISystem
 {
 	SYSTEM(DrawSkeletonSystem);
 public:
 	void Update() override
 	{
-		m_Scene->ForEach<Renderable>([](ECS::GameObject* go, Renderable* rend)
+		m_Scene->ForEach<Renderable>([](GameObject* go, Renderable* rend)
 		{
 			if (rend->skin == nullptr)
 				return;
@@ -58,7 +60,7 @@ inline std::string GetglTFSample(const std::string& name)
 		+ name + "/glTF-Binary/" + name + ".glb";
 }
 
-class ModelViewer : public GameApp
+class ModelViewer : public FishEditor::GameApp
 {
 public:
 	void Start() override

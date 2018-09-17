@@ -2,45 +2,49 @@
 
 #include <FishEngine/ECS.hpp>
 
-enum class TransformToolType
+namespace FishEditor
 {
-	None,
-	Translate,
-	Rotate,
-	Scale,
-};
+	enum class TransformToolType
+	{
+		None,
+		Translate,
+		Rotate,
+		Scale,
+	};
 
-enum class TransformPivot
-{
-	Pivot,
-	Center,
-};
+	enum class TransformPivot
+	{
+		Pivot,
+		Center,
+	};
 
-enum class TransformSpace
-{
-	Global,
-	Local,
-};
+	enum class TransformSpace
+	{
+		Global,
+		Local,
+	};
 
-enum class ShadingMode
-{
-	Shaded,
-	Wireframe,
-	ShadedWireframe,
-};
+	enum class ShadingMode
+	{
+		Shaded,
+		Wireframe,
+		ShadedWireframe,
+	};
 
-class SceneViewSystem : public ECS::ISystem
-{
-	SYSTEM(SceneViewSystem);
-public:
-	void OnAdded() override;
-	//void Update() override;
+	class SceneViewSystem : public FishEngine::ISystem
+	{
+		SYSTEM(SceneViewSystem);
+	public:
+		void OnAdded() override;
+		//void Update() override;
 
-	void DrawGizmos();
+		void DrawGizmos();
 
-	bool m_EnableTransform = true;
-	TransformToolType m_transformToolType = TransformToolType::Translate;
-	TransformPivot m_transformPivot = TransformPivot::Center;
-	TransformSpace m_transformSpace = TransformSpace::Global;
+		bool m_EnableTransform = true;
+		TransformToolType m_transformToolType = TransformToolType::Translate;
+		TransformPivot m_transformPivot = TransformPivot::Center;
+		TransformSpace m_transformSpace = TransformSpace::Global;
 
-};
+	};
+
+}

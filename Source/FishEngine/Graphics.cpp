@@ -8,12 +8,14 @@
 
 //#include "FishEngine/GameApp.hpp"
 
+using namespace FishEngine;
+
 void Graphics::DrawMesh(Mesh* mesh, const Matrix4x4& matrix, Material* material, bgfx::ViewId id, int submeshID)
 {
 	if (mesh == nullptr || material == nullptr)
 		return;
 
-	auto state = ECS::Scene::s_Current->GetSingletonComponent<SingletonRenderState>()->GetState();
+	auto state = Scene::s_Current->GetSingletonComponent<SingletonRenderState>()->GetState();
 	
 	Graphics::DrawMesh2(mesh, matrix, material, state, id, submeshID);
 }

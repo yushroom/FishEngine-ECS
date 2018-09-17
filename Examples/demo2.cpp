@@ -14,7 +14,7 @@
 
 const double PI = std::acos(-1);
 
-class Rotator : public ECS::Component
+class Rotator : public Component
 {
 	COMPONENT(Rotator)
 public:
@@ -23,13 +23,13 @@ public:
 	Vector3 axis = { 0, 0, 1 };
 };
 
-class RotatorSystem : public ECS::ISystem
+class RotatorSystem : public ISystem
 {
 public:
 	void Update() override
 	{
 		//double time = glfwGetTime();
-		m_Scene->ForEach<Rotator>([](ECS::GameObject* go, Rotator* rot){
+		m_Scene->ForEach<Rotator>([](GameObject* go, Rotator* rot){
 			auto t = go->GetTransform();
 			auto parent = t->GetParent();
 			if (parent != nullptr)

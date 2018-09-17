@@ -8,6 +8,7 @@
 #include <cstdio>
 #define DBG printf
 
+using namespace FishEngine;
 
 bx::DefaultAllocator s_allocator;
 
@@ -52,7 +53,7 @@ static void imageReleaseCb(void* _ptr, void* _userData)
 
 
 
-bgfx::TextureHandle loadTexture2(void* data, uint32_t size,
+bgfx::TextureHandle FishEngine::loadTexture2(void* data, uint32_t size,
 								const char* _filePath,
 								uint32_t _flags,
 //								uint8_t _skip,

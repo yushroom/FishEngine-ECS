@@ -3,6 +3,9 @@
 #include "../ECS.hpp"
 #include <cassert>
 
+namespace FishEngine
+{
+
 enum class AnimationCurveType
 {
 	Translation,
@@ -14,7 +17,7 @@ enum class AnimationCurveType
 struct AnimationCurve
 {
 	AnimationCurveType type;
-	ECS::GameObject* node = nullptr;
+	GameObject* node = nullptr;
 	std::vector<float> input;
 	std::vector<float> output;
 
@@ -36,7 +39,7 @@ public:
 	float length = 0;
 };
 
-class Animator : public ECS::Component
+class Animator : public Component
 {
 	COMPONENT(Animator);
 public:
@@ -52,3 +55,5 @@ public:
 	int m_CurrentClipIndex = -1;
 	float m_LocalTimer = 0;
 };
+	
+}

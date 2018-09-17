@@ -2,14 +2,16 @@
 #include <FishEngine/ECS.hpp>
 #include <FishEngine/Components/Transform.hpp>
 
+namespace FishEngine
+{
 
-class TransformSystem : public ECS::ISystem
+class TransformSystem : public ISystem
 {
 	SYSTEM(TransformSystem);
 public:
 	void Update() override
 	{
-	//	m_Scene->All([this](ECS::GameObject* go){
+	//	m_Scene->All([this](GameObject* go){
 	//		Transform* t = go->GetTransform();
 	//		Transform* parent = t->GetParent();
 	//		t->m_LocalToWorldMatrix = Matrix4x4::TRS(t->m_, t->rotation, t->scale);
@@ -20,3 +22,5 @@ public:
 	//	});
 	}
 };
+
+}

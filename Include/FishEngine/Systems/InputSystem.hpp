@@ -2,6 +2,8 @@
 #include <FishEngine/ECS.hpp>
 #include <FishEngine/Components/SingletonInput.hpp>
 
+namespace FishEngine
+{
 
 struct KeyEvent
 {
@@ -10,7 +12,7 @@ struct KeyEvent
 };
 
 
-class InputSystem : public ECS::ISystem
+class InputSystem : public ISystem
 {
 	SYSTEM(InputSystem);
 public:
@@ -29,3 +31,4 @@ public:
 	void PostKeyEvent(const KeyEvent& e);
 };
 
+}

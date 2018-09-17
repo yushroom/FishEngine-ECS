@@ -1,6 +1,8 @@
 #include <FishEngine/Components/Transform.hpp>
 #include <cassert>
 
+using namespace FishEngine;
+
 Vector3 Transform::TransformPoint(const Vector3& point) const
 {
 	return GetLocalToWorldMatrix().MultiplyPoint(point);

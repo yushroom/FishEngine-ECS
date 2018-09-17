@@ -9,6 +9,9 @@
 
 #include <FishEngine/Math/IntVector.hpp>
 
+namespace FishEngine
+{
+
 struct SubMeshInfo
 {
 	int StartIndex;
@@ -78,3 +81,5 @@ public:
 	static Mesh* FromTextFile(const String & str);
 	
 };
+
+}

@@ -7,12 +7,17 @@
 #include "Engine.hpp"
 #include "Object.hpp"
 
-class Transform;
-class TransformSystem;
-class RenderSystem;
-
-namespace ECS
+namespace FishEditor
 {
+	class EditorSystem;
+}
+
+namespace FishEngine
+{
+	
+	class Transform;
+	class TransformSystem;
+	class RenderSystem;
 
 	class Scene;
 	class GameObject;
@@ -61,8 +66,8 @@ namespace ECS
 	protected:                                      \
 		T() = default;                              \
 	private:                                        \
-		friend class ECS::Scene;                    \
-		friend class EditorSystem;					\
+		friend class FishEngine::Scene;                    \
+		friend class FishEditor::EditorSystem;					\
 		inline static std::vector<T*> components;										\
 		std::type_index GetTypeIndex() override { return std::type_index(typeid(T)); }	\
 		constexpr static const char* CLASS_NAME = #T; \
@@ -156,7 +161,7 @@ namespace ECS
 	protected:                                      \
 		T() = default;                              \
 	private:                                        \
-		friend class ECS::Scene;                    \
+		friend class FishEngine::Scene;                    \
 		std::type_index GetTypeIndex() override { return std::type_index(typeid(T)); }	\
 		constexpr static const char* CLASS_NAME = #T;									\
 		const char* GetClassName() override { return CLASS_NAME; }						\
@@ -172,7 +177,7 @@ namespace ECS
 	};
 
 #define SINGLETON_COMPONENT(T) \
-	friend class ECS::Scene;
+	friend class FishEngine::Scene;
 
 
 	class Scene
@@ -375,9 +380,9 @@ namespace ECS
 
 	// inline
 
-	Transform* ECS::Component::GetTransform() const
+	Transform* Component::GetTransform() const
 	{
 		return m_GameObject->GetTransform();
 	}
 
-} // namespace ECS
+} // namespace FishEngine

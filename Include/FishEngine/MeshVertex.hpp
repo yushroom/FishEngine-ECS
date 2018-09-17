@@ -2,6 +2,9 @@
 #include "Math.hpp"
 #include <bgfx/bgfx.h>
 
+namespace FishEngine
+{
+	
 struct VertexPC
 {
 	Vector3 position;
@@ -22,3 +25,5 @@ struct PUNTVertex
 	static bgfx::VertexDecl s_P_decl;
 	inline static bgfx::VertexDecl s_PC_decl;
 };
+
+}

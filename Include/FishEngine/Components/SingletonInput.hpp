@@ -5,6 +5,15 @@
 
 // see: https://github.com/Unity-Technologies/UnityCsReference/blob/master/Runtime/Export/KeyCode.cs
 
+namespace FishEditor
+{
+	class EditorSystem;
+	class GameApp;
+}
+
+namespace FishEngine
+{
+
 enum class KeyCode
 {
 	// Not assigned (never returned as the result of a keystroke)
@@ -334,12 +343,12 @@ enum class Axis {
 };
 
 
-class SingletonInput : public ECS::SingletonComponent
+class SingletonInput : public SingletonComponent
 {
 	SINGLETON_COMPONENT(SingletonInput);
 	friend class InputSystem;
-	friend class EditorSystem;
-	friend class GameApp;
+	friend class FishEditor::EditorSystem;
+	friend class FishEditor::GameApp;
 protected:
 	SingletonInput()
 	{
@@ -391,4 +400,6 @@ inline float SingletonInput::GetButtonHeldTime(KeyCode code) const
 {
 	int icode = (int)code;
 	return m_KeyHeldTime[icode];
+}
+
 }

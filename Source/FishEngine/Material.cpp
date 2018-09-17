@@ -5,6 +5,8 @@
 #include <cassert>
 
 
+using namespace FishEngine;
+
 bool IsInernalUniform(const char* name)
 {
 	if (strcmp(name, "lightDir") == 0)
