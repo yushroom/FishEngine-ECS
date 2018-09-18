@@ -818,7 +818,7 @@ GameObject* ModelUtil::FromGLTF(const std::string& filePath, Scene* scene)
 		if (node.mesh >= 0)
 		{
 			Renderable* r = scene->GameObjectAddComponent<Renderable>(go);
-			r->mesh = model.meshes[node.mesh];
+			r->m_Mesh = model.meshes[node.mesh];
 			auto& gltf_mesh = gltf_model.meshes[node.mesh];
 //			r->material = model.materials[gltf_mesh.primitives[0].material];
 			r->m_Materials.reserve(gltf_mesh.primitives.size());
@@ -833,7 +833,7 @@ GameObject* ModelUtil::FromGLTF(const std::string& filePath, Scene* scene)
 
 			if (node.skin >= 0)
 			{
-				r->skin = model.skins[node.skin];
+				r->m_Skin = model.skins[node.skin];
 			}
 		}
 	}

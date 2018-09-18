@@ -5,11 +5,9 @@
 
 namespace FishEngine
 {
-
-class Object : public NonCopyable
-{
-public:
-	std::string name;
-};
-
+	class Object : public NonCopyable
+	{
+	public:
+		std::string name;
+	};
 }

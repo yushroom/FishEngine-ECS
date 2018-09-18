@@ -13,12 +13,12 @@ public:
 	{
 		m_Scene->ForEach<Renderable>([](GameObject* go, Renderable* rend)
 		{
-			if (rend->skin == nullptr)
+			if (rend->m_Skin == nullptr)
 				return;
 			
 			Gizmos::matrix = Matrix4x4::identity;
 			Gizmos::color = Vector4(1, 0, 0, 1);
-			for (auto* bone : rend->skin->joints)
+			for (auto* bone : rend->m_Skin->joints)
 			{
 				auto t = bone->GetTransform();
 				//Gizmos::matrix = t->GetLocalToWorldMatrix();
@@ -35,7 +35,7 @@ public:
 
 			Gizmos::matrix = Matrix4x4::identity;
 			Gizmos::color = Vector4(0, 1, 0, 1);
-			for (auto* bone : rend->skin->joints)
+			for (auto* bone : rend->m_Skin->joints)
 			{
 				auto t = bone->GetTransform();
 				auto p = t->GetParent();
@@ -96,7 +96,7 @@ public:
 			auto plane = m_Scene->CreateGameObject();
 			plane->name = "Plane";
 			auto r = m_Scene->GameObjectAddComponent<Renderable>(plane);
-			r->mesh = Mesh::Plane;
+			r->m_Mesh = Mesh::Plane;
 			auto mat = Material::Clone(Material::ColorMaterial);
 			r->m_Materials.push_back(mat);
 		}

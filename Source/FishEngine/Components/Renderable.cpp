@@ -2,6 +2,7 @@
 #include <FishEngine/Gizmos.hpp>
 #include <FishEngine/Components/Transform.hpp>
 #include <FishEngine/Mesh.hpp>
+#include <FishEngine/ECS/GameObject.hpp>
 
 using namespace FishEngine;
 
@@ -10,8 +11,8 @@ void Renderable::OnDrawGizmosSelected() const
 	// draw bounding box
 	Gizmos::color = Vector4(0, 1, 0, 1);
 	Gizmos::matrix = GetTransform()->GetLocalToWorldMatrix();
-	if (this->mesh != nullptr)
+	if (this->m_Mesh != nullptr)
 	{
-		Gizmos::DrawBounds(mesh->bounds);
+		Gizmos::DrawBounds(m_Mesh->bounds);
 	}
 }

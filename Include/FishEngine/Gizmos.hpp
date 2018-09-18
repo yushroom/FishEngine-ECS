@@ -39,7 +39,7 @@ private:
 	
 	
 public:
-	inline static constexpr int circle_vertex_count = 64;
+	static constexpr int circle_vertex_count = 64;
 	inline static Vector3 vertices[circle_vertex_count];
 	static bool s_EnableDepthTest;
 };

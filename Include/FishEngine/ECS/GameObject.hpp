@@ -8,7 +8,7 @@ namespace FishEngine
 	class Component;
 	class Transform;
 	
-	class GameObject : public Object
+	class GameObject
 	{
 		friend class Scene;
 	public:
@@ -33,7 +33,7 @@ namespace FishEngine
 		
 		Scene* GetScene() { return m_Scene; }
 		
-		//		std::string m_Name;
+		std::string name;
 		
 	protected:
 		GameObject(EntityID entityID, Scene* scene);

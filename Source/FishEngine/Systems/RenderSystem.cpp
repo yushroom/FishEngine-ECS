@@ -117,10 +117,10 @@ void RenderSystem::Draw()
 		{
 			return;
 		}
-		auto mesh = r->mesh;
+		auto mesh = r->m_Mesh;
 		if (mesh != nullptr && mesh->IsSkinned())
 		{
-			auto skin = r->skin;
+			auto skin = r->m_Skin;
 			const auto worldToObject = r->GetTransform()->GetWorldToLocalMatrix();
 			for (int i = 0; i < skin->joints.size(); ++i)
 			{
@@ -175,7 +175,7 @@ void RenderSystem::Draw()
 #if 1
 	m_Scene->ForEach<Renderable>([&culling, renderState](GameObject* go, Renderable* rend)
 	{
-		if (rend == nullptr || !rend->m_Enabled || rend->mesh == nullptr)
+		if (rend == nullptr || !rend->m_Enabled || rend->m_Mesh == nullptr)
 			return;
 
 		auto& modelMat = go->GetTransform()->GetLocalToWorldMatrix();
@@ -184,8 +184,8 @@ void RenderSystem::Draw()
 		bool visiable = true;
 		if (renderState->m_EnableFrustumCulling)
 		{
-			if (!rend->mesh->IsSkinned())
-				visiable = culling.Visiable(rend->mesh, modelMat);
+			if (!rend->m_Mesh->IsSkinned())
+				visiable = culling.Visiable(rend->m_Mesh, modelMat);
 		}
 
 #if 0
@@ -203,26 +203,26 @@ void RenderSystem::Draw()
 		if (rend->m_Materials.empty())
 		{
 			// render with error material
-			Graphics::DrawMesh(rend->mesh, modelMat, Material::ErrorMaterial);
+			Graphics::DrawMesh(rend->m_Mesh, modelMat, Material::ErrorMaterial);
 		}
 		else
 		{
-			if (rend->m_Materials.size() != rend->mesh->m_SubMeshCount)
+			if (rend->m_Materials.size() != rend->m_Mesh->m_SubMeshCount)
 			{
 				abort();	// mismatch
-				Graphics::DrawMesh(rend->mesh, modelMat, rend->m_Materials[0]);
+				Graphics::DrawMesh(rend->m_Mesh, modelMat, rend->m_Materials[0]);
 			}
 			else
 			{
 				if (rend->m_Materials.size() == 1)
 				{
-					Graphics::DrawMesh(rend->mesh, modelMat, rend->m_Materials[0]);
+					Graphics::DrawMesh(rend->m_Mesh, modelMat, rend->m_Materials[0]);
 				}
 				else
 				{
 					for (int i = 0; i < rend->m_Materials.size(); ++i)
 					{
-						Graphics::DrawMesh(rend->mesh, modelMat, rend->m_Materials[i], 0, i);
+						Graphics::DrawMesh(rend->m_Mesh, modelMat, rend->m_Materials[i], 0, i);
 					}
 				}
 			}

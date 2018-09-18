@@ -126,6 +126,9 @@ namespace FishEngine
 		{
 			return {m_FieldOfView, m_FarClipPlane, m_NearClipPlane, Screen::GetAspectRatio()};
 		}
+
+		//void Deserialize(InputArchive& archive) override;
+		//void Serialize(OutputArchive& archive) const override;
 		
 		CameraType 	m_Type = CameraType::Game;
 		

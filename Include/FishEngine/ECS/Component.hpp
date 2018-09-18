@@ -14,11 +14,14 @@ namespace FishEngine
 	class Transform;
 	class Scene;
 	
+	class InputArchive;
+	class OutputArchive;
 	
 	class Component
 	{
 	public:
 		EntityID entityID;
+		bool m_Enabled = true;
 		
 		virtual std::type_index GetTypeIndex() = 0;
 		
@@ -42,6 +45,8 @@ namespace FishEngine
 		virtual void OnDrawGizmos() const { }
 		virtual void OnDrawGizmosSelected() const { }
 		
+		virtual void Deserialize(InputArchive& archive);
+		virtual void Serialize(OutputArchive& archive) const;
 		
 	protected:
 		Component() = default;
@@ -51,8 +56,8 @@ namespace FishEngine
 		GameObject* m_GameObject = nullptr;
 		inline Transform* GetTransform() const;
 	};
-	
-	
+
+
 #define COMPONENT(T)                            \
 	protected:                                      \
 		T() = default;                              \

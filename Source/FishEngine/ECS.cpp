@@ -3,11 +3,25 @@
 #include <FishEngine/ECS/Scene.hpp>
 #include <FishEngine/ECS/System.hpp>
 #include <FishEngine/Components/Transform.hpp>
+#include <FishEngine/Serialization/Archive.hpp>
 
 using namespace FishEngine;
 
 GameObject::GameObject(EntityID entityID, Scene* scene) : ID(entityID)
 {
+}
+
+void Component::Deserialize(InputArchive& archive)
+{
+	archive.AddNVP("m_EntityID", this->entityID);
+	archive.AddNVP("m_Enabled", this->m_Enabled);
+}
+
+
+void Component::Serialize(OutputArchive& archive) const
+{
+	archive.AddNVP("m_EntityID", this->entityID);
+	archive.AddNVP("m_Enabled", this->m_Enabled);
 }
 
 void Scene::Start()

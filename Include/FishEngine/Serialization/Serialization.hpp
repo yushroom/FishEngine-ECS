@@ -1,0 +1,2 @@
+#include "../ECS/Component.hpp"
+

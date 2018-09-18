@@ -271,6 +271,10 @@ void EditorSystem::Hierarchy()
 }
 
 
+#include <FishEditor/InspectorArchive.hpp>
+
+InspectorArchive inspectorArchive;
+
 void EditorSystem::Inspector()
 {
 	ImGui::Begin("Inspector", NULL, imgui_window_flags);
@@ -285,6 +289,7 @@ void EditorSystem::Inspector()
 		{
 			if (ImGui::CollapsingHeader(comp->GetClassName(), ImGuiTreeNodeFlags_DefaultOpen))
 			{
+				comp->Serialize(inspectorArchive);
 				if (comp->Is<Transform>())
 				{
 					auto t = comp->As<Transform>();
@@ -319,18 +324,18 @@ void EditorSystem::Inspector()
 					
 //					if (r->mesh->m_SubMeshCount)
 //					ImGui::LabelText("Submesh Count", "%d", r->mesh->m_SubMeshCount);
-					ImGui::Text("Submesh Count: %d", r->mesh->m_SubMeshCount);
+					ImGui::Text("Submesh Count: %d", r->m_Mesh->m_SubMeshCount);
 //					for (auto& x : r->mesh->m_SubMeshInfos)
 //					{
 //						ImGui::Text("  %d", x.Length);
 //					}
 
-					bool skinned = r->skin != nullptr;
+					bool skinned = r->m_Skin != nullptr;
 					//ImGui::Checkbox("skinned", &skinned);
 					if (skinned)
 					{
-						auto skin = r->skin;
-						ImGui::Text("Bone Count: %d", r->skin->joints.size());
+						auto skin = r->m_Skin;
+						ImGui::Text("Bone Count: %d", r->m_Skin->joints.size());
 						ImGui::Text("Root Bone: %s", skin->root->name.c_str());
 //						for (auto bone : skin->joints)
 //						{
