@@ -18,6 +18,14 @@
     #define FE_EXPORT
 #endif
 
+
+# if defined(__FISHENGINE_REFLECTION__)
+#   define Meta(...) __attribute__((annotate(#__VA_ARGS__)))
+# else
+#   define Meta(...)
+# endif
+
+
 #include <string>
 #include <cstdint>
 #include <vector>
@@ -40,6 +48,9 @@ namespace FishEngine
 	class Vector4;
 	class Ray;
 	class Matrix4x4;
+
+	class Attribute {};
+	class NonSerializable final : public Attribute {};
 }
 
 

@@ -23,6 +23,7 @@ using namespace FishEngine;
 
 struct Model
 {
+	GLTFLoadFlags flags;
 	GameObject* rootGameObject = nullptr;
 	std::vector<GameObject*> nodes;
 	std::vector<Mesh*> meshes;
@@ -406,6 +407,7 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 {
 	uint32_t vertexCount = 0;
 	uint32_t indexCount = 0;
+	mesh->name = gltf_mesh.name;
 	mesh->m_SubMeshCount = (int)gltf_mesh.primitives.size();
 	mesh->m_SubMeshInfos.resize(mesh->m_SubMeshCount);
 	bool skinned = false;
@@ -666,8 +668,61 @@ bool gltfLoadImageData(tinygltf::Image *image, std::string *err, std::string *wa
 	return true;
 }
 
-GameObject* ModelUtil::FromGLTF(const std::string& filePath, Scene* scene)
+std::vector<Mesh*> FishEngine::ModelUtil::LoadMeshesFromGLTF(const std::string & filePath)
 {
+	Model model;
+	GLTFLoadFlags flags;
+	flags.loadCamera = false;
+	flags.loadMateirals = false;
+	flags.loadMeshes = true;
+	flags.loadNodes = false;
+	model.flags = flags;
+	//tinygltf::Model& gltf_model = model.gltfModel;
+	tinygltf::Model gltf_model;
+	tinygltf::TinyGLTF loader;
+	std::string err;
+	std::string warn;
+
+	bool ret = false;
+	if (EndsWith(filePath, ".gltf"))
+		ret = loader.LoadASCIIFromFile(&gltf_model, &err, &warn, filePath);
+	else if (EndsWith(filePath, ".glb"))
+		ret = loader.LoadBinaryFromFile(&gltf_model, &err, &warn, filePath);
+	else
+		abort();
+
+	if (!warn.empty()) {
+		printf("Warn: %s\n", warn.c_str());
+	}
+
+	if (!err.empty()) {
+		printf("Err: %s\n", err.c_str());
+		abort();
+	}
+
+	if (!ret) {
+		printf("Failed to parse glTF\n");
+		abort();
+	}
+
+	// load all meshes
+	for (int i = 0; i < gltf_model.meshes.size(); ++i)
+	{
+		Mesh* mesh = new Mesh();
+		ImportMesh(mesh, gltf_model, gltf_model.meshes[i]);
+		model.meshes.push_back(mesh);
+	}
+
+	return model.meshes;
+}
+
+GameObject* ModelUtil::FromGLTF(const std::string& filePath, const GLTFLoadFlags& flags, Scene* scene)
+{
+	if (flags.loadNodes)
+	{
+		assert(scene != nullptr);
+	}
+
 	Model model;
 	//tinygltf::Model& gltf_model = model.gltfModel;
 	tinygltf::Model gltf_model;

@@ -2,6 +2,7 @@
 
 #include "../Engine.hpp"
 #include <typeindex>
+#include "../Object.hpp"
 
 namespace FishEditor
 {
@@ -13,11 +14,8 @@ namespace FishEngine
 	class GameObject;
 	class Transform;
 	class Scene;
-	
-	class InputArchive;
-	class OutputArchive;
-	
-	class Component
+
+	class Component : public Object
 	{
 	public:
 		EntityID entityID;
@@ -45,8 +43,8 @@ namespace FishEngine
 		virtual void OnDrawGizmos() const { }
 		virtual void OnDrawGizmosSelected() const { }
 		
-		virtual void Deserialize(InputArchive& archive);
-		virtual void Serialize(OutputArchive& archive) const;
+		void Deserialize(InputArchive& archive) override;
+		void Serialize(OutputArchive& archive) const override;
 		
 	protected:
 		Component() = default;
@@ -69,5 +67,7 @@ namespace FishEngine
 		constexpr static const char* CLASS_NAME = #T; \
 		const char* GetClassName() override { return CLASS_NAME; }						\
 		static T* Create() { T* t = new T(); components.push_back(t); return t; }		\
+		void Deserialize(FishEngine::InputArchive& archive) override; \
+		void Serialize(FishEngine::OutputArchive& archive) const override;
 
 }

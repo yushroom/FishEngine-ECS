@@ -104,7 +104,7 @@ void RenderSystem::Draw()
 	m_Scene->ForEach<Skybox>([cameraPos](GameObject* go, Skybox* skybox)
 	{
 		auto mat = Matrix4x4::TRS(Vector3(cameraPos[0], cameraPos[1], cameraPos[2]), Quaternion::identity, Vector3::one*100);
-		Graphics::DrawMesh(Mesh::Sphere, mat, skybox->m_skyboxMaterial);
+		Graphics::DrawMesh(Mesh::Sphere, mat, skybox->m_SkyboxMaterial);
 	});
 	renderState->m_State = old_state;
 

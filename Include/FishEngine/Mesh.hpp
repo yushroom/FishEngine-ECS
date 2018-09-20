@@ -41,6 +41,8 @@ public:
 	inline static Mesh* Cylinder = nullptr;
 	inline static Mesh* Cone = nullptr;
 	inline static Mesh* Plane = nullptr;
+	inline static Mesh* Quad = nullptr;
+	inline static Mesh* Capsule = nullptr;
 
 	static void StaticInit();
 

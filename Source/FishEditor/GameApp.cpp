@@ -226,9 +226,9 @@ void GameApp::Init()
 	auto rs = m_Scene->AddSystem<RenderSystem>();
 	rs->m_Priority = 1000;
 
-	Mesh::StaticInit();
 	Texture::StaticInit();
 	Material::StaticInit();
+	Mesh::StaticInit();
 	Gizmos::StaticInit();
 	
 	{

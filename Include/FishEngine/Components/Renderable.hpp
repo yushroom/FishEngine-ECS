@@ -46,7 +46,7 @@ namespace FishEngine
 	{
 		COMPONENT(Skybox);
 	public:
-		Material * m_skyboxMaterial = nullptr;
+		Material * m_SkyboxMaterial = nullptr;
 	};
 
 

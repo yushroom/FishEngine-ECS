@@ -288,7 +288,10 @@ protected:
 	Transform* m_Father = nullptr;
 	int m_RootOrder = 0;
 
+	Meta(NonSerializable)
 	mutable bool m_IsDirty = true;
+
+	Meta(NonSerializable)
 	mutable Matrix4x4 m_LocalToWorldMatrix;
 //	mutable Matrix4x4 m_worldToLocalMatrix;
 

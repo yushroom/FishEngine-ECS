@@ -111,6 +111,7 @@ void Material::BindUniforms() const
 
 Material* Material::Clone(Material* mat)
 {
+	assert(mat != nullptr);
 	Material* m = new Material();
 	m->name = mat->name;
 	m->m_Shader = mat->m_Shader;

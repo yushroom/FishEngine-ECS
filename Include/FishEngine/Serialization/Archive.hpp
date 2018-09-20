@@ -6,6 +6,8 @@
 
 namespace FishEngine
 {
+	class Object;
+
 	class InputArchive
 	{
 	public:
@@ -19,8 +21,8 @@ namespace FishEngine
 		{
 			if (this->MapKey(name))
 				(*this) >> t;
-			//			else
-			//				LogWarning(std::string("skip ") + name);
+//			else
+//				LogWarning(std::string("skip ") + name);
 			this->AfterValue();
 		}
 
@@ -103,9 +105,10 @@ namespace FishEngine
 		template<class T>
 		InputArchive& operator>>(T*& t)
 		{
-			static_assert(std::is_base_of<Object, T>::value, "T must be a Object");
-			t = (T*)DeserializeObject();
-			return *this;
+			//static_assert(std::is_base_of<Object, T>::value, "T must be a Object");
+			//t = (T*)DeserializeObject();
+			//return *this;
+			abort();
 		}
 
 
@@ -128,7 +131,7 @@ namespace FishEngine
 		virtual void Deserialize(bool & t) = 0;
 		virtual void Deserialize(std::string & t) = 0;
 
-		//virtual Object* DeserializeObject() = 0;
+		virtual Object* DeserializeObject() = 0;
 
 		// Map
 		// if should skip next node, return false
@@ -254,15 +257,15 @@ namespace FishEngine
 			return *this;
 		}
 
-		//// Object*
-		//OutputArchive & operator << (Object* t)
-		//{
-		//	if (t == nullptr)
-		//		SerializeNullPtr();
-		//	else
-		//		SerializeObject(t);
-		//	return (*this);
-		//}
+		// Object*
+		OutputArchive & operator << (Object* t)
+		{
+			if (t == nullptr)
+				SerializeNullPtr();
+			else
+				SerializeObject(t);
+			return (*this);
+		}
 
 	protected:
 		void Serialize(const char* t) { Serialize(std::string(t)); };
@@ -284,7 +287,7 @@ namespace FishEngine
 		virtual void Serialize(std::string const & t) = 0;
 
 		virtual void SerializeNullPtr() = 0;	// nullptr
-		//virtual void SerializeObject(Object* t) = 0;
+		virtual void SerializeObject(Object* t) = 0;
 
 
 		// Map

@@ -60,6 +60,17 @@ inline std::string GetglTFSample(const std::string& name)
 		+ name + "/glTF-Binary/" + name + ".glb";
 }
 
+GameObject* CreateGO(Scene* scene, Mesh* mesh)
+{
+	auto go = scene->CreateGameObject();
+	go->name = "GameObject";
+	auto r = scene->GameObjectAddComponent<Renderable>(go);
+	r->m_Mesh = mesh;
+	auto mat = Material::Clone(Material::pbrMetallicRoughness);
+	r->m_Materials.push_back(mat);
+	return go;
+}
+
 class ModelViewer : public FishEditor::GameApp
 {
 public:
@@ -92,15 +103,23 @@ public:
 			go->name = "Directional Light";
 		}
 		
-		{
-			auto plane = m_Scene->CreateGameObject();
-			plane->name = "Plane";
-			auto r = m_Scene->GameObjectAddComponent<Renderable>(plane);
-			r->m_Mesh = Mesh::Plane;
-			auto mat = Material::Clone(Material::ColorMaterial);
-			r->m_Materials.push_back(mat);
-		}
-		auto rootGO = ModelUtil::FromGLTF(path, m_Scene);
+		auto plane = CreateGO(m_Scene, Mesh::Plane);
+		plane->name = "Plane";
+		auto cube = CreateGO(m_Scene, Mesh::Cube);
+		cube->name = "Cube";
+		auto sphere = CreateGO(m_Scene, Mesh::Sphere);
+		sphere->name = "Sphere";
+		auto quad = CreateGO(m_Scene, Mesh::Quad);
+		quad->name = "Quad";
+		auto cone = CreateGO(m_Scene, Mesh::Cone);
+		cone->name = "Cone";
+		auto cylinder = CreateGO(m_Scene, Mesh::Cylinder);
+		cylinder->name = "Cylinder";
+		auto capsule = CreateGO(m_Scene, Mesh::Capsule);
+		capsule->name = "Capsule";
+
+		GLTFLoadFlags flags;
+		auto rootGO = ModelUtil::FromGLTF(path, flags, m_Scene);
 //		auto rootGO = m_Scene->CreateGameObject();
 //		auto r = m_Scene->GameObjectAddComponent<Renderable>(rootGO);
 //		r->mesh = Mesh::Cube;

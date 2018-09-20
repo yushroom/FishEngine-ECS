@@ -173,7 +173,7 @@ public:
 			skyboxMat->SetShader(m_SkyboxShader);
 			skyboxMat->SetVector("u_params", m_params.floats);
 			skyboxMat->SetTexture("s_texCube", m_tex_filtered);
-			skybox->m_skyboxMaterial = skyboxMat;
+			skybox->m_SkyboxMaterial = skyboxMat;
 			go->m_Name = "Main Camera";
 		}
 		{

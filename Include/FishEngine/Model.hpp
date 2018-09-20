@@ -13,10 +13,20 @@ namespace FishEngine
 	class GameObject;
 	class Scene;
 
+	struct GLTFLoadFlags
+	{
+		//bool asGameObject;
+		bool loadMateirals = true;
+		bool loadMeshes = true;
+		bool loadNodes = true;
+		bool loadCamera = true;
+	};
+
 	class ModelUtil : public Static
 	{
 	public:
-		static GameObject* FromGLTF(const std::string& filePath, Scene* scene);
+		static std::vector<Mesh*> LoadMeshesFromGLTF(const std::string& filePath);
+		static GameObject* FromGLTF(const std::string& filePath, const GLTFLoadFlags& flags, Scene* scene = nullptr);
 	};
 
 }

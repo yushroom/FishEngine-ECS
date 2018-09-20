@@ -16,4 +16,7 @@ namespace FishEditor
 		FishEngine::Vector3 m_OrbitCenter = FishEngine::Vector3::zero;
 	};
 
+	inline void FreeCamera::Serialize(FishEngine::OutputArchive& archive) const {}
+
+	inline void FreeCamera::Deserialize(FishEngine::InputArchive& archive) {}
 }

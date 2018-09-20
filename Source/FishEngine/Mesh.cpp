@@ -7,6 +7,8 @@
 //#include <filesystem>
 //namespace fs = std::experimental::filesystem;
 
+#include <FishEngine/Model.hpp>
+
 #include <FishEngine/Texture.hpp>
 #include <FishEngine/bgfxHelper.hpp>
 
@@ -47,12 +49,22 @@ bgfx::VertexDecl PUNTVertex::s_P_decl;
 void Mesh::StaticInit()
 {
 	PUNTVertex::StaticInit();
-	
-	Cube = MeshUtil::FromTextFile(ReadFileAsString(FISHENGINE_ROOT "Assets/Models/Cube.txt"));
-	Sphere = MeshUtil::FromTextFile(ReadFileAsString(FISHENGINE_ROOT "Assets/Models/Sphere.txt"));
-	Cylinder = MeshUtil::FromTextFile(ReadFileAsString(FISHENGINE_ROOT "Assets/Models/Cylinder.txt"));
+
+	auto meshes = ModelUtil::LoadMeshesFromGLTF(FISHENGINE_ROOT "Assets/Models/Unity2Skfb.gltf");
+	assert(meshes.size() == 6);
+
+	Quad = meshes[0];
+	Cube = meshes[1];
+	Capsule = meshes[2];
+	Cylinder = meshes[3];
+	Sphere = meshes[4];
+	Plane = meshes[5];
+
+	//Cube = MeshUtil::FromTextFile(ReadFileAsString(FISHENGINE_ROOT "Assets/Models/Cube.txt"));
+	//Sphere = MeshUtil::FromTextFile(ReadFileAsString(FISHENGINE_ROOT "Assets/Models/Sphere.txt"));
+	//Cylinder = MeshUtil::FromTextFile(ReadFileAsString(FISHENGINE_ROOT "Assets/Models/Cylinder.txt"));
 	Cone = MeshUtil::FromTextFile(ReadFileAsString(FISHENGINE_ROOT "Assets/Models/Cone.txt"));
-	Plane = MeshUtil::FromTextFile(ReadFileAsString(FISHENGINE_ROOT "Assets/Models/Plane.txt"));
+	//Plane = MeshUtil::FromTextFile(ReadFileAsString(FISHENGINE_ROOT "Assets/Models/Plane.txt"));
 }
 
 void Mesh::__Upload()

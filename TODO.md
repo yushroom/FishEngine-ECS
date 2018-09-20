@@ -1,8 +1,11 @@
 - [ ] Color
 - [ ] Picking
-- [ ] Hierarchy
+- [x] Hierarchy
 - [ ] Inspector
 - [ ] Transform Gizmos
+  - [x] translation
+  - [ ] rotaion
+  - [ ] scale
 
 
 

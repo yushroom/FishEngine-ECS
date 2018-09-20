@@ -1,5 +1,6 @@
 #include <FishEngine/Serialization/Archive.hpp>
 #include <imgui/imgui.h>
+#include <FishEngine/Object.hpp>
 
 namespace FishEditor
 {
@@ -29,8 +30,12 @@ namespace FishEditor
 		}
 		void Serialize(std::string const & t) override {}
 
-		void SerializeNullPtr() {}	// nullptr
-		//void SerializeObject(Object* t) = 0;
+		void SerializeNullPtr() override {}	// nullptr
+		void SerializeObject(FishEngine::Object* t) override
+		{
+			//t->Serialize(*this);
+			ImGui::LabelText(m_LastLabel, "%s", t->name.c_str());
+		}
 
 
 		void MapKey(const char* name) override
