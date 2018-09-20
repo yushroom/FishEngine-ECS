@@ -78,7 +78,7 @@ protected:
 };
 
 
-class TTransformGizmo : public TransformGizmo
+class TranslationTransformGizmo : public TransformGizmo
 {
 public:
 	void Update(TransformSpace space, SingletonInput* input, Camera* camera, Transform* selectedT) override
@@ -268,7 +268,7 @@ private:
 };
 
 
-class STransformGizmo : public TransformGizmo
+class ScaleTransformGizmo : public TransformGizmo
 {
 	
 };
@@ -326,7 +326,7 @@ bool RaySphereIntersect(Vector3 o, float R, const Ray& ray, float* out_t)
 }
 
 
-class RTransformGizmo : public TransformGizmo
+class RotationTransformGizmo : public TransformGizmo
 {
 public:
 	void Update(TransformSpace space, SingletonInput* input, Camera* camera, Transform* selectedT) override
@@ -374,6 +374,7 @@ public:
 	
 	void Draw()
 	{
+		auto l2w = m_SelectedT->GetLocalToWorldMatrix();
 		auto pos = m_SelectedT->GetPosition();
 		Quaternion rot;
 		Vector3 s = Vector3::one * m_Scale;
@@ -452,8 +453,8 @@ void SceneViewSystem::DrawGizmos()
 	auto camera = Camera::GetEditorCamera();
 	auto mousePos = input->GetMousePosition();
 	
-	static TTransformGizmo tg;
-	static RTransformGizmo rg;
+	static TranslationTransformGizmo tg;
+	static RotationTransformGizmo rg;
 	
 	if (m_transformToolType == TransformToolType::Translate)
 		tg.Update(m_transformSpace, input, camera, selectedT);

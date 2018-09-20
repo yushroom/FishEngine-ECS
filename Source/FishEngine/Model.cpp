@@ -632,19 +632,6 @@ Material* ImportMaterial(const tinygltf::Material& gltf_material,
 }
 
 
-void PrintHierarchy(Transform* t, int indent)
-{
-	for (int i = 0; i < indent; ++i)
-		putchar(' ');
-	printf("%s", t->m_GameObject->name.c_str());
-	printf("    local pos: %s  pos: %s", t->GetLocalPosition().ToString().c_str(), t->GetPosition().ToString().c_str());
-	putchar('\n');
-	for (auto c : t->GetChildren())
-	{
-		PrintHierarchy(c, indent + 2);
-	}
-}
-
 inline bool EndsWith(const std::string& s, const std::string& end)
 {
 	if (s.size() < end.size())
@@ -665,6 +652,13 @@ bool gltfLoadImageData(tinygltf::Image *image, std::string *err, std::string *wa
 	bgfx::TextureHandle texture = loadTexture2((void*)bytes, size, "unknown.ext");
 	assert(bgfx::isValid(texture));
 	current_model->images.push_back(texture);
+	return true;
+}
+
+bool gltfLoadImageData_empty(tinygltf::Image *image, std::string *err, std::string *warn,
+					   int req_width, int req_height, const unsigned char *bytes,
+					   int size, void *)
+{
 	return true;
 }
 
@@ -724,6 +718,7 @@ GameObject* ModelUtil::FromGLTF(const std::string& filePath, const GLTFLoadFlags
 	}
 
 	Model model;
+	model.flags = flags;
 	//tinygltf::Model& gltf_model = model.gltfModel;
 	tinygltf::Model gltf_model;
 	tinygltf::TinyGLTF loader;
@@ -732,7 +727,14 @@ GameObject* ModelUtil::FromGLTF(const std::string& filePath, const GLTFLoadFlags
 	
 	current_model = &model;
 	
-	loader.SetImageLoader(gltfLoadImageData, nullptr);
+	if (flags.loadMateirals)
+	{
+		loader.SetImageLoader(gltfLoadImageData, nullptr);
+	}
+	else
+	{
+		loader.SetImageLoader(gltfLoadImageData_empty, nullptr);
+	}
 
 	bool ret = false;
 	if (EndsWith(filePath, ".gltf"))
@@ -759,11 +761,22 @@ GameObject* ModelUtil::FromGLTF(const std::string& filePath, const GLTFLoadFlags
 	model.rootGameObject = scene->CreateGameObject();
 	model.rootGameObject->name = "Root";
 	
-	// loade all materials
-	for (auto& m : gltf_model.materials)
+	model.materials.reserve(gltf_model.materials.size());
+	if (flags.loadMateirals)
 	{
-		auto mat = ImportMaterial(m, model, gltf_model);
-		model.materials.push_back(mat);
+		// loade all materials
+		for (auto& m : gltf_model.materials)
+		{
+			auto mat = ImportMaterial(m, model, gltf_model);
+			model.materials.push_back(mat);
+		}
+	}
+	else
+	{
+		for (auto& m : gltf_model.materials)
+		{
+			model.materials.push_back(Material::ColorMaterial);
+		}
 	}
 
 	// load all meshes

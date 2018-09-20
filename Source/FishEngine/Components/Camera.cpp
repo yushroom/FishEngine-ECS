@@ -1,4 +1,4 @@
-#include <FishEngine\Components\Camera.hpp>
+#include <FishEngine/Components/Camera.hpp>
 #include <FishEngine/Components/Transform.hpp>
 #include <FishEngine/Screen.hpp>
 #include <FishEngine/Gizmos.hpp>
