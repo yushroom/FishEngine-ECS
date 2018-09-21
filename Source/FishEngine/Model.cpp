@@ -167,6 +167,7 @@ inline void RHS2LHS(Matrix4x4& m)
 }
 #endif
 
+
 void ImportPrimitive(Mesh* mesh,
 	const tinygltf::Model& model,
 	const SubMeshInfo& info,
@@ -402,6 +403,7 @@ void ImportPrimitive(Mesh* mesh,
 		}
 	}
 }
+
 
 void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_mesh)
 {
@@ -775,16 +777,52 @@ GameObject* ModelUtil::FromGLTF(const std::string& filePath, const GLTFLoadFlags
 	{
 		for (auto& m : gltf_model.materials)
 		{
-			model.materials.push_back(Material::ColorMaterial);
+			model.materials.push_back(Material::pbrMetallicRoughness);
 		}
 	}
 
+
 	// load all meshes
-	for (int i = 0; i < gltf_model.meshes.size(); ++i)
+	if (flags.loadPrimitiveAsSubMesh)
 	{
-		Mesh* mesh = new Mesh();
-		ImportMesh(mesh, gltf_model, gltf_model.meshes[i]);
-		model.meshes.push_back(mesh);
+		for (int i = 0; i < gltf_model.meshes.size(); ++i)
+		{
+			Mesh* mesh = new Mesh();
+			ImportMesh(mesh, gltf_model, gltf_model.meshes[i]);
+			model.meshes.push_back(mesh);
+		}
+	}
+	else
+	{
+		for (auto& m : gltf_model.meshes)
+		{
+			for (auto& p : m.primitives)
+			{
+				Mesh* mesh = new Mesh();
+				SubMeshInfo info;
+				int id = p.attributes["POSITION"];
+				auto& accessor = gltf_model.accessors[id];
+				info.StartIndex = 0;
+				info.VertexOffset = 0;
+				auto vertex_count = accessor.count;
+				info.Length = (uint32_t)vertex_count;
+				mesh->m_SubMeshCount = 1;
+				mesh->m_VertexCount = vertex_count;
+				mesh->m_SubMeshInfos.push_back(info);
+				mesh->m_Vertices.resize(vertex_count);
+				int index_count = 0;
+				{
+					int id = p.indices;
+					auto& accessor = gltf_model.accessors[id];
+					index_count = accessor.count;
+					mesh->m_Indices.resize(index_count);
+					mesh->m_TriangleCount = index_count / 3;
+				}
+				ImportPrimitive(mesh, gltf_model, info, p, false);
+				mesh->__Upload();
+				model.meshes.push_back(mesh);
+			}
+		}
 	}
 
 	// build node hierarchy

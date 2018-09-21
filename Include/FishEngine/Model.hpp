@@ -20,6 +20,7 @@ namespace FishEngine
 		bool loadMeshes = true;
 		bool loadNodes = true;
 		bool loadCamera = true;
+		bool loadPrimitiveAsSubMesh = true;
 	};
 
 	class ModelUtil : public Static

@@ -82,10 +82,10 @@ public:
 		//path = GetglTFSample("TextureCoordinateTest");
 //		path = GetglTFSample("Triangle");
 //		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Triangle/glTF/Triangle.gltf";
-		//path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
+		path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
 //		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf";
 //		path = GetglTFSample("Buggy");
-		path = GetglTFSample("BrainStem");
+		//path = GetglTFSample("BrainStem");
 
 		{
 			auto go = m_Scene->CreateGameObject();
@@ -119,6 +119,8 @@ public:
 		capsule->name = "Capsule";
 
 		GLTFLoadFlags flags;
+		flags.loadMateirals = false;
+		flags.loadPrimitiveAsSubMesh = true;
 		auto rootGO = ModelUtil::FromGLTF(path, flags, m_Scene);
 //		auto rootGO = m_Scene->CreateGameObject();
 //		auto r = m_Scene->GameObjectAddComponent<Renderable>(rootGO);
@@ -139,8 +141,8 @@ public:
 		{
 			auto cam = Camera::GetEditorCamera();
 			assert(cam != nullptr);
-			cam->GetTransform()->SetLocalPosition(2.5, 2.5, -11);
-			cam->GetTransform()->SetLocalEulerAngles(45, -60, 0);
+			cam->GetTransform()->SetLocalPosition(5, 6, -0.5);
+			cam->GetTransform()->SetLocalEulerAngles(30, -90, 0);
 		}
 		
 //		{
@@ -150,11 +152,6 @@ public:
 //			auto t = Camera::GetMainCamera()->GetTransform();
 //			t->SetPosition(-12, 0, -12);
 //		}
-		{
-			auto t = Camera::GetEditorCamera()->GetTransform();
-//			t->SetPosition(-4, 8, -53);
-			t->SetLocalEulerAngles(0, 0, 0);
-		}
 		
 //		bgfx::setViewMode(0, bgfx::ViewMode::Sequential);
 	}

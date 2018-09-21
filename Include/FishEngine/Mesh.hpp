@@ -14,9 +14,9 @@ namespace FishEngine
 
 struct SubMeshInfo
 {
-	int StartIndex;
-	int Length;
-	int VertexOffset;
+	int StartIndex = 0;
+	int Length = 0;
+	int VertexOffset = 0;
 };
 
 class Mesh : public Object
