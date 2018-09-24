@@ -28,7 +28,7 @@ struct Model
 	std::vector<GameObject*> nodes;
 	std::vector<Mesh*> meshes;
 	std::vector<Skin*> skins;
-	std::vector<bgfx::TextureHandle> images;
+	std::vector<Texture*> images;
 	std::vector<Material*> materials;
 	std::vector<AnimationClip*> animations;
 	//tinygltf::Model gltfModel;
@@ -651,8 +651,9 @@ bool gltfLoadImageData(tinygltf::Image *image, std::string *err, std::string *wa
 				   int req_width, int req_height, const unsigned char *bytes,
 				   int size, void *)
 {
-	bgfx::TextureHandle texture = loadTexture2((void*)bytes, size, "unknown.ext");
-	assert(bgfx::isValid(texture));
+//	bgfx::TextureHandle texture = loadTexture2((void*)bytes, size, "unknown.ext");
+//	assert(bgfx::isValid(texture));
+	Texture* texture = Texture::FromMemory((void*)bytes, size, "unknown.ext");
 	current_model->images.push_back(texture);
 	return true;
 }

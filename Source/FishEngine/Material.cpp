@@ -56,7 +56,7 @@ void Material::SetVector(const std::string& name, const Vector4& value)
 		printf("Material::SetVector: %s not found!\n", name.c_str());
 }
 
-void Material::SetTexture(const std::string& name, bgfx::TextureHandle value)
+void Material::SetTexture(const std::string& name, Texture* value)
 {
 //	assert(m_UniformInfos.find(name) != m_UniformInfos.end());
 	//m_MaterialProperties.textures[name] = value;
@@ -100,8 +100,8 @@ void Material::BindUniforms() const
 			if (it != m_MaterialProperties.textures.end())
 			{
 				auto& value = it->second;
-				assert(bgfx::isValid(value));
-				bgfx::setTexture(texCount, handle, value);
+				assert(bgfx::isValid(value->GetHandlde()));
+				bgfx::setTexture(texCount, handle, value->GetHandlde());
 			}
 			texCount ++;
 		}

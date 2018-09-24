@@ -2,6 +2,7 @@
 #include <FishEngine/Components/Transform.hpp>
 #include <FishEngine/Screen.hpp>
 #include <FishEngine/Gizmos.hpp>
+#include <FishEngine/ECS/GameObject.hpp>
 
 #include <bx/math.h>
 

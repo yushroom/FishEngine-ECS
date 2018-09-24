@@ -1,8 +1,9 @@
 #pragma once
 
 #include "../Engine.hpp"
+#include "../ISerializable.hpp"
+
 #include <typeindex>
-#include "../Object.hpp"
 
 namespace FishEditor
 {
@@ -15,7 +16,7 @@ namespace FishEngine
 	class Transform;
 	class Scene;
 
-	class Component : public Object
+	class Component : public ISerializabe
 	{
 	public:
 		EntityID entityID;
@@ -52,7 +53,7 @@ namespace FishEngine
 	public:
 		// temp
 		GameObject* m_GameObject = nullptr;
-		inline Transform* GetTransform() const;
+		Transform* GetTransform() const;
 	};
 
 

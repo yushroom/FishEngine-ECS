@@ -21,7 +21,7 @@ namespace FishEngine
 		bgfx::UniformHandle m_UniformJointMatrix;
 		uint64_t m_State = 0;
 
-		bool m_EnableFrustumCulling = true;
+		bool m_EnableFrustumCulling = false;
 	};
 
 

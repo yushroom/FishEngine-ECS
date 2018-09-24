@@ -68,7 +68,10 @@ static GameApp* mainApp = nullptr;
 
 static void glfw_window_size_callback(GLFWwindow* window, int width, int height)
 {
-	mainApp->Resize(width, height);
+	int fbw = width;
+	int fbh = height;
+//	glfwGetFramebufferSize(window, &fbw, &fbh);
+	mainApp->Resize(fbw, fbh);
 }
 
 inline KeyCode KKK(KeyCode key, int offset)
@@ -253,7 +256,8 @@ void GameApp::Init()
 	m_EditorSystem = es;
 
 
-	Resize(m_WindowWidth, m_WindowHeight);
+//	Resize(m_WindowWidth, m_WindowHeight);
+	glfw_window_size_callback(m_Window, m_WindowWidth, m_WindowHeight);
 }
 
 

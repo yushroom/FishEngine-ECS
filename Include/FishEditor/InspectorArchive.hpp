@@ -4,6 +4,41 @@
 
 namespace FishEditor
 {
+	class InspectorInputArchive : public FishEngine::InputArchive
+	{
+		
+		void Deserialize(short &t) override;
+		
+		void Deserialize(unsigned short &t) override;
+		
+		void Deserialize(int &t) override;
+		
+		void Deserialize(unsigned int &t) override;
+		
+		void Deserialize(long &t) override;
+		
+		void Deserialize(unsigned long &t) override;
+		
+		void Deserialize(long long &t) override;
+		
+		void Deserialize(unsigned long long &t) override;
+		
+		void Deserialize(float &t) override;
+		
+		void Deserialize(double &t) override;
+		
+		void Deserialize(bool &t) override;
+		
+		void Deserialize(std::string &t) override;
+		
+		FishEngine::Object *DeserializeObject() override;
+		
+		bool MapKey(const char *name) override;
+		
+		int BeginSequence() override;
+		
+	};
+	
 	class InspectorArchive : public FishEngine::OutputArchive
 	{
 		void Serialize(short t) override {}
@@ -31,10 +66,10 @@ namespace FishEditor
 		void Serialize(std::string const & t) override {}
 
 		void SerializeNullPtr() override {}	// nullptr
-		void SerializeObject(FishEngine::Object* t) override
+		void Serialize(FishEngine::ISerializabe* t) override
 		{
 			//t->Serialize(*this);
-			ImGui::LabelText(m_LastLabel, "%s", t->name.c_str());
+//			ImGui::LabelText(m_LastLabel, "%s", t->name.c_str());
 		}
 
 

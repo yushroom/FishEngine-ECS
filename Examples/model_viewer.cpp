@@ -67,6 +67,7 @@ GameObject* CreateGO(Scene* scene, Mesh* mesh)
 	auto r = scene->GameObjectAddComponent<Renderable>(go);
 	r->m_Mesh = mesh;
 	auto mat = Material::Clone(Material::pbrMetallicRoughness);
+	mat->SetTexture("baseColorTexture", Texture::s_WhiteTexture);
 	r->m_Materials.push_back(mat);
 	return go;
 }
@@ -81,8 +82,9 @@ public:
 		//path = GetglTFSample("RiggedSimple");
 		//path = GetglTFSample("TextureCoordinateTest");
 //		path = GetglTFSample("Triangle");
+		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/BoomBoxWithAxes/glTF/BoomBoxWithAxes.gltf";
 //		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Triangle/glTF/Triangle.gltf";
-		path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
+//		path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
 //		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf";
 //		path = GetglTFSample("Buggy");
 		//path = GetglTFSample("BrainStem");
@@ -109,24 +111,24 @@ public:
 		cube->name = "Cube";
 		auto sphere = CreateGO(m_Scene, Mesh::Sphere);
 		sphere->name = "Sphere";
-		auto quad = CreateGO(m_Scene, Mesh::Quad);
-		quad->name = "Quad";
+//		auto quad = CreateGO(m_Scene, Mesh::Quad);
+//		quad->name = "Quad";
 		auto cone = CreateGO(m_Scene, Mesh::Cone);
 		cone->name = "Cone";
 		auto cylinder = CreateGO(m_Scene, Mesh::Cylinder);
 		cylinder->name = "Cylinder";
-		auto capsule = CreateGO(m_Scene, Mesh::Capsule);
-		capsule->name = "Capsule";
+//		auto capsule = CreateGO(m_Scene, Mesh::Capsule);
+//		capsule->name = "Capsule";
 
 		GLTFLoadFlags flags;
-		flags.loadMateirals = false;
+//		flags.loadMateirals = false;
 		flags.loadPrimitiveAsSubMesh = true;
 		auto rootGO = ModelUtil::FromGLTF(path, flags, m_Scene);
 //		auto rootGO = m_Scene->CreateGameObject();
 //		auto r = m_Scene->GameObjectAddComponent<Renderable>(rootGO);
 //		r->mesh = Mesh::Cube;
 //		rootGO->GetTransform()->SetLocalEulerAngles(-90, -90, 0);
-//		rootGO->GetTransform()->SetLocalScale(10);
+		rootGO->GetTransform()->SetLocalScale(100);
 
 		{
 			auto s = m_Scene->AddSystem<AnimationSystem>();

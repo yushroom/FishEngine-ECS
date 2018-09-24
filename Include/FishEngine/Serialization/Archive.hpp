@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Engine.hpp"
+#include "../ISerializable.hpp"
 #include <map>
 #include <list>
 
@@ -258,12 +259,12 @@ namespace FishEngine
 		}
 
 		// Object*
-		OutputArchive & operator << (Object* t)
+		OutputArchive & operator << (ISerializabe* t)
 		{
 			if (t == nullptr)
 				SerializeNullPtr();
 			else
-				SerializeObject(t);
+				Serialize(t);
 			return (*this);
 		}
 
@@ -287,7 +288,7 @@ namespace FishEngine
 		virtual void Serialize(std::string const & t) = 0;
 
 		virtual void SerializeNullPtr() = 0;	// nullptr
-		virtual void SerializeObject(Object* t) = 0;
+		virtual void Serialize(ISerializabe* t) = 0;
 
 
 		// Map
