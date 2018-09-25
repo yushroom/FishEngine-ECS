@@ -3,3 +3,5 @@
 /Shaders/*/*.bin
 /ThirdParty/
 /Assets/Models
+/Shaders/hlsl/runtime/
+/Tools/ShaderCompiler/bin

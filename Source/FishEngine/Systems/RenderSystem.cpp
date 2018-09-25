@@ -20,7 +20,11 @@ using namespace FishEngine;
 void RenderSystem::OnAdded()
 {
 	bgfx::Init init;
+#if FISHENGINE_PLATFORM_APPLE
+	init.type = bgfx::RendererType::Enum::Metal;
+#else
 	init.type = bgfx::RendererType::Enum::OpenGL;
+#endif
 	init.resolution.width = 800;
 	init.resolution.height = 600;
 	init.resolution.reset = BGFX_RESET_VSYNC | BGFX_RESET_MSAA_X8;
