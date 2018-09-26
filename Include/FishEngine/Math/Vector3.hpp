@@ -9,11 +9,14 @@ namespace FishEngine
 	class FE_EXPORT Vector3
 	{
 	public:
-		union
-		{
-			struct { float x, y, z; };
-			float m[3];
-		};
+		//union
+		//{
+		//	struct { float x, y, z; };
+		//	float m[3];
+		//};
+		float x;
+		float y;
+		float z;
 
 		constexpr static float kEpsilon = 1E-5f;
 
@@ -26,11 +29,11 @@ namespace FishEngine
 		// Creates a new vector with given x, y components and sets z to zero.
 		Vector3(float x, float y);
 
-		float*       data()       { return m; }
-		const float* data() const { return m; }
+		float*       data()       { return &x; }
+		const float* data() const { return &x; }
 
-		float& operator[](const int index)       { return m[index]; }
-		float  operator[](const int index) const { return m[index]; }
+		float& operator[](const int index)       { return (&x)[index]; }
+		float  operator[](const int index) const { return (&x)[index]; }
 
 		// Returns this vector with a magnitude of 1 (Read Only).
 		Vector3 normalized() const;

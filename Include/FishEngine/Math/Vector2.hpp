@@ -8,10 +8,12 @@ namespace FishEngine
 	class FE_EXPORT Vector2
 	{
 	public:
-		union {
-			struct { float x, y; };
-			float m[2];
-		};
+		//union {
+		//	struct { float x, y; };
+		//	float m[2];
+		//};
+		float x;
+		float y;
 
 		Vector2()
 			: x(0), y(0)
@@ -31,15 +33,12 @@ namespace FishEngine
 		float operator[](const int index) const
 		{
 			Assert(index == 0 || index == 1);
-			return m[index];
+			return (&x)[index];
 		}
 
-		const float* data() const
-		{
-			return m;
-		}
+		const float* data() const { return &x; }
 
-		float* data() { return m; }
+		float* data() { return &x; }
 
 		void Set(const float newX, const float newY)
 		{

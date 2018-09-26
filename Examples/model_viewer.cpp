@@ -82,9 +82,9 @@ public:
 		//path = GetglTFSample("RiggedSimple");
 		//path = GetglTFSample("TextureCoordinateTest");
 //		path = GetglTFSample("Triangle");
-		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/BoomBoxWithAxes/glTF/BoomBoxWithAxes.gltf";
+		//path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/BoomBoxWithAxes/glTF/BoomBoxWithAxes.gltf";
 //		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Triangle/glTF/Triangle.gltf";
-//		path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
+		path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
 //		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf";
 //		path = GetglTFSample("Buggy");
 		//path = GetglTFSample("BrainStem");
@@ -121,14 +121,14 @@ public:
 //		capsule->name = "Capsule";
 
 		GLTFLoadFlags flags;
-//		flags.loadMateirals = false;
+		flags.loadMateirals = false;
 		flags.loadPrimitiveAsSubMesh = true;
 		auto rootGO = ModelUtil::FromGLTF(path, flags, m_Scene);
 //		auto rootGO = m_Scene->CreateGameObject();
 //		auto r = m_Scene->GameObjectAddComponent<Renderable>(rootGO);
 //		r->mesh = Mesh::Cube;
 //		rootGO->GetTransform()->SetLocalEulerAngles(-90, -90, 0);
-		rootGO->GetTransform()->SetLocalScale(100);
+		//rootGO->GetTransform()->SetLocalScale(100);
 
 		{
 			auto s = m_Scene->AddSystem<AnimationSystem>();

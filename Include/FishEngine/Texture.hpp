@@ -6,6 +6,7 @@
 
 #include "Assets.hpp"
 #include "Object.hpp"
+#include <cassert>
 
 
 namespace FishEngine

@@ -23,7 +23,7 @@ void RenderSystem::OnAdded()
 #if FISHENGINE_PLATFORM_APPLE
 	init.type = bgfx::RendererType::Enum::Metal;
 #else
-	init.type = bgfx::RendererType::Enum::OpenGL;
+	init.type = bgfx::RendererType::Enum::Direct3D12;
 #endif
 	init.resolution.width = 800;
 	init.resolution.height = 600;
