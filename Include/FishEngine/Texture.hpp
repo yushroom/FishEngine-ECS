@@ -1,13 +1,14 @@
 #pragma once
 
 #include "ClassDef.hpp"
-#include <bgfx/bgfx.h>
-#include <bimg/bimg.h>
+//#include <bgfx/bgfx.h>
+//#include <bimg/bimg.h>
 
 #include "Assets.hpp"
 #include "Object.hpp"
 #include <cassert>
 
+#if 0
 
 namespace FishEngine
 {
@@ -68,5 +69,26 @@ namespace FishEngine
 	private:
 		
 		bgfx::TextureHandle m_Handle;
+	};
+}
+
+#endif
+
+namespace FishEngine
+{
+	class Texture : public Object
+	{
+	public:
+		static void StaticInit();
+		static Texture* FromMemory(void* data, uint32_t size, const char* filePath)
+		{
+			return nullptr;
+		}
+		static Texture* FromFile(const char* path)
+		{
+			return nullptr;
+		}
+
+		inline static Texture* s_WhiteTexture = nullptr;
 	};
 }

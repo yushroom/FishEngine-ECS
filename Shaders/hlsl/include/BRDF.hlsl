@@ -6,6 +6,9 @@
 // Microfacet specular = D*G*F / (4*NoL*NoV) = D*Vis*F
 // Vis = G / (4*NoL*NoV)
 
+#ifndef _BRDF_HLSL_
+#define _BRDF_HLSL_
+
 #pragma once
 
 float3 Diffuse_Lambert( float3 DiffuseColor )
@@ -241,3 +244,5 @@ float Vis_Cloth( float NoV, float NoL )
 {
     return rcp( 4 * ( NoL + NoV - NoL * NoV ) );
 }
+
+#endif

@@ -24,7 +24,7 @@ namespace FishEngine
 		virtual std::type_index GetTypeIndex() = 0;
 		
 		constexpr static const char* CLASS_NAME = "System";
-		virtual const char* GetClassName() { return CLASS_NAME; }
+		virtual const char* GetTypeName() { return CLASS_NAME; }
 		
 		template<class T>
 		bool Is() const
@@ -54,7 +54,7 @@ namespace FishEngine
 	friend class FishEngine::Scene;                    \
 	std::type_index GetTypeIndex() override { return std::type_index(typeid(T)); }	\
 	constexpr static const char* CLASS_NAME = #T;									\
-	const char* GetClassName() override { return CLASS_NAME; }						\
+	const char* GetTypeName() override { return CLASS_NAME; }						\
 	static T* Create() { T* t = new T(); return t; }								\
 
 	

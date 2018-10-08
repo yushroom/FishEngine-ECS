@@ -9,7 +9,7 @@
 //#include "FishEngine/GameApp.hpp"
 
 using namespace FishEngine;
-
+#if 0
 void Graphics::DrawMesh(Mesh* mesh, const Matrix4x4& matrix, Material* material, bgfx::ViewId id, int submeshID)
 {
 	if (mesh == nullptr || material == nullptr)
@@ -35,4 +35,12 @@ void Graphics::DrawMesh2(Mesh* mesh, const Matrix4x4& matrix, Material* material
 	mesh->Bind(submeshID, id);
 	// Submit primitive for rendering to view 0.
 	bgfx::submit(id, material->GetShader()->GetProgram());
+}
+#endif
+
+#include <FishEngine/Render/Application.h>
+
+void FishEngine::Graphics::DrawMesh(Mesh * mesh, const Matrix4x4 & matrix, Material * material, int submeshID)
+{
+	abort();
 }

@@ -7,6 +7,9 @@
 #include <FishEngine/ECS/GameObject.hpp>
 #include <FishEngine/ECS/Scene.hpp>
 
+#include <experimental/filesystem>
+using Path = std::experimental::filesystem::path;
+
 #define TINYGLTF_NO_STB_IMAGE
 #define TINYGLTF_NO_STB_IMAGE_WRITE
 #define TINYGLTF_IMPLEMENTATION
@@ -680,6 +683,9 @@ std::vector<Mesh*> FishEngine::ModelUtil::LoadMeshesFromGLTF(const std::string &
 	std::string err;
 	std::string warn;
 
+
+	loader.SetImageLoader(gltfLoadImageData_empty, nullptr);
+
 	bool ret = false;
 	if (EndsWith(filePath, ".gltf"))
 		ret = loader.LoadASCIIFromFile(&gltf_model, &err, &warn, filePath);
@@ -762,7 +768,7 @@ GameObject* ModelUtil::FromGLTF(const std::string& filePath, const GLTFLoadFlags
 	}
 
 	model.rootGameObject = scene->CreateGameObject();
-	model.rootGameObject->name = "Root";
+	model.rootGameObject->name = Path(filePath).filename().string();
 	
 	model.materials.reserve(gltf_model.materials.size());
 	if (flags.loadMateirals)

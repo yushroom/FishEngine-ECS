@@ -25,7 +25,7 @@ namespace FishEngine
 		virtual std::type_index GetTypeIndex() = 0;
 		
 		constexpr static const char* CLASS_NAME = "Component";
-		virtual const char* GetClassName() { return CLASS_NAME; }
+		virtual const char* GetTypeName() { return CLASS_NAME; }
 		
 		template<class T>
 		bool Is() const
@@ -66,7 +66,7 @@ namespace FishEngine
 		inline static std::vector<T*> components;										\
 		std::type_index GetTypeIndex() override { return std::type_index(typeid(T)); }	\
 		constexpr static const char* CLASS_NAME = #T; \
-		const char* GetClassName() override { return CLASS_NAME; }						\
+		const char* GetTypeName() override { return CLASS_NAME; }						\
 		static T* Create() { T* t = new T(); components.push_back(t); return t; }		\
 		void Deserialize(FishEngine::InputArchive& archive) override; \
 		void Serialize(FishEngine::OutputArchive& archive) const override;

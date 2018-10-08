@@ -9,6 +9,8 @@
 
 using namespace FishEngine;
 
+#if 0
+
 void Gizmos::StaticInit()
 {
 	s_ColorMaterial = Material::Clone(Material::ColorMaterial);
@@ -40,6 +42,17 @@ void Gizmos::DrawCube(const Vector3& center, const Vector3& size)
 	s_ColorMaterial->SetVector("u_color", color);
 	Graphics::DrawMesh(Mesh::Cube, m, s_ColorMaterial);
 }
+
+#endif
+
+void Gizmos::StaticInit()
+{
+}
+
+void Gizmos::DrawCube(const Vector3& center, const Vector3& size)
+{
+}
+
 
 void Gizmos::DrawLine(Vector3 from, Vector3 to)
 {
@@ -124,6 +137,11 @@ void Gizmos::DrawFrustum(const Frustum& frustum, const Matrix4x4& cameraToWorld)
 	matrix = mat;
 }
 
+void Gizmos::DrawCircle(const Vector3& center, float radius)
+{
+}
+
+#if 0
 
 void Gizmos::DrawCircle(const Vector3& center, float radius)
 {
@@ -175,6 +193,8 @@ void Gizmos::__Draw()
 		s_Lines.clear();
 	}
 }
+
+#endif
 
 
 bool Gizmos::s_EnableDepthTest = false;

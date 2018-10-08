@@ -5,7 +5,7 @@
 #include <FishEngine/Components/Camera.hpp>
 #include <FishEngine/ECS/Scene.hpp>
 
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 constexpr int imgui_window_flags = 0
 	| ImGuiWindowFlags_NoResize

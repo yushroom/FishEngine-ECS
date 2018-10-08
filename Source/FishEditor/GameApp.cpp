@@ -15,19 +15,24 @@
 #include <FishEditor/Systems/SceneViewSystem.hpp>
 
 #include <GLFW/glfw3.h>
-#include <bgfx/bgfx.h>
-#include <bgfx/platform.h>
+//#include <bgfx/bgfx.h>
+//#include <bgfx/platform.h>
+//
+//#include <bx/file.h>
+//#include <bx/pixelformat.h>
 
-#include <bx/file.h>
-#include <bx/pixelformat.h>
+#include <imgui.h>
 
-#include <imgui/imgui.h>
 
-#	if BX_PLATFORM_WINDOWS
+#include <windows.h>
+#include <FishEngine/Render/Application.h>
+
+//#	if BX_PLATFORM_WINDOWS
+//#define GLFW_EXPOSE_NATIVE_WIN32
+//#	elif BX_PLATFORM_OSX
+//#define GLFW_EXPOSE_NATIVE_COCOA
+//#	endif
 #define GLFW_EXPOSE_NATIVE_WIN32
-#	elif BX_PLATFORM_OSX
-#define GLFW_EXPOSE_NATIVE_COCOA
-#	endif
 #include <GLFW/glfw3native.h>
 
 #include <thread>
@@ -49,19 +54,19 @@ static void* glfwNativeWindowHandle(GLFWwindow* _window)
 
 static void glfwSetWindow(GLFWwindow* _window)
 {
-	bgfx::PlatformData pd;
-#	if BX_PLATFORM_LINUX || BX_PLATFORM_BSD
-	pd.ndt      = glfwGetX11Display();
-#	elif BX_PLATFORM_OSX
-	pd.ndt      = NULL;
-#	elif BX_PLATFORM_WINDOWS
-	pd.ndt      = NULL;
-#	endif // BX_PLATFORM_WINDOWS
-	pd.nwh          = glfwNativeWindowHandle(_window);
-	pd.context      = NULL;
-	pd.backBuffer   = NULL;
-	pd.backBufferDS = NULL;
-	bgfx::setPlatformData(pd);
+//	bgfx::PlatformData pd;
+//#	if BX_PLATFORM_LINUX || BX_PLATFORM_BSD
+//	pd.ndt      = glfwGetX11Display();
+//#	elif BX_PLATFORM_OSX
+//	pd.ndt      = NULL;
+//#	elif BX_PLATFORM_WINDOWS
+//	pd.ndt      = NULL;
+//#	endif // BX_PLATFORM_WINDOWS
+//	pd.nwh          = glfwNativeWindowHandle(_window);
+//	pd.context      = NULL;
+//	pd.backBuffer   = NULL;
+//	pd.backBufferDS = NULL;
+//	bgfx::setPlatformData(pd);
 }
 
 static GameApp* mainApp = nullptr;
@@ -182,6 +187,108 @@ void glfw_window_focus_callback(GLFWwindow* window, int focused)
 }
 
 
+#include <wrl.h>
+#include <d3d12.h>
+#include <dxgi1_5.h>
+using Microsoft::WRL::ComPtr;
+
+#include <FishEngine/Render/Application.h>
+#include <FishEngine/Render/Helpers.h>
+#include <FishEngine/Render/CommandQueue.h>
+#include <FishEngine/Render/d3dx12.h>
+
+
+ComPtr<IDXGISwapChain4> CreateSwapChain(
+	int width, int height, UINT BufferCount,
+	bool isTearingSupported, HWND m_hWnd, UINT & currentBackBufferIndex)
+{
+	Application& app = Application::Get();
+
+	ComPtr<IDXGISwapChain4> dxgiSwapChain4;
+	ComPtr<IDXGIFactory4> dxgiFactory4;
+	UINT createFactoryFlags = 0;
+#if defined(_DEBUG)
+	createFactoryFlags = DXGI_CREATE_FACTORY_DEBUG;
+#endif
+
+	ThrowIfFailed(CreateDXGIFactory2(createFactoryFlags, IID_PPV_ARGS(&dxgiFactory4)));
+
+	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
+	swapChainDesc.Width = width;
+	swapChainDesc.Height = height;
+	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swapChainDesc.Stereo = FALSE;
+	swapChainDesc.SampleDesc = { 1, 0 };
+	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	swapChainDesc.BufferCount = BufferCount;
+	swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
+	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+	// It is recommended to always allow tearing if tearing support is available.
+	swapChainDesc.Flags = isTearingSupported ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
+	ID3D12CommandQueue* pCommandQueue = app.GetCommandQueue()->GetD3D12CommandQueue().Get();
+
+	ComPtr<IDXGISwapChain1> swapChain1;
+	ThrowIfFailed(dxgiFactory4->CreateSwapChainForHwnd(
+		pCommandQueue,
+		m_hWnd,
+		&swapChainDesc,
+		nullptr,
+		nullptr,
+		&swapChain1));
+
+	// Disable the Alt+Enter fullscreen toggle feature. Switching to fullscreen
+	// will be handled manually.
+	ThrowIfFailed(dxgiFactory4->MakeWindowAssociation(m_hWnd, DXGI_MWA_NO_ALT_ENTER));
+
+	ThrowIfFailed(swapChain1.As(&dxgiSwapChain4));
+
+	currentBackBufferIndex = dxgiSwapChain4->GetCurrentBackBufferIndex();
+
+	return dxgiSwapChain4;
+}
+
+
+// Update the render target views for the swapchain back buffers.
+void UpdateRenderTargetViews(
+	ComPtr<ID3D12DescriptorHeap> d3d12RTVDescriptorHeap,
+	UINT BufferCount, ComPtr<IDXGISwapChain4> dxgiSwapChain,
+	ComPtr<ID3D12Resource> d3d12BackBuffers[3], UINT RTVDescriptorSize)
+{
+	auto device = Application::Get().GetDevice();
+
+	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(d3d12RTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+
+	for (int i = 0; i < BufferCount; ++i)
+	{
+		ComPtr<ID3D12Resource> backBuffer;
+		ThrowIfFailed(dxgiSwapChain->GetBuffer(i, IID_PPV_ARGS(&backBuffer)));
+
+		device->CreateRenderTargetView(backBuffer.Get(), nullptr, rtvHandle);
+
+		d3d12BackBuffers[i] = backBuffer;
+
+		rtvHandle.Offset(RTVDescriptorSize);
+	}
+}
+
+
+#include "../../Source/FishEngine/Render/D3D12WindowContext.hpp"
+
+void D3D12WindowContext::Create(int width, int height, HWND hWnd)
+{
+	Application& app = Application::Get();
+	m_IsTearingSupported = app.IsTearingSupported();
+	m_dxgiSwapChain = CreateSwapChain(width, height, BufferCount, true, hWnd, m_CurrentBackBufferIndex);
+	m_IsTearingSupported = app.IsTearingSupported();
+	m_d3d12RTVDescriptorHeap = app.CreateDescriptorHeap(BufferCount, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	m_RTVDescriptorSize = app.GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	UpdateRenderTargetViews(m_d3d12RTVDescriptorHeap, BufferCount, m_dxgiSwapChain, m_d3d12BackBuffers, m_RTVDescriptorSize);
+}
+
+
+D3D12WindowContext context;
+
 void GameApp::Init()
 {
 	mainApp = this;
@@ -219,9 +326,18 @@ void GameApp::Init()
 	glfwSetCharCallback(m_Window, glfw_char_callback);
 	glfwSetWindowFocusCallback(m_Window, glfw_window_focus_callback);
 	
-	glfwSetWindowSizeLimits(m_Window, 800, 600, GLFW_DONT_CARE, GLFW_DONT_CARE);
+	glfwSetWindowSizeLimits(m_Window, m_WindowWidth, m_WindowHeight, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
 	glfwSwapInterval(1);
+
+
+	HINSTANCE instance = GetModuleHandle(nullptr);
+	Application::Create(instance);
+	HWND hWnd = glfwGetWin32Window(m_Window);
+	context.Create(m_WindowWidth, m_WindowHeight, hWnd);
+
+	Material::StaticInit();
+
 
 	m_Scene = new Scene();
 	Scene::s_Current = m_Scene;
@@ -230,7 +346,7 @@ void GameApp::Init()
 	rs->m_Priority = 1000;
 
 	Texture::StaticInit();
-	Material::StaticInit();
+	
 	Mesh::StaticInit();
 	Gizmos::StaticInit();
 	
@@ -285,11 +401,11 @@ void GameApp::Run()
 
 		if (si->IsButtonPressed(KeyCode::F1))
 		{
-			bgfx::setDebug(BGFX_DEBUG_STATS);
+			//bgfx::setDebug(BGFX_DEBUG_STATS);
 		}
 		else if (si->IsButtonReleased(KeyCode::F1))
 		{
-			bgfx::setDebug(BGFX_DEBUG_TEXT);
+			//bgfx::setDebug(BGFX_DEBUG_TEXT);
 		}
 
 		double cursor_x = 0, cursor_y = 0;
@@ -298,9 +414,9 @@ void GameApp::Run()
 		cursor_y /= m_WindowHeight;
 		m_EditorScene->GetSystem<InputSystem>()->SetMousePosition((float)cursor_x, 1.0f-(float)cursor_y);
 
-		bgfx::setViewRect((bgfx::ViewId)RenderViewType::Editor, 0, 0, m_WindowWidth, m_WindowHeight);
+		//bgfx::setViewRect((bgfx::ViewId)RenderViewType::Editor, 0, 0, m_WindowWidth, m_WindowHeight);
 		
-		m_EditorSystem->Draw();
+		//m_EditorSystem->Draw();
 
 		// Set view 0 default viewport.
 //		bgfx::setViewRect(0, 0, 0, uint16_t(m_WindowWidth*2), uint16_t(m_WindowHeight*2) );
@@ -308,8 +424,9 @@ void GameApp::Run()
 //		Update();
 		const int w = EditorScreen::width;
 		const int h = EditorScreen::height;
-		auto r = m_EditorSystem->m_SceneViewRect;
+		//auto r = m_EditorSystem->m_SceneViewRect;
 		//r = r + Vector4(8, 8, -16, -16);
+		Vector4 r(0, 0, w, h);
 		Screen::width = r.z;
 		Screen::height = r.w;
 		Vector2 old_mouse_position;
@@ -335,12 +452,12 @@ void GameApp::Run()
 		
 
 		m_Scene->Update();
-		//r = r * Vector4( w, h, w, h );
-		bgfx::setViewRect((bgfx::ViewId)RenderViewType::Scene, r.x, r.y, r.z, r.w);
-		bgfx::setViewRect((bgfx::ViewId)RenderViewType::SceneGizmos, r.x, r.y, r.z, r.w);
-		bgfx::setViewRect((bgfx::ViewId)RenderViewType::Picking, r.x, r.y, r.z, r.w);
-		m_Scene->GetSystem<RenderSystem>()->Draw();
-		m_SceneViewSystem->DrawGizmos();
+		//bgfx::setViewRect((bgfx::ViewId)RenderViewType::Scene, r.x, r.y, r.z, r.w);
+		//bgfx::setViewRect((bgfx::ViewId)RenderViewType::SceneGizmos, r.x, r.y, r.z, r.w);
+		//bgfx::setViewRect((bgfx::ViewId)RenderViewType::Picking, r.x, r.y, r.z, r.w);
+		m_Scene->GetSystem<RenderSystem>()->Update();
+		m_Scene->GetSystem<RenderSystem>()->Draw(context);
+		//m_SceneViewSystem->DrawGizmos();
 		m_Scene->PostUpdate();
 		//Screen::width = w;
 		//Screen::height = h;
@@ -348,7 +465,7 @@ void GameApp::Run()
 
 		// Advance to next frame. Rendering thread will be kicked to
 		// process submitted rendering primitives.
-		bgfx::frame();
+		//bgfx::frame();
 
 		/* Swap front and back buffers */
 		//glfwSwapBuffers(m_Window);

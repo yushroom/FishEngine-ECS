@@ -1,29 +1,27 @@
 #pragma once
 #include "Math.hpp"
-#include <bgfx/bgfx.h>
+//#include <bgfx/bgfx.h>
 
 namespace FishEngine
 {
-	
-struct VertexPC
-{
-	Vector3 position;
-	Vector3 color;
-};
+	struct VertexPC
+	{
+		Vector3 position;
+		Vector3 color;
+	};
 
-struct PUNTVertex
-{
-	Vector3 position;
-	Vector2 uv;
-	Vector3 normal;
-	Vector4 tangent;
+	struct PUNTVertex
+	{
+		Vector3 position;
+		Vector2 uv;
+		Vector3 normal;
+		Vector4 tangent;
 
-	static void StaticInit();;
+		static void StaticInit();;
 
-	static bgfx::VertexDecl ms_decl;
+		//static bgfx::VertexDecl ms_decl;
 
-	static bgfx::VertexDecl s_P_decl;
-	inline static bgfx::VertexDecl s_PC_decl;
-};
-
+		//static bgfx::VertexDecl s_P_decl;
+		//inline static bgfx::VertexDecl s_PC_decl;
+	};
 }

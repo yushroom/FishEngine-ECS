@@ -1,4 +1,6 @@
 #pragma once
+
+#if 0
 #include <bgfx/bgfx.h>
 
 namespace FishEngine
@@ -15,3 +17,4 @@ namespace FishEngine
 		Picking 	= 4,
 	};
 }
+#endif

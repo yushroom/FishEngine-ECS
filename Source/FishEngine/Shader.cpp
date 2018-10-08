@@ -1,5 +1,7 @@
 #include "FishEngine/Shader.hpp"
 
+#if 0
+
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
 
@@ -68,3 +70,4 @@ Shader* ShaderUtil::Compile(const std::string& vs_path, const std::string& fs_pa
 	return s;
 }
 
+#endif

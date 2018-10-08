@@ -1,18 +1,20 @@
 #pragma once
 
 #include <FishEngine/Components/Animator.hpp>
+#include <FishEngine/ECS/System.hpp>
+#include <FishEngine/Components/Transform.hpp>
 
 namespace FishEngine
 {
 
 inline bool IsValid(const Vector3& v)
 {
-	return !v.hasNaNs() && !(isinf(v.x) && isinf(v.y) && isinf(v.z));
+	return !v.hasNaNs() && !(std::isinf(v.x) && std::isinf(v.y) && std::isinf(v.z));
 }
 
 inline bool IsValid(const Quaternion& v)
 {
-	return !v.hasNaNs() && !(isinf(v.x) && isinf(v.y) && isinf(v.z));
+	return !v.hasNaNs() && !(std::isinf(v.x) && std::isinf(v.y) && std::isinf(v.z));
 }
 
 class AnimationSystem : public System

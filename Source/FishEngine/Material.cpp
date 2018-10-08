@@ -1,11 +1,11 @@
 #include <FishEngine/Material.hpp>
 #include <FishEngine/Shader.hpp>
 #include <FishEngine/Texture.hpp>
-
 #include <cassert>
 
-
 using namespace FishEngine;
+
+#if 0
 
 bool IsInernalUniform(const char* name)
 {
@@ -148,4 +148,64 @@ void Material::StaticInit()
 //	pbrMetallicRoughness->SetTexture("baseColorTexture", Texture::s_WhiteTexture);
 	
 //	pbrMetallicRoughness_skinned = CreateMaterialFromShadersDir("pbrMetallicRoughness_skinned");
+}
+
+#endif
+
+#include <FishEngine/Render/Helpers.h>
+#include <d3dcompiler.h>
+
+#include <d3d12.h>
+#include <wrl.h>
+#include <FishEngine/Render/Application.h>
+#include <FishEngine/Render/d3dx12.h>
+#include <DirectXMath.h>
+
+using Microsoft::WRL::ComPtr;
+using DirectX::XMMATRIX;
+#include "Render/ShaderImpl.hpp"
+
+void Material::StaticInit()
+{
+	auto shader = new Shader();
+	shader->m_Impl = new ShaderImpl();
+	ThrowIfFailed(D3DReadFileToBlob(L"I:\\FishEngine-ECS\\Shaders\\hlsl\\runtime\\Simple_vs.cso", &shader->m_Impl->m_VertexShaderBlob));
+	ThrowIfFailed(D3DReadFileToBlob(L"I:\\FishEngine-ECS\\Shaders\\hlsl\\runtime\\Simple_ps.cso", &shader->m_Impl->m_PixelShaderBlob));
+
+	ColorMaterial = new Material();
+	ColorMaterial->SetShader(shader);
+
+	auto device = Application::Get().GetDevice();
+
+	// Create a root signature.
+	D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
+	featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+	if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
+	{
+		featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
+	}
+
+	// Allow input layout and deny unnecessary access to certain pipeline stages.
+	D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
+		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
+
+	// A single 32-bit constant root parameter that is used by the vertex shader.
+	CD3DX12_ROOT_PARAMETER1 rootParameters[1];
+	rootParameters[0].InitAsConstants(sizeof(XMMATRIX) / 4, 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
+
+	CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
+	rootSignatureDescription.Init_1_1(_countof(rootParameters), rootParameters, 0, nullptr, rootSignatureFlags);
+
+	// Serialize the root signature.
+	ComPtr<ID3DBlob> rootSignatureBlob;
+	ComPtr<ID3DBlob> errorBlob;
+	ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&rootSignatureDescription,
+		featureData.HighestVersion, &rootSignatureBlob, &errorBlob));
+	// Create the root signature.
+	ThrowIfFailed(device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(),
+		rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(&shader->m_Impl->m_RootSignature)));
 }

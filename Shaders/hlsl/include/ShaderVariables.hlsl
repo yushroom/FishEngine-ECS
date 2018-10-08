@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _SHADER_VARIABLIES_HLSL_
+#define _SHADER_VARIABLIES_HLSL_
 
 cbuffer PerCameraUniforms : register(b0)
 {
@@ -21,3 +22,5 @@ cbuffer PerDrawUniforms : register(b1)
     float4x4 MATRIX_M;
     float4x4 MATRIX_IT_M;
 }
+
+#endif

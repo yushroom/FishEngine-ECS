@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <bgfx/bgfx.h>
+//#include <bgfx/bgfx.h>
 
 namespace bgfxHelper
 {

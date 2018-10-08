@@ -41,8 +41,8 @@ namespace FishEditor
 
 	protected:
 		GLFWwindow * 	m_Window 		= nullptr;
-		int 			m_WindowWidth 	= 800;
-		int 			m_WindowHeight 	= 600;
+		int 			m_WindowWidth 	= 1280;
+		int 			m_WindowHeight 	= 800;
 
 		FishEngine::Scene* m_Scene = nullptr;
 

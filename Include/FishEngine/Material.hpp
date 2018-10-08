@@ -2,7 +2,6 @@
 
 #include "Object.hpp"
 #include <vector>
-#include <bgfx/bgfx.h>
 #include <map>
 #include <string>
 #include "Math.hpp"
@@ -24,14 +23,28 @@ namespace FishEngine
 	{
 	public:
 		
-		void SetShader(Shader* shader);
+		void SetShader(Shader* shader)
+		{
+			m_Shader = shader;
+		}
 		Shader* GetShader() const { return m_Shader; }
 		
-		void SetVector(const std::string& name, const Vector4& value);
-		void SetTexture(const std::string& name, Texture* value);
-		void BindUniforms() const;
+		void SetVector(const std::string& name, const Vector4& value)
+		{
+
+		}
+		void SetTexture(const std::string& name, Texture* value)
+		{
+		}
+		void BindUniforms() const
+		{
+
+		}
 		
-		static Material* Clone(Material* mat);
+		static Material* Clone(Material* mat)
+		{
+			return nullptr;
+		}
 		
 		static void StaticInit();
 		inline static Material* ColorMaterial = nullptr;
@@ -40,9 +53,9 @@ namespace FishEngine
 		inline static Material* pbrMetallicRoughness = nullptr;
 	//	inline static Material* pbrMetallicRoughness_skinned = nullptr;
 		
-//	protected:
+	protected:
 		Shader* m_Shader = nullptr;
-		std::map<std::string, std::pair<bgfx::UniformHandle, bgfx::UniformInfo>> m_UniformInfos;
+		//std::map<std::string, std::pair<bgfx::UniformHandle, bgfx::UniformInfo>> m_UniformInfos;
 		MaterialProperties m_MaterialProperties;
 	};
 	

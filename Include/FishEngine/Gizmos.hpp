@@ -34,8 +34,8 @@ namespace FishEngine
 		inline static Material* s_ColorMaterial = nullptr;
 		inline static Material* s_VertexColorMaterial = nullptr;
 		inline static std::vector<VertexPC> s_Lines;
-		inline static bgfx::DynamicVertexBufferHandle s_LineDynamicVertexBuffer;
-		inline static bgfx::VertexBufferHandle s_CircleVertexBuffer;
+		//inline static bgfx::DynamicVertexBufferHandle s_LineDynamicVertexBuffer;
+		//inline static bgfx::VertexBufferHandle s_CircleVertexBuffer;
 		
 		
 	public:

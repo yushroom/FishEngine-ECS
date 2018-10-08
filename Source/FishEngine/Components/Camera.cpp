@@ -4,7 +4,7 @@
 #include <FishEngine/Gizmos.hpp>
 #include <FishEngine/ECS/GameObject.hpp>
 
-#include <bx/math.h>
+//#include <bx/math.h>
 
 using namespace FishEngine;
 
@@ -16,12 +16,12 @@ Matrix4x4 FishEngine::Camera::GetProjectionMatrix() const
 	{
 		float y = m_OrthographicSize;
 		float x = y * aspectRatio;
-		bx::mtxOrtho(proj, -x, x, -y, y, m_NearClipPlane, m_FarClipPlane, 0, bgfx::getCaps()->homogeneousDepth);
+		//bx::mtxOrtho(proj, -x, x, -y, y, m_NearClipPlane, m_FarClipPlane, 0, bgfx::getCaps()->homogeneousDepth);
 
 	}
 	else
 	{
-		bx::mtxProj(proj, m_FieldOfView, aspectRatio, m_NearClipPlane, m_FarClipPlane, bgfx::getCaps()->homogeneousDepth);
+		//bx::mtxProj(proj, m_FieldOfView, aspectRatio, m_NearClipPlane, m_FarClipPlane, bgfx::getCaps()->homogeneousDepth);
 	}
 	memcpy(m_ProjectionMatrix.data(), proj, sizeof(Matrix4x4));
 	m_ProjectionMatrix = m_ProjectionMatrix.transpose();

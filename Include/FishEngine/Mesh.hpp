@@ -5,7 +5,7 @@
 #include "MeshVertex.hpp"
 
 #include <vector>
-#include <bgfx/bgfx.h>
+//#include <bgfx/bgfx.h>
 
 #include <FishEngine/Math/IntVector.hpp>
 
@@ -19,15 +19,17 @@ struct SubMeshInfo
 	int VertexOffset = 0;
 };
 
+class MeshImpl;
+
 class Mesh : public Object
 {
 	friend class MeshUtil;
 public:
-	bgfx::IndexBufferHandle m_IndexBuffer;
-	bgfx::VertexBufferHandle m_VertexBuffer;
+	//bgfx::IndexBufferHandle m_IndexBuffer;
+	//bgfx::VertexBufferHandle m_VertexBuffer;
 	
 	// for cpu skinning
-	bgfx::DynamicVertexBufferHandle m_DynamicVertexBuffer = BGFX_INVALID_HANDLE;
+	//bgfx::DynamicVertexBufferHandle m_DynamicVertexBuffer = BGFX_INVALID_HANDLE;
 	std::vector<PUNTVertex> m_DynamicVertices;
 
 	std::vector<FishEngine::Int4> joints;
@@ -68,6 +70,8 @@ public:
 	
 public:
 	void __Upload();
+
+	MeshImpl* m_Impl = nullptr;
 };
 
 namespace ECS
@@ -81,7 +85,6 @@ class MeshUtil : public Static
 {
 public:
 	static Mesh* FromTextFile(const String & str);
-	
 };
 
 }

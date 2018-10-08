@@ -15,7 +15,7 @@
 #include <FishEngine/Assets.hpp>
 
 #include <GLFW/glfw3.h>
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 constexpr float main_menu_bar_height = 24;
 constexpr float main_tool_bar_height = 40;
@@ -115,7 +115,9 @@ void SetupImGuiStyle( bool bStyleDark_, float alpha_  )
 
 void EditorSystem::OnAdded()
 {
-	imguiCreate();
+	//imguiCreate();
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
 	
 	SetupImGuiStyle(false, 1);
 	
@@ -153,18 +155,18 @@ void EditorSystem::Draw()
 	mousePos.y = 1.f - mousePos.y;
 	mousePos.x *= EditorScreen::width;
 	mousePos.y *= EditorScreen::height;
-	auto mouseBtns =
-		(input->IsButtonHeld(KeyCode::MouseLeftButton) ? IMGUI_MBUT_LEFT : 0) |
-		(input->IsButtonHeld(KeyCode::MouseRightButton) ? IMGUI_MBUT_RIGHT : 0) |
-		(input->IsButtonHeld(KeyCode::MouseMiddleButton) ? IMGUI_MBUT_MIDDLE : 0);
+	//auto mouseBtns =
+	//	(input->IsButtonHeld(KeyCode::MouseLeftButton) ? IMGUI_MBUT_LEFT : 0) |
+	//	(input->IsButtonHeld(KeyCode::MouseRightButton) ? IMGUI_MBUT_RIGHT : 0) |
+	//	(input->IsButtonHeld(KeyCode::MouseMiddleButton) ? IMGUI_MBUT_MIDDLE : 0);
 	selected = nullptr;
 	if (selection->selected != nullptr)
 		selected = selection->selected->GetTransform();
 	
 	static float mouseScroll = 0;
 	mouseScroll += input->GetAxis(Axis::MouseScrollWheel);
-	imguiBeginFrame((int)mousePos.x, (int)mousePos.y, mouseBtns, mouseScroll, EditorScreen::width, EditorScreen::height);
-
+	//imguiBeginFrame((int)mousePos.x, (int)mousePos.y, mouseBtns, mouseScroll, EditorScreen::width, EditorScreen::height);
+	ImGui::NewFrame();
 //	ImGui::PushFont(s_font);
 	
 	MainMenu();
@@ -207,7 +209,7 @@ void EditorSystem::Draw()
 #endif
 
 //	ImGui::PopFont();
-	imguiEndFrame();
+	//imguiEndFrame();
 }
 
 void EditorSystem::MainMenu()
@@ -233,13 +235,13 @@ void EditorSystem::MainMenu()
 	{
 		for (System* s : m_GameScene->GetSystems())
 		{
-			ImGui::Checkbox(s->GetClassName(), &s->m_Enabled);
+			ImGui::Checkbox(s->GetTypeName(), &s->m_Enabled);
 			//ImGui::MenuItem(s->GetClassName(), nullptr, &s->m_Enabled);
 		}
 		ImGui::Separator();
 		for (System* s : m_Scene->GetSystems())
 		{
-			ImGui::Checkbox(s->GetClassName(), &s->m_Enabled);
+			ImGui::Checkbox(s->GetTypeName(), &s->m_Enabled);
 			//ImGui::MenuItem(s->GetClassName(), nullptr, &s->m_Enabled);
 		}
 		ImGui::EndMenu();
@@ -389,7 +391,7 @@ void EditorSystem::Inspector()
 	{
 		for (auto comp : selected->m_GameObject->GetComponents())
 		{
-			if (ImGui::CollapsingHeader(comp->GetClassName(), ImGuiTreeNodeFlags_DefaultOpen))
+			if (ImGui::CollapsingHeader(comp->GetTypeName(), ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				comp->Serialize(inspectorArchive);
 				if (comp->Is<Transform>())
@@ -456,27 +458,27 @@ void EditorSystem::Inspector()
 							if (ImGui::CollapsingHeader(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
 							{
 //								ImGui::LabelText("name", material->name.c_str());
-								for (auto& p : material->m_UniformInfos)
-								{
-									auto name = p.first.c_str();
-									auto& info = p.second.second;
-									if (info.type == bgfx::UniformType::Vec4)
-									{
-										if (material->m_MaterialProperties.vec4s.find(p.first) != material->m_MaterialProperties.vec4s.end())
-										{
-											auto& v = material->m_MaterialProperties.vec4s[p.first];
-											ImGui::ColorEdit4(name, v.data());
-										}
-									}
-									else if (info.type == bgfx::UniformType::Int1)
-									{
-										if (material->m_MaterialProperties.textures.find(p.first) != material->m_MaterialProperties.textures.end())
-										{
-											auto& v = material->m_MaterialProperties.textures[p.first];
-											ImGui::Image(v, ImVec2(64, 64));
-										}
-									}
-								}
+								//for (auto& p : material->m_UniformInfos)
+								//{
+								//	auto name = p.first.c_str();
+								//	auto& info = p.second.second;
+								//	if (info.type == bgfx::UniformType::Vec4)
+								//	{
+								//		if (material->m_MaterialProperties.vec4s.find(p.first) != material->m_MaterialProperties.vec4s.end())
+								//		{
+								//			auto& v = material->m_MaterialProperties.vec4s[p.first];
+								//			ImGui::ColorEdit4(name, v.data());
+								//		}
+								//	}
+								//	else if (info.type == bgfx::UniformType::Int1)
+								//	{
+								//		if (material->m_MaterialProperties.textures.find(p.first) != material->m_MaterialProperties.textures.end())
+								//		{
+								//			auto& v = material->m_MaterialProperties.textures[p.first];
+								//			ImGui::Image(v, ImVec2(64, 64));
+								//		}
+								//	}
+								//}
 							}
 						}
 						ImGui::Unindent();

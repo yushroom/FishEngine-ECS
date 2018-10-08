@@ -193,13 +193,13 @@ public:
 			auto m = Gizmos::matrix * Matrix4x4::TRS(p, r, Vector3(1, 1.5, 1)*0.08f);
 			s_color_material->SetVector("u_color", color);
 			
-			uint64_t state = 0
-				| BGFX_STATE_WRITE_RGB
-				| BGFX_STATE_WRITE_A
-				| BGFX_STATE_WRITE_Z
-				| BGFX_STATE_DEPTH_TEST_ALWAYS
-				| BGFX_STATE_CULL_CCW;
-			Graphics::DrawMesh2(Mesh::Cone, m, s_color_material, state, (bgfx::ViewId)RenderViewType::SceneGizmos);
+			//uint64_t state = 0
+			//	| BGFX_STATE_WRITE_RGB
+			//	| BGFX_STATE_WRITE_A
+			//	| BGFX_STATE_WRITE_Z
+			//	| BGFX_STATE_DEPTH_TEST_ALWAYS
+			//	| BGFX_STATE_CULL_CCW;
+			//Graphics::DrawMesh2(Mesh::Cone, m, s_color_material, state, (bgfx::ViewId)RenderViewType::SceneGizmos);
 		}
 	}
 	
