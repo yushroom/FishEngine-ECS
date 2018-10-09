@@ -196,6 +196,11 @@ using Microsoft::WRL::ComPtr;
 #include <FishEngine/Render/Helpers.h>
 #include <FishEngine/Render/CommandQueue.h>
 #include <FishEngine/Render/d3dx12.h>
+#include <FishEngine/Render/D3D12Context.hpp>
+
+#include <imgui.h>
+#include <examples/imgui_impl_dx12.h>
+#include <examples/imgui_impl_win32.h>
 
 
 ComPtr<IDXGISwapChain4> CreateSwapChain(
@@ -289,6 +294,11 @@ void D3D12WindowContext::Create(int width, int height, HWND hWnd)
 
 D3D12WindowContext context;
 
+
+ID3D12GraphicsCommandList*   g_pd3dCommandList = NULL;
+ID3D12DescriptorHeap* g_pd3dSrvDescHeap = NULL;
+
+
 void GameApp::Init()
 {
 	mainApp = this;
@@ -345,6 +355,29 @@ void GameApp::Init()
 	auto rs = m_Scene->AddSystem<RenderSystem>();
 	rs->m_Priority = 1000;
 
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	assert(ImGui_ImplWin32_Init(hWnd));
+	const auto& d3d12_context = rs->GetContext();
+	//ID3D12DescriptorHeap* g_pd3dSrvDescHeap = NULL;
+	{
+		auto g_pd3dDevice = Application::Get().GetDevice().Get();
+		D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+		desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		desc.NumDescriptors = 1;
+		desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+		ThrowIfFailed(g_pd3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&g_pd3dSrvDescHeap)) != S_OK);
+	}
+	assert(ImGui_ImplDX12_Init(Application::Get().GetDevice().Get(), 3,
+		DXGI_FORMAT_R8G8B8A8_UNORM,
+		g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart(),
+		g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart()));
+
+	//{
+	//	auto g_pd3dDevice = Application::Get().GetDevice().Get();
+	//	ThrowIfFailed(g_pd3dDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, ))
+	//}
+
 	Texture::StaticInit();
 	
 	Mesh::StaticInit();
@@ -384,6 +417,7 @@ void GameApp::Run()
 
 	m_Scene->Start();
 	m_EditorScene->Start();
+
 	
 	while (!glfwWindowShouldClose(m_Window))
 	{
@@ -408,6 +442,8 @@ void GameApp::Run()
 			//bgfx::setDebug(BGFX_DEBUG_TEXT);
 		}
 
+
+
 		double cursor_x = 0, cursor_y = 0;
 		glfwGetCursorPos(m_Window, &cursor_x, &cursor_y);
 		cursor_x /= m_WindowWidth;
@@ -415,7 +451,6 @@ void GameApp::Run()
 		m_EditorScene->GetSystem<InputSystem>()->SetMousePosition((float)cursor_x, 1.0f-(float)cursor_y);
 
 		//bgfx::setViewRect((bgfx::ViewId)RenderViewType::Editor, 0, 0, m_WindowWidth, m_WindowHeight);
-		
 		//m_EditorSystem->Draw();
 
 		// Set view 0 default viewport.
@@ -466,6 +501,28 @@ void GameApp::Run()
 		// Advance to next frame. Rendering thread will be kicked to
 		// process submitted rendering primitives.
 		//bgfx::frame();
+
+		//ImGui_ImplDX12_NewFrame();
+		//ImGui_ImplWin32_NewFrame();
+		//ImGui::NewFrame();
+
+		//ImGui::ShowDemoWindow();
+
+		//ImGui::Render();
+		{
+			ImGui_ImplDX12_NewFrame();
+			ImGui_ImplWin32_NewFrame();
+			ImGui::NewFrame();
+
+			ImGui::ShowDemoWindow();
+
+			ImGui::Render();
+			auto commandQueue = Application::Get().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
+			auto commandList2 = commandQueue->GetCommandList();
+			commandList2->SetDescriptorHeaps(1, &g_pd3dSrvDescHeap);
+			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList2.Get());
+		}
+
 
 		/* Swap front and back buffers */
 		//glfwSwapBuffers(m_Window);

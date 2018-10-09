@@ -1,6 +1,8 @@
+#include "../../../include/FishEngine/ClassDef.hpp"
+
 namespace FishEngine
 {
-	struct D3D12WindowContext
+	struct D3D12WindowContext : public NonCopyable
 	{
 		// D3D12
 		static constexpr int BufferCount = 3;

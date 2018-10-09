@@ -163,7 +163,7 @@ void Material::StaticInit()
 
 using Microsoft::WRL::ComPtr;
 using DirectX::XMMATRIX;
-#include "Render/ShaderImpl.hpp"
+#include <FishEngine/Render/ShaderImpl.hpp>
 
 void Material::StaticInit()
 {

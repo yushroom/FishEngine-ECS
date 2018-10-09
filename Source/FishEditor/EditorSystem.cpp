@@ -16,6 +16,8 @@
 
 #include <GLFW/glfw3.h>
 #include <imgui.h>
+#include <examples/imgui_impl_dx12.h>
+#include <examples/imgui_impl_win32.h>
 
 constexpr float main_menu_bar_height = 24;
 constexpr float main_tool_bar_height = 40;
@@ -116,8 +118,10 @@ void SetupImGuiStyle( bool bStyleDark_, float alpha_  )
 void EditorSystem::OnAdded()
 {
 	//imguiCreate();
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
+	//IMGUI_CHECKVERSION();
+	//ImGui::CreateContext();
+	//ImGui_ImplWin32_Init(hwnd);
+	//ImGui_ImplDX12_Init();
 	
 	SetupImGuiStyle(false, 1);
 	
@@ -166,6 +170,8 @@ void EditorSystem::Draw()
 	static float mouseScroll = 0;
 	mouseScroll += input->GetAxis(Axis::MouseScrollWheel);
 	//imguiBeginFrame((int)mousePos.x, (int)mousePos.y, mouseBtns, mouseScroll, EditorScreen::width, EditorScreen::height);
+	ImGui_ImplDX12_NewFrame();
+	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 //	ImGui::PushFont(s_font);
 	
@@ -210,6 +216,7 @@ void EditorSystem::Draw()
 
 //	ImGui::PopFont();
 	//imguiEndFrame();
+	ImGui::Render();
 }
 
 void EditorSystem::MainMenu()
