@@ -25,7 +25,9 @@ namespace FishEngine
 
 	VertexBufferHandle CreateVertexBuffer(const void* data, int vertexCount, int vertexSize);
 	IndexBufferHandle CreateIndexBuffer(const void* data, int indexCount, int stride);
-	void CreateIndexBuffer();
+	
+	struct ViewId {};
+	void SetViewRect(ViewId viewId, int x, int y, int width, int height);
 
 	class RenderContext : public Singleton
 	{
@@ -42,8 +44,6 @@ namespace FishEngine
 		void SetViewClear();
 		void SetUniform();
 		void SetViewTransform();
-
-
 
 		void AddCopyQueue(CopyTask copyTask);
 		void AddRenderQueue();

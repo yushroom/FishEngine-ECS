@@ -79,6 +79,10 @@ static void glfw_window_size_callback(GLFWwindow* window, int width, int height)
 	int fbw = width;
 	int fbh = height;
 //	glfwGetFramebufferSize(window, &fbw, &fbh);
+	if (fbw == 0)
+		fbw = 1;
+	if (fbh == 0)
+		fbh = 1;
 	mainApp->Resize(fbw, fbh);
 }
 
@@ -134,26 +138,11 @@ static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int act
 	else if (key == GLFW_KEY_DOWN)
 		e.key = KeyCode::DownArrow;
 	s->PostKeyEvent(e);
-	
-	//ImGuiIO& io = ImGui::GetIO();
-	//if (action == GLFW_PRESS)
-	//	io.KeysDown[key] = true;
-	//else if (action == GLFW_RELEASE)
-	//	io.KeysDown[key] = false;
-	//
-	//(void)mods; // Modifiers are not reliable across systems
-	//io.KeyCtrl = io.KeysDown[GLFW_KEY_LEFT_CONTROL] || io.KeysDown[GLFW_KEY_RIGHT_CONTROL];
-	//io.KeyShift = io.KeysDown[GLFW_KEY_LEFT_SHIFT] || io.KeysDown[GLFW_KEY_RIGHT_SHIFT];
-	//io.KeyAlt = io.KeysDown[GLFW_KEY_LEFT_ALT] || io.KeysDown[GLFW_KEY_RIGHT_ALT];
-	//io.KeySuper = io.KeysDown[GLFW_KEY_LEFT_SUPER] || io.KeysDown[GLFW_KEY_RIGHT_SUPER];
 }
 
 static void glfw_char_callback(GLFWwindow* window, unsigned int c)
 {
 	ImGui_ImplGlfw_CharCallback(window, c);
-	//auto& io = ImGui::GetIO();
-	//if (c > 0 && c < 0x10000)
-	//	io.AddInputCharacter((unsigned short)c);
 }
 
 static void glfw_mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -301,6 +290,25 @@ void D3D12WindowContext::Create(int width, int height, HWND hWnd)
 }
 
 
+void D3D12WindowContext::Resize(int width, int height)
+{
+	Application::Get().Flush();
+
+	for (int i = 0; i < BufferCount; ++i)
+	{
+		m_d3d12BackBuffers[i].Reset();
+	}
+
+	DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
+	ThrowIfFailed(m_dxgiSwapChain->GetDesc(&swapChainDesc));
+	ThrowIfFailed(m_dxgiSwapChain->ResizeBuffers(BufferCount, width,
+		height, swapChainDesc.BufferDesc.Format, swapChainDesc.Flags));
+
+	m_CurrentBackBufferIndex = m_dxgiSwapChain->GetCurrentBackBufferIndex();
+	UpdateRenderTargetViews(m_d3d12RTVDescriptorHeap, BufferCount, m_dxgiSwapChain, m_d3d12BackBuffers, m_RTVDescriptorSize);
+}
+
+
 D3D12WindowContext context;
 
 
@@ -405,10 +413,10 @@ void GameApp::Init()
 	auto es = m_EditorScene->AddSystem<EditorSystem>();
 	es->m_GameScene = m_Scene;
 	es->m_Priority = 999;
-	this->OnWindowSizeChanged += [es](int w, int h) {
-		es->m_WindowWidth = w;
-		es->m_WindowHeight = h;
-	};
+	//this->OnWindowSizeChanged += [es](int w, int h) {
+	//	es->m_WindowWidth = w;
+	//	es->m_WindowHeight = h;
+	//};
 	m_EditorScene->AddSystem<DrawGizmosSystem>();
 	m_EditorScene->AddSystem<SelectionSystem>();
 	auto svs = m_EditorScene->AddSystem<SceneViewSystem>();
@@ -521,19 +529,10 @@ void GameApp::Run()
 		// process submitted rendering primitives.
 		//bgfx::frame();
 
-		//ImGui_ImplDX12_NewFrame();
-		//ImGui_ImplWin32_NewFrame();
-		//ImGui::NewFrame();
-
 		//ImGui::ShowDemoWindow();
 
 		//ImGui::Render();
 		{
-			//ImGui_ImplDX12_NewFrame();
-			////ImGui_ImplWin32_NewFrame();
-			//ImGui_ImplGlfw_NewFrame();
-			//ImGui::NewFrame();
-
 			//ImGui::ShowDemoWindow();
 
 			ImGui::Render();
@@ -589,6 +588,7 @@ void GameApp::Resize(int width, int height)
 	EditorScreen::width = width;
 	EditorScreen::height = height;
 
+	context.Resize(width, height);
 	auto rs = m_Scene->GetSystem<RenderSystem>();
 	rs->Resize(width, height);
 

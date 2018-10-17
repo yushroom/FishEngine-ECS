@@ -15,5 +15,7 @@ namespace FishEngine
 		bool m_IsTearingSupported;
 
 		void Create(int width, int height, HWND hWnd);
+		void Resize(int width, int height);
 	};
+
 }
