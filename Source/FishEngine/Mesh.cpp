@@ -12,6 +12,8 @@
 #include <FishEngine/Texture.hpp>
 #include <FishEngine/bgfxHelper.hpp>
 
+#include <FishEngine/Render/RenderContext.hpp>
+
 using namespace FishEngine;
 
 std::string ReadFileAsString(const std::string &path)
@@ -110,121 +112,11 @@ void Mesh::StaticInit()
 	Plane = meshes[5];
 }
 
-#include <d3d12.h>
-#include <wrl.h>
-using namespace Microsoft::WRL;
-#include <FishEngine/Render/d3dx12.h>
-#include <FishEngine/Render/Helpers.h>
-
-void UpdateBufferResource(
-	ComPtr<ID3D12Device2> device,
-	ComPtr<ID3D12GraphicsCommandList2> commandList,
-	ID3D12Resource** pDestinationResource,
-	ID3D12Resource** pIntermediateResource,
-	size_t numElements, size_t elementSize, const void* bufferData,
-	D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE)
-{
-	size_t bufferSize = numElements * elementSize;
-
-	// Create a committed resource for the GPU resource in a default heap.
-	ThrowIfFailed(device->CreateCommittedResource(
-		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Buffer(bufferSize, flags),
-		D3D12_RESOURCE_STATE_COPY_DEST,
-		nullptr,
-		IID_PPV_ARGS(pDestinationResource)));
-
-	// Create a committed resource for the upload.
-	if (bufferData)
-	{
-		ThrowIfFailed(device->CreateCommittedResource(
-			&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-			D3D12_HEAP_FLAG_NONE,
-			&CD3DX12_RESOURCE_DESC::Buffer(bufferSize),
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
-			IID_PPV_ARGS(pIntermediateResource)));
-
-		D3D12_SUBRESOURCE_DATA subresourceData = {};
-		subresourceData.pData = bufferData;
-		subresourceData.RowPitch = bufferSize;
-		subresourceData.SlicePitch = subresourceData.RowPitch;
-
-		UpdateSubresources(commandList.Get(),
-			*pDestinationResource, *pIntermediateResource,
-			0, 0, 1, &subresourceData);
-	}
-}
-
-#include <FishEngine/Render/Application.h>
-#include <FishEngine/Render/CommandQueue.h>
-#include <FishEngine/Render/MeshImpl.hpp>
-#include <DirectXMath.h>
-using DirectX::XMFLOAT3;
-
-//// Vertex data for a colored cube.
-//struct VertexPosColor
-//{
-//	XMFLOAT3 Position;
-//	XMFLOAT3 Color;
-//};
-//
-//static VertexPosColor g_Vertices[8] = {
-//	{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f) }, // 0
-//	{ XMFLOAT3(-1.0f,  1.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) }, // 1
-//	{ XMFLOAT3(1.0f,  1.0f, -1.0f), XMFLOAT3(1.0f, 1.0f, 0.0f) }, // 2
-//	{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f) }, // 3
-//	{ XMFLOAT3(-1.0f, -1.0f,  1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) }, // 4
-//	{ XMFLOAT3(-1.0f,  1.0f,  1.0f), XMFLOAT3(0.0f, 1.0f, 1.0f) }, // 5
-//	{ XMFLOAT3(1.0f,  1.0f,  1.0f), XMFLOAT3(1.0f, 1.0f, 1.0f) }, // 6
-//	{ XMFLOAT3(1.0f, -1.0f,  1.0f), XMFLOAT3(1.0f, 0.0f, 1.0f) }  // 7
-//};
-//
-//static WORD g_Indicies[36] =
-//{
-//	0, 1, 2, 0, 2, 3,
-//	4, 6, 5, 4, 7, 6,
-//	4, 5, 1, 4, 1, 0,
-//	3, 2, 6, 3, 6, 7,
-//	1, 5, 6, 1, 6, 2,
-//	4, 0, 3, 4, 3, 7
-//};
 
 void Mesh::__Upload()
 {
-	assert(m_Impl == nullptr);
-	m_Impl = new MeshImpl();
-
-	auto device = Application::Get().GetDevice();
-	auto commandQueue = Application::Get().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY);
-	auto commandList = commandQueue->GetCommandList();
-
-	// Upload vertex buffer data.
-	ComPtr<ID3D12Resource> intermediateVertexBuffer;
-	UpdateBufferResource(device, commandList,
-		&m_Impl->m_VertexBuffer, &intermediateVertexBuffer,
-		m_Vertices.size(), sizeof(PUNTVertex), m_Vertices.data());
-
-	// Create the vertex buffer view.
-	m_Impl->m_VertexBufferView.BufferLocation = m_Impl->m_VertexBuffer->GetGPUVirtualAddress();
-	m_Impl->m_VertexBufferView.SizeInBytes = bgfxHelper::Sizeof(m_Vertices);
-	m_Impl->m_VertexBufferView.StrideInBytes = sizeof(PUNTVertex);
-
-	// Upload index buffer data.
-	ComPtr<ID3D12Resource> intermediateIndexBuffer;
-	UpdateBufferResource(device, commandList,
-		&m_Impl->m_IndexBuffer, &intermediateIndexBuffer,
-		m_Indices.size(), sizeof(uint32_t), m_Indices.data());
-
-	// Create index buffer view.
-	m_Impl->m_IndexBufferView.BufferLocation = m_Impl->m_IndexBuffer->GetGPUVirtualAddress();
-	m_Impl->m_IndexBufferView.Format = DXGI_FORMAT_R32_UINT;
-	m_Impl->m_IndexBufferView.SizeInBytes = bgfxHelper::Sizeof(m_Indices);
-
-	// TODO
-	auto fenceValue = commandQueue->ExecuteCommandList(commandList);
-	commandQueue->WaitForFenceValue(fenceValue);
+	m_VertexBuffer = CreateVertexBuffer(m_Vertices.data(), m_Vertices.size(), sizeof(PUNTVertex));
+	m_IndexBuffer = CreateIndexBuffer(m_Indices.data(), m_Indices.size(), sizeof(decltype(m_Indices)::value_type));
 }
 
 

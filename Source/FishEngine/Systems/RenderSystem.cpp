@@ -265,11 +265,11 @@ using namespace DirectX;
 
 
 #include <FishEngine/Shader.hpp>
-#include <FishEngine/Render/MeshImpl.hpp>
 #include <FishEngine/Render/ShaderImpl.hpp>
 #include "../Render/D3D12WindowContext.hpp"
 //#include <FishEditor/GameApp.hpp>
 #include <FishEngine/Render/D3D12Context.hpp>
+#include <FishEngine/Render/RenderBuffer.hpp>
 
 #include <imgui.h>
 #include <examples/imgui_impl_dx12.h>
@@ -338,8 +338,10 @@ void RenderSystem::Draw(D3D12WindowContext& winContext)
 		//auto mesh = Mesh::Cube;
 		auto mesh = rend->m_Mesh;
 		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		commandList->IASetVertexBuffers(0, 1, &mesh->m_Impl->m_VertexBufferView);
-		commandList->IASetIndexBuffer(&mesh->m_Impl->m_IndexBufferView);
+		assert(mesh->m_VertexBuffer.IsValid());
+		assert(mesh->m_IndexBuffer.IsValid());
+		commandList->IASetVertexBuffers(0, 1, &D3D12::VertexBuffer::Buffers[mesh->m_VertexBuffer.Get()].bufferView);
+		commandList->IASetIndexBuffer(&D3D12::IndexBuffer::Buffers[mesh->m_IndexBuffer.Get()].bufferView);
 
 		commandList->RSSetViewports(1, &context.m_Viewport);
 		commandList->RSSetScissorRects(1, &context.m_ScissorRect);

@@ -8,6 +8,7 @@
 //#include <bgfx/bgfx.h>
 
 #include <FishEngine/Math/IntVector.hpp>
+#include "Render/Handle.hpp"
 
 namespace FishEngine
 {
@@ -19,7 +20,6 @@ struct SubMeshInfo
 	int VertexOffset = 0;
 };
 
-class MeshImpl;
 
 class Mesh : public Object
 {
@@ -27,6 +27,8 @@ class Mesh : public Object
 public:
 	//bgfx::IndexBufferHandle m_IndexBuffer;
 	//bgfx::VertexBufferHandle m_VertexBuffer;
+	IndexBufferHandle m_IndexBuffer;
+	VertexBufferHandle m_VertexBuffer;
 	
 	// for cpu skinning
 	//bgfx::DynamicVertexBufferHandle m_DynamicVertexBuffer = BGFX_INVALID_HANDLE;
@@ -70,8 +72,6 @@ public:
 	
 public:
 	void __Upload();
-
-	MeshImpl* m_Impl = nullptr;
 };
 
 namespace ECS

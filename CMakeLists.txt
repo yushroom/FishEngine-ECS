@@ -46,7 +46,7 @@ target_include_directories(FishEditor PUBLIC "./ThirdParty/imgui")
 AutoGroup(./Include/FishEngine Math Systems Components ECS Render)
 AutoGroup(./Source/FishEngine Math Systems Components Render)
 
-include_directories("./ThirdParty/tinygltf")
+target_include_directories(FishEngine PUBLIC "./ThirdParty/tinygltf")
 
 file(GLOB IMGUI_HEADERS "./ThirdParty/imgui/*.h"
         "./ThirdParty/imgui/examples/imgui_impl_dx12.h"

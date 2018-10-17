@@ -8,11 +8,13 @@
 #include <FishEngine/Systems/TransformSystem.hpp>
 #include <FishEngine/Systems/RenderSystem.hpp>
 #include <FishEngine/Systems/InputSystem.hpp>
+#include <FishEngine/Components/SingletonTime.hpp>
 
 #include <FishEditor/Systems/SelectionSystem.hpp>
 #include <FishEditor/Systems/DrawGizmosSystem.hpp>
 #include <FishEditor/Systems/EditorSystem.hpp>
 #include <FishEditor/Systems/SceneViewSystem.hpp>
+
 
 #include <GLFW/glfw3.h>
 //#include <bgfx/bgfx.h>
@@ -359,13 +361,14 @@ void GameApp::Init()
 	m_Scene = new Scene();
 	Scene::s_Current = m_Scene;
 	m_Scene->AddSystem<InputSystem>();
+	m_Scene->time = m_Scene->AddSingletonComponent<SingletonTime>();
 	auto rs = m_Scene->AddSystem<RenderSystem>();
 	rs->m_Priority = 1000;
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	//assert(ImGui_ImplWin32_Init(hWnd));
-	assert(ImGui_ImplGlfw_InitForOpenGL(m_Window, false));
+	ImGui_ImplGlfw_InitForOpenGL(m_Window, false);
 	const auto& d3d12_context = rs->GetContext();
 	//ID3D12DescriptorHeap* g_pd3dSrvDescHeap = NULL;
 	{
@@ -376,10 +379,10 @@ void GameApp::Init()
 		desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		ThrowIfFailed(g_pd3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&g_pd3dSrvDescHeap)) != S_OK);
 	}
-	assert(ImGui_ImplDX12_Init(Application::Get().GetDevice().Get(), 3,
+	ImGui_ImplDX12_Init(Application::Get().GetDevice().Get(), 3,
 		DXGI_FORMAT_R8G8B8A8_UNORM,
 		g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart(),
-		g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart()));
+		g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
 
 	//{
 	//	auto g_pd3dDevice = Application::Get().GetDevice().Get();
@@ -398,6 +401,7 @@ void GameApp::Init()
 
 	m_EditorScene = new Scene();
 	m_EditorScene->AddSystem<InputSystem>();
+	m_EditorScene->time = m_EditorScene->AddSingletonComponent<SingletonTime>();
 	auto es = m_EditorScene->AddSystem<EditorSystem>();
 	es->m_GameScene = m_Scene;
 	es->m_Priority = 999;
@@ -426,6 +430,7 @@ void GameApp::Run()
 	m_Scene->Start();
 	m_EditorScene->Start();
 
+	double timeStamp = glfwGetTime();
 	
 	while (!glfwWindowShouldClose(m_Window))
 	{
@@ -436,6 +441,12 @@ void GameApp::Run()
 		}
 		//glfwWaitEvents();
 //		printf("============ frame begin ===========\n");
+
+		double now = glfwGetTime();
+		m_Scene->time->deltaTime = float(now - timeStamp);
+		timeStamp = now;
+		m_EditorScene->time->deltaTime = m_Scene->time->deltaTime;
+		//printf("%f\n", m_Scene->time->deltaTime);
 
 		auto si = m_EditorScene->GetSingletonComponent<SingletonInput>();
 		if (si->IsButtonPressed(KeyCode::Escape))

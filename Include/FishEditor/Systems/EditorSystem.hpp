@@ -29,6 +29,7 @@ namespace FishEditor
 		void MainToolBar();
 		void Hierarchy();
 		void Inspector();
+		void StatusBar();
 		
 		HierarchyView m_HierarchyView;
 	};

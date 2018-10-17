@@ -21,6 +21,7 @@
 
 float main_menu_bar_height = 24;
 constexpr float main_tool_bar_height = 40;
+constexpr float status_bar_height = 24;
 
 using namespace FishEditor;
 using namespace FishEngine;
@@ -182,7 +183,7 @@ void EditorSystem::Draw()
 	float y_start = main_menu_bar_height + main_tool_bar_height;
 
 	ImGui::SetNextWindowPos(ImVec2(0.0f, y_start));
-	ImGui::SetNextWindowSize(ImVec2(hierarchy_width, (float)EditorScreen::height-y_start));
+	ImGui::SetNextWindowSize(ImVec2(hierarchy_width, (float)EditorScreen::height-y_start-status_bar_height));
 	Hierarchy();
 	if (selected == nullptr)
 		selection->selected = nullptr;
@@ -190,8 +191,12 @@ void EditorSystem::Draw()
 		selection->selected = selected->m_GameObject;
 
 	ImGui::SetNextWindowPos(ImVec2((float)EditorScreen::width - inspector_width, y_start));
-	ImGui::SetNextWindowSize(ImVec2(inspector_width, (float)EditorScreen::height-y_start));
+	ImGui::SetNextWindowSize(ImVec2(inspector_width, (float)EditorScreen::height-y_start-status_bar_height));
 	Inspector();
+
+	ImGui::SetNextWindowPos(ImVec2(0, EditorScreen::height- status_bar_height));
+	ImGui::SetNextWindowSize(ImVec2(EditorScreen::width, status_bar_height));
+	StatusBar();
 
 	m_SceneViewRect.x = hierarchy_width;
 	m_SceneViewRect.y = y_start;
@@ -379,7 +384,7 @@ void EditorSystem::MainToolBar()
 void EditorSystem::Hierarchy()
 {
 	m_HierarchyView.selected = selected;
-	m_HierarchyView.Draw(m_GameScene, m_Scene->GetSingletonComponent<SingletonInput>());
+	m_HierarchyView.Draw(m_GameScene, m_Scene);
 	selected = m_HierarchyView.selected;
 }
 
@@ -523,5 +528,24 @@ void EditorSystem::Inspector()
 			}
 		}
 	}
+	ImGui::End();
+}
+
+void FishEditor::EditorSystem::StatusBar()
+{
+	ImGui::Begin("statusbar", nullptr, imgui_window_flags | ImGuiWindowFlags_NoTitleBar);
+	static double timeStamp = glfwGetTime();
+	static int frames = 0;
+	static int fps = 30;
+	constexpr int frameCount = 200;
+	frames++;
+	if (frames == frameCount)
+	{
+		double now = glfwGetTime();
+		fps = int(frameCount / (now - timeStamp));
+		timeStamp = now;
+		frames = 0;
+	}
+	ImGui::Text("fps:%d", fps);
 	ImGui::End();
 }

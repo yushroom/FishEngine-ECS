@@ -77,14 +77,14 @@ class ModelViewer : public FishEditor::GameApp
 public:
 	void Start() override
 	{
-		const char* path = FISHENGINE_ROOT "Assets/Models/T-Rex.glb";
-		//auto path = GetglTFSample("CesiumMan");
+		//const char* path = FISHENGINE_ROOT "Assets/Models/T-Rex.glb";
+		auto path = GetglTFSample("CesiumMan");
 		//path = GetglTFSample("RiggedSimple");
 		//path = GetglTFSample("TextureCoordinateTest");
 //		path = GetglTFSample("Triangle");
 		//path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/BoomBoxWithAxes/glTF/BoomBoxWithAxes.gltf";
 //		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Triangle/glTF/Triangle.gltf";
-		//path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
+		path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
 //		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf";
 //		path = GetglTFSample("Buggy");
 		//path = GetglTFSample("BrainStem");
