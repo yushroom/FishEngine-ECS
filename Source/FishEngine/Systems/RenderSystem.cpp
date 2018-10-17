@@ -257,11 +257,12 @@ void RenderSystem::Resize(int width, int height)
 using Microsoft::WRL::ComPtr;
 #include <DirectXMath.h>
 using namespace DirectX;
+#include <FishEngine/Render/D3D12Utils.hpp>
 
 #include <FishEngine/Render/Application.h>
 #include <FishEngine/Render/Helpers.h>
 #include <FishEngine/Render/CommandQueue.h>
-#include <FishEngine/Render/d3dx12.h>
+
 
 #include <FishEngine/Shader.hpp>
 #include <FishEngine/Render/MeshImpl.hpp>
@@ -292,34 +293,13 @@ void RenderSystem::Resize(int width, int height)
 
 }
 
-// Transition a resource
-void TransitionResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList,
-	Microsoft::WRL::ComPtr<ID3D12Resource> resource,
-	D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState)
-{
-	CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		resource.Get(),
-		beforeState, afterState);
-
-	commandList->ResourceBarrier(1, &barrier);
-}
-
-
-void ClearRTV(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList,
-	D3D12_CPU_DESCRIPTOR_HANDLE rtv, FLOAT* clearColor)
-{
-	commandList->ClearRenderTargetView(rtv, clearColor, 0, nullptr);
-}
-
-void ClearDepth(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList,
-	D3D12_CPU_DESCRIPTOR_HANDLE dsv, FLOAT depth = 1.0f)
-{
-	commandList->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH, depth, 0, 0, nullptr);
-}
-
 
 void RenderSystem::Draw(D3D12WindowContext& winContext)
 {
+	Camera* camera = Camera::GetEditorCamera();
+	if (camera == nullptr)
+		return;
+
 	auto commandQueue = Application::Get().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
 	auto commandList = commandQueue->GetCommandList();
 
@@ -350,7 +330,7 @@ void RenderSystem::Draw(D3D12WindowContext& winContext)
 	commandList->SetPipelineState(context.m_PipelineState.Get());
 	commandList->SetGraphicsRootSignature(shader->m_RootSignature.Get());
 
-	m_Scene->ForEach<Renderable>([&commandList, &rtv, &dsv](GameObject* go, Renderable* rend)
+	m_Scene->ForEach<Renderable>([&commandList, &rtv, &dsv, camera](GameObject* go, Renderable* rend)
 	{
 		if (rend == nullptr || !rend->m_Enabled || rend->m_Mesh == nullptr)
 			return;
@@ -366,10 +346,14 @@ void RenderSystem::Draw(D3D12WindowContext& winContext)
 
 		commandList->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
 
+		//context.m_ModelMatrix = go->GetTransform()->GetLocalToWorldMatrix();
 		// Update the MVP matrix
-		XMMATRIX mvpMatrix = XMMatrixMultiply(context.m_ModelMatrix, context.m_ViewMatrix);
-		mvpMatrix = XMMatrixMultiply(mvpMatrix, context.m_ProjectionMatrix);
-		commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / 4, &mvpMatrix, 0);
+		//XMMATRIX mvpMatrix = XMMatrixMultiply(context.m_ModelMatrix, context.m_ViewMatrix);
+		//mvpMatrix = XMMatrixMultiply(mvpMatrix, context.m_ProjectionMatrix);
+		auto m = go->GetTransform()->GetLocalToWorldMatrix();
+		auto vp = camera->GetViewProjectionMatrix();
+		auto mvp = (vp*m).transpose();
+		commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / 4, &mvp, 0);
 
 		commandList->DrawIndexedInstanced(mesh->m_Indices.size(), 1, 0, 0, 0);
 	});
@@ -382,12 +366,12 @@ void RenderSystem::Draw(D3D12WindowContext& winContext)
 
 		context.m_FenceValues[currentBackBufferIndex] = commandQueue->ExecuteCommandList(commandList);
 
-		//currentBackBufferIndex = m_pWindow->Present();
-		bool m_VSync = false;
-		UINT syncInterval = m_VSync ? 1 : 0;
-		UINT presentFlags = winContext.m_IsTearingSupported && !m_VSync ? DXGI_PRESENT_ALLOW_TEARING : 0;
-		ThrowIfFailed(winContext.m_dxgiSwapChain->Present(syncInterval, presentFlags));
-		winContext.m_CurrentBackBufferIndex = winContext.m_dxgiSwapChain->GetCurrentBackBufferIndex();
+		////currentBackBufferIndex = m_pWindow->Present();
+		//bool m_VSync = false;
+		//UINT syncInterval = m_VSync ? 1 : 0;
+		//UINT presentFlags = winContext.m_IsTearingSupported && !m_VSync ? DXGI_PRESENT_ALLOW_TEARING : 0;
+		//ThrowIfFailed(winContext.m_dxgiSwapChain->Present(syncInterval, presentFlags));
+		//winContext.m_CurrentBackBufferIndex = winContext.m_dxgiSwapChain->GetCurrentBackBufferIndex();
 
 		commandQueue->WaitForFenceValue(context.m_FenceValues[currentBackBufferIndex]);
 	}

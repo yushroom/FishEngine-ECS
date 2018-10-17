@@ -77,14 +77,14 @@ class ModelViewer : public FishEditor::GameApp
 public:
 	void Start() override
 	{
-//		const char* path = FISHENGINE_ROOT "Assets/Models/T-Rex.glb";
-		auto path = GetglTFSample("CesiumMan");
+		const char* path = FISHENGINE_ROOT "Assets/Models/T-Rex.glb";
+		//auto path = GetglTFSample("CesiumMan");
 		//path = GetglTFSample("RiggedSimple");
 		//path = GetglTFSample("TextureCoordinateTest");
 //		path = GetglTFSample("Triangle");
 		//path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/BoomBoxWithAxes/glTF/BoomBoxWithAxes.gltf";
 //		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Triangle/glTF/Triangle.gltf";
-		path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
+		//path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
 //		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf";
 //		path = GetglTFSample("Buggy");
 		//path = GetglTFSample("BrainStem");
@@ -105,23 +105,25 @@ public:
 			go->name = "Directional Light";
 		}
 		
+#if 0
 		auto plane = CreateGO(m_Scene, Mesh::Plane);
 		plane->name = "Plane";
 		auto cube = CreateGO(m_Scene, Mesh::Cube);
 		cube->name = "Cube";
 		auto sphere = CreateGO(m_Scene, Mesh::Sphere);
 		sphere->name = "Sphere";
-//		auto quad = CreateGO(m_Scene, Mesh::Quad);
-//		quad->name = "Quad";
+		auto quad = CreateGO(m_Scene, Mesh::Quad);
+		quad->name = "Quad";
 		auto cone = CreateGO(m_Scene, Mesh::Cone);
 		cone->name = "Cone";
 		auto cylinder = CreateGO(m_Scene, Mesh::Cylinder);
 		cylinder->name = "Cylinder";
-//		auto capsule = CreateGO(m_Scene, Mesh::Capsule);
-//		capsule->name = "Capsule";
+		auto capsule = CreateGO(m_Scene, Mesh::Capsule);
+		capsule->name = "Capsule";
+#endif
 
 		GLTFLoadFlags flags;
-		flags.loadMateirals = false;
+		//flags.loadMateirals = false;
 		flags.loadPrimitiveAsSubMesh = true;
 		auto rootGO = ModelUtil::FromGLTF(path, flags, m_Scene);
 //		auto rootGO = m_Scene->CreateGameObject();

@@ -11,20 +11,21 @@ using namespace FishEngine;
 Matrix4x4 FishEngine::Camera::GetProjectionMatrix() const
 {
 	float aspectRatio = Screen::GetAspectRatio();
-	float proj[16];
+	//float proj[16];
 	if (m_Orthographic)
 	{
 		float y = m_OrthographicSize;
 		float x = y * aspectRatio;
 		//bx::mtxOrtho(proj, -x, x, -y, y, m_NearClipPlane, m_FarClipPlane, 0, bgfx::getCaps()->homogeneousDepth);
-
+		m_ProjectionMatrix = Matrix4x4::Ortho(-x, x, -y, y, m_NearClipPlane, m_FarClipPlane);
 	}
 	else
 	{
 		//bx::mtxProj(proj, m_FieldOfView, aspectRatio, m_NearClipPlane, m_FarClipPlane, bgfx::getCaps()->homogeneousDepth);
+		m_ProjectionMatrix = Matrix4x4::Perspective(m_FieldOfView, aspectRatio, m_NearClipPlane, m_FarClipPlane);
 	}
-	memcpy(m_ProjectionMatrix.data(), proj, sizeof(Matrix4x4));
-	m_ProjectionMatrix = m_ProjectionMatrix.transpose();
+	//memcpy(m_ProjectionMatrix.data(), proj, sizeof(Matrix4x4));
+	//m_ProjectionMatrix = m_ProjectionMatrix.transpose();
 	return m_ProjectionMatrix;
 }
 
@@ -43,6 +44,7 @@ inline Matrix4x4 FishEngine::Camera::GetCameraToWorldMatrix() const
 Matrix4x4 FishEngine::Camera::GetViewProjectionMatrix() const
 {
 	return GetProjectionMatrix() * GetWorldToCameraMatrix();
+	//return GetWorldToCameraMatrix() * GetProjectionMatrix();
 }
 
 // Returns a ray going from camera through a screen point.

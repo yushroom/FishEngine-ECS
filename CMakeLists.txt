@@ -50,10 +50,12 @@ include_directories("./ThirdParty/tinygltf")
 
 file(GLOB IMGUI_HEADERS "./ThirdParty/imgui/*.h"
         "./ThirdParty/imgui/examples/imgui_impl_dx12.h"
-        "./ThirdParty/imgui/examples/imgui_impl_win32.h")
+        "./ThirdParty/imgui/examples/imgui_impl_win32.h"
+        "./ThirdParty/imgui/examples/imgui_impl_glfw.h")
 file(GLOB IMGUI_SRCS "./ThirdParty/imgui/*.cpp"
         "./ThirdParty/imgui/examples/imgui_impl_dx12.cpp"
-        "./ThirdParty/imgui/examples/imgui_impl_win32.cpp")
+        "./ThirdParty/imgui/examples/imgui_impl_win32.cpp"
+        "./ThirdParty/imgui/examples/imgui_impl_glfw.cpp")
 add_library(imgui ${IMGUI_HEADERS} ${IMGUI_SRCS})
 target_include_directories(imgui PUBLIC "./ThirdParty/imgui")
 SET_TARGET_PROPERTIES(imgui PROPERTIES FOLDER "ThirdParty")

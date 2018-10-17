@@ -1,6 +1,15 @@
 #pragma once
 
 #include "../Engine.hpp"
+#ifdef FISHENGINE_PLATFORM_WINDOWS
+#	if defined(min)
+#		undef min
+#	endif
+#	if defined(max)
+#		undef max
+#	endif
+#endif // FISHENGINE_PLATFORM_WINDOWS
+
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>

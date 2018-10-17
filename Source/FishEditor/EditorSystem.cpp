@@ -17,9 +17,9 @@
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 #include <examples/imgui_impl_dx12.h>
-#include <examples/imgui_impl_win32.h>
+#include <examples/imgui_impl_glfw.h>
 
-constexpr float main_menu_bar_height = 24;
+float main_menu_bar_height = 24;
 constexpr float main_tool_bar_height = 40;
 
 using namespace FishEditor;
@@ -171,7 +171,7 @@ void EditorSystem::Draw()
 	mouseScroll += input->GetAxis(Axis::MouseScrollWheel);
 	//imguiBeginFrame((int)mousePos.x, (int)mousePos.y, mouseBtns, mouseScroll, EditorScreen::width, EditorScreen::height);
 	ImGui_ImplDX12_NewFrame();
-	ImGui_ImplWin32_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 //	ImGui::PushFont(s_font);
 	
@@ -179,7 +179,7 @@ void EditorSystem::Draw()
 	MainToolBar();
 
 	
-	constexpr float y_start = main_menu_bar_height + main_tool_bar_height;
+	float y_start = main_menu_bar_height + main_tool_bar_height;
 
 	ImGui::SetNextWindowPos(ImVec2(0.0f, y_start));
 	ImGui::SetNextWindowSize(ImVec2(hierarchy_width, (float)EditorScreen::height-y_start));
@@ -219,10 +219,12 @@ void EditorSystem::Draw()
 	ImGui::Render();
 }
 
+
 void EditorSystem::MainMenu()
 {
 	bool showHelpWindow = false;
 	ImGui::BeginMainMenuBar();
+	main_menu_bar_height = ImGui::GetWindowHeight();
 	if (ImGui::BeginMenu("File"))
 	{
 		ImGui::MenuItem("New Scene", "Ctrl+N");
@@ -296,7 +298,7 @@ void EditorSystem::MainToolBar()
 	float height = 24 + padding;
 	ImVec2 toolbar_size(ImGui::GetIO().DisplaySize.x, height);
 
-	constexpr float main_menu_bar_height = 24;
+	
 	ImGui::SetNextWindowPos(ImVec2(0.0f, main_menu_bar_height));
 	ImGui::SetNextWindowSize(ImVec2(EditorScreen::width, main_tool_bar_height));
 	auto flag = 0
@@ -435,7 +437,8 @@ void EditorSystem::Inspector()
 					
 //					if (r->mesh->m_SubMeshCount)
 //					ImGui::LabelText("Submesh Count", "%d", r->mesh->m_SubMeshCount);
-					ImGui::Text("Submesh Count: %d", r->m_Mesh->m_SubMeshCount);
+					if (r->m_Mesh != nullptr)
+						ImGui::Text("Submesh Count: %d", r->m_Mesh->m_SubMeshCount);
 //					for (auto& x : r->mesh->m_SubMeshInfos)
 //					{
 //						ImGui::Text("  %d", x.Length);
@@ -460,6 +463,8 @@ void EditorSystem::Inspector()
 						for (int i = 0; i < r->m_Materials.size(); ++i)
 						{
 							auto material = r->m_Materials[i];
+							if (material == nullptr)
+								continue;
 //							auto header = "Material" + std::to_string(i);
 							auto header = material->name;
 							if (ImGui::CollapsingHeader(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen))

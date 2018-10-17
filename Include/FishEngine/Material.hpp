@@ -43,7 +43,7 @@ namespace FishEngine
 		
 		static Material* Clone(Material* mat)
 		{
-			return nullptr;
+			return ColorMaterial;
 		}
 		
 		static void StaticInit();

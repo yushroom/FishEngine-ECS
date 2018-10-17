@@ -34,6 +34,7 @@
 //#	endif
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
+#include <examples/imgui_impl_glfw.h>
 
 #include <thread>
 
@@ -86,6 +87,7 @@ inline KeyCode KKK(KeyCode key, int offset)
 
 static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+	ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
 	if (key == GLFW_KEY_UNKNOWN)
 		return;
 
@@ -131,28 +133,30 @@ static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int act
 		e.key = KeyCode::DownArrow;
 	s->PostKeyEvent(e);
 	
-	ImGuiIO& io = ImGui::GetIO();
-	if (action == GLFW_PRESS)
-		io.KeysDown[key] = true;
-	else if (action == GLFW_RELEASE)
-		io.KeysDown[key] = false;
-	
-	(void)mods; // Modifiers are not reliable across systems
-	io.KeyCtrl = io.KeysDown[GLFW_KEY_LEFT_CONTROL] || io.KeysDown[GLFW_KEY_RIGHT_CONTROL];
-	io.KeyShift = io.KeysDown[GLFW_KEY_LEFT_SHIFT] || io.KeysDown[GLFW_KEY_RIGHT_SHIFT];
-	io.KeyAlt = io.KeysDown[GLFW_KEY_LEFT_ALT] || io.KeysDown[GLFW_KEY_RIGHT_ALT];
-	io.KeySuper = io.KeysDown[GLFW_KEY_LEFT_SUPER] || io.KeysDown[GLFW_KEY_RIGHT_SUPER];
+	//ImGuiIO& io = ImGui::GetIO();
+	//if (action == GLFW_PRESS)
+	//	io.KeysDown[key] = true;
+	//else if (action == GLFW_RELEASE)
+	//	io.KeysDown[key] = false;
+	//
+	//(void)mods; // Modifiers are not reliable across systems
+	//io.KeyCtrl = io.KeysDown[GLFW_KEY_LEFT_CONTROL] || io.KeysDown[GLFW_KEY_RIGHT_CONTROL];
+	//io.KeyShift = io.KeysDown[GLFW_KEY_LEFT_SHIFT] || io.KeysDown[GLFW_KEY_RIGHT_SHIFT];
+	//io.KeyAlt = io.KeysDown[GLFW_KEY_LEFT_ALT] || io.KeysDown[GLFW_KEY_RIGHT_ALT];
+	//io.KeySuper = io.KeysDown[GLFW_KEY_LEFT_SUPER] || io.KeysDown[GLFW_KEY_RIGHT_SUPER];
 }
 
 static void glfw_char_callback(GLFWwindow* window, unsigned int c)
 {
-	auto& io = ImGui::GetIO();
-	if (c > 0 && c < 0x10000)
-		io.AddInputCharacter((unsigned short)c);
+	ImGui_ImplGlfw_CharCallback(window, c);
+	//auto& io = ImGui::GetIO();
+	//if (c > 0 && c < 0x10000)
+	//	io.AddInputCharacter((unsigned short)c);
 }
 
 static void glfw_mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
+	ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
 	auto s = mainApp->m_EditorScene->GetSystem<InputSystem>();
 	KeyEvent e;
 	if (button == GLFW_MOUSE_BUTTON_LEFT)
@@ -172,6 +176,7 @@ static void glfw_mouse_button_callback(GLFWwindow* window, int button, int actio
 
 void glfw_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
+	ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
 	auto s = mainApp->m_EditorScene->GetSystem<InputSystem>();
 	s->UpdateAxis(Axis::MouseScrollWheel, (float)yoffset);
 }
@@ -197,10 +202,12 @@ using Microsoft::WRL::ComPtr;
 #include <FishEngine/Render/CommandQueue.h>
 #include <FishEngine/Render/d3dx12.h>
 #include <FishEngine/Render/D3D12Context.hpp>
+#include <FishEngine/Render/D3D12Utils.hpp>
 
 #include <imgui.h>
 #include <examples/imgui_impl_dx12.h>
-#include <examples/imgui_impl_win32.h>
+//#include <examples/imgui_impl_win32.h>
+
 
 
 ComPtr<IDXGISwapChain4> CreateSwapChain(
@@ -357,7 +364,8 @@ void GameApp::Init()
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
-	assert(ImGui_ImplWin32_Init(hWnd));
+	//assert(ImGui_ImplWin32_Init(hWnd));
+	assert(ImGui_ImplGlfw_InitForOpenGL(m_Window, false));
 	const auto& d3d12_context = rs->GetContext();
 	//ID3D12DescriptorHeap* g_pd3dSrvDescHeap = NULL;
 	{
@@ -451,7 +459,7 @@ void GameApp::Run()
 		m_EditorScene->GetSystem<InputSystem>()->SetMousePosition((float)cursor_x, 1.0f-(float)cursor_y);
 
 		//bgfx::setViewRect((bgfx::ViewId)RenderViewType::Editor, 0, 0, m_WindowWidth, m_WindowHeight);
-		//m_EditorSystem->Draw();
+		m_EditorSystem->Draw();
 
 		// Set view 0 default viewport.
 //		bgfx::setViewRect(0, 0, 0, uint16_t(m_WindowWidth*2), uint16_t(m_WindowHeight*2) );
@@ -510,18 +518,40 @@ void GameApp::Run()
 
 		//ImGui::Render();
 		{
-			ImGui_ImplDX12_NewFrame();
-			ImGui_ImplWin32_NewFrame();
-			ImGui::NewFrame();
+			//ImGui_ImplDX12_NewFrame();
+			////ImGui_ImplWin32_NewFrame();
+			//ImGui_ImplGlfw_NewFrame();
+			//ImGui::NewFrame();
 
-			ImGui::ShowDemoWindow();
+			//ImGui::ShowDemoWindow();
 
 			ImGui::Render();
 			auto commandQueue = Application::Get().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
 			auto commandList2 = commandQueue->GetCommandList();
+			auto& context2 = m_Scene->GetSystem<RenderSystem>()->GetContext();
+			//commandList2->RSSetViewports(1, &context2.m_Viewport);
+			//commandList2->RSSetScissorRects(1, &context2.m_ScissorRect);
 			commandList2->SetDescriptorHeaps(1, &g_pd3dSrvDescHeap);
+			auto rtv = CD3DX12_CPU_DESCRIPTOR_HANDLE(context.m_d3d12RTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
+				context.m_CurrentBackBufferIndex, context.m_RTVDescriptorSize);
+			auto dsv = context2.m_DSVHeap->GetCPUDescriptorHandleForHeapStart();
+			commandList2->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
 			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList2.Get());
+
+			UINT currentBackBufferIndex = context.m_CurrentBackBufferIndex;
+			//auto backBuffer = m_pWindow->GetCurrentBackBuffer();
+			auto backBuffer = context.m_d3d12BackBuffers[currentBackBufferIndex];
+			TransitionResource(commandList2, backBuffer,
+				D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+
+			commandQueue->ExecuteCommandList(commandList2);
 		}
+
+		bool m_VSync = false;
+		UINT syncInterval = m_VSync ? 1 : 0;
+		UINT presentFlags = context.m_IsTearingSupported && !m_VSync ? DXGI_PRESENT_ALLOW_TEARING : 0;
+		ThrowIfFailed(context.m_dxgiSwapChain->Present(syncInterval, presentFlags));
+		context.m_CurrentBackBufferIndex = context.m_dxgiSwapChain->GetCurrentBackBufferIndex();
 
 
 		/* Swap front and back buffers */
