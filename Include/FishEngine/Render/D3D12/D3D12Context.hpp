@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../ClassDef.hpp"
+#include "../../ClassDef.hpp"
 #include <d3d12.h>
 #include <wrl.h>
 #include <DirectXMath.h>

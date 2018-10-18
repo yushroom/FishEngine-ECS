@@ -23,11 +23,13 @@ Before your build, you will need to have some additional software installed:
 git clone https://github.com/yushroom/FishEngine-ECS.git
 cd FishEngine-ECS
 mkdir ThirdParty && cd ThirdParty
-git clone git://github.com/bkaradzic/bx.git
-git clone git://github.com/bkaradzic/bimg.git
-git clone git://github.com/bkaradzic/bgfx.git
-git clone git://github.com/syoyo/tinygltf.git
-git clone git://github.com/glfw/glfw.git
+git clone https://github.com/bkaradzic/bx.git
+git clone https://github.com/bkaradzic/bimg.git
+git clone https://github.com/bkaradzic/bgfx.git
+git clone https://github.com/syoyo/tinygltf.git
+git clone https://github.com/glfw/glfw.git
+git clone https://github.com/ocornut/imgui.git
+git clone https://github.com/Microsoft/DirectXTex.git
 ```
 
 #### Step 2

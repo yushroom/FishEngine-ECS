@@ -257,10 +257,10 @@ void RenderSystem::Resize(int width, int height)
 using Microsoft::WRL::ComPtr;
 #include <DirectXMath.h>
 using namespace DirectX;
-#include <FishEngine/Render/D3D12Utils.hpp>
+#include <FishEngine/Render/D3D12/D3D12Utils.hpp>
 
-#include <FishEngine/Render/Application.h>
-#include <FishEngine/Render/Helpers.h>
+#include <FishEngine/Render/D3D12/Application.h>
+#include <FishEngine/Render/D3D12/Helpers.h>
 #include <FishEngine/Render/CommandQueue.h>
 
 
@@ -268,7 +268,7 @@ using namespace DirectX;
 #include <FishEngine/Render/ShaderImpl.hpp>
 #include "../Render/D3D12WindowContext.hpp"
 //#include <FishEditor/GameApp.hpp>
-#include <FishEngine/Render/D3D12Context.hpp>
+#include <FishEngine/Render/D3D12/D3D12Context.hpp>
 #include <FishEngine/Render/RenderBuffer.hpp>
 
 #include <imgui.h>
@@ -290,12 +290,21 @@ void RenderSystem::Start()
 
 void RenderSystem::Resize(int width, int height)
 {
-
+	context.m_Viewport = CD3DX12_VIEWPORT(0.0f, 0.0f, (float)width, (float)height);
+	ResizeDepthBuffer(width, height, context.m_DepthBuffer, context.m_DSVHeap);
 }
 
 
 void RenderSystem::Draw(D3D12WindowContext& winContext)
 {
+	// copy queue
+	//{
+	//	auto commandQueue = Application::Get().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY);
+	//	auto commandList = commandQueue->GetCommandList();
+	//	auto fenceValue = commandQueue->ExecuteCommandList(commandList);
+	//	commandQueue->WaitForFenceValue(fenceValue);
+	//}
+
 	Camera* camera = Camera::GetEditorCamera();
 	if (camera == nullptr)
 		return;
@@ -328,7 +337,7 @@ void RenderSystem::Draw(D3D12WindowContext& winContext)
 	//auto mesh = Mesh::Cube;
 
 	commandList->SetPipelineState(context.m_PipelineState.Get());
-	commandList->SetGraphicsRootSignature(shader->m_RootSignature.Get());
+	commandList->SetGraphicsRootSignature(shader->m_RootSignature.GetRootSignature().Get());
 
 	m_Scene->ForEach<Renderable>([&commandList, &rtv, &dsv, camera](GameObject* go, Renderable* rend)
 	{

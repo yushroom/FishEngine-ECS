@@ -23,29 +23,42 @@ cbuffer PerFrame : register(b0)
 {
 	// float4x4 u_modelMat;
 	float4x4 u_modelViewProj;
-	float4x4 u_model[32];
+	float4x4 u_model;
 	float4 CameraPos;
-}
+};
+
+// struct PerFrame
+// {
+// 	// float4x4 u_modelMat;
+// 	float4x4 u_modelViewProj;
+// 	float4x4 u_model;
+// 	float4 CameraPos;
+// };
+// ConstantBuffer<PerFrame> PerFrameCB : register(b0)
+
 
 VSToPS VS(VertexIn vin)
 {
 	VSToPS vout;
 	vout.Position = mul(float4(vin.Position, 1.0), u_modelViewProj);
-	vout.WorldPosition = mul(float4(vin.Position, 1.0), u_model[0]).xyz;
+	vout.WorldPosition = mul(float4(vin.Position, 1.0), u_model).xyz;
 	vout.TexCoord = vin.TexCoord;
-	vout.WorldNormal = mul(float4(vin.Normal, 0.0), u_model[0]).xyz;
+	vout.WorldNormal = mul(float4(vin.Normal, 0.0), u_model).xyz;
 
 	return vout;
 }
 
-cbuffer PerFrame : register(b1)
+cbuffer PerMaterial : register(b1)
 {
 	float4 baseColorFactor;
 	float4 lightDir;
-	Texture2D baseColorTexture;
-	SamplerState baseColorTextureSampler;
 	float4 PBRFactor;	// Metallic, Roughness, Specular
 }
+
+// ConstantBuffer<PerMaterial>
+
+Texture2D baseColorTexture : register(t0);
+SamplerState baseColorTextureSampler : register(s0);
 
 struct SurfaceData
 {

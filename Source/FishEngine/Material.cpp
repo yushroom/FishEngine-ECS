@@ -152,18 +152,36 @@ void Material::StaticInit()
 
 #endif
 
-#include <FishEngine/Render/Helpers.h>
+#include <FishEngine/Render/D3D12/RootSignature.hpp>
+
+#include <FishEngine/Render/D3D12/Helpers.h>
 #include <d3dcompiler.h>
 
 #include <d3d12.h>
 #include <wrl.h>
-#include <FishEngine/Render/Application.h>
-#include <FishEngine/Render/d3dx12.h>
+#include <FishEngine/Render/D3D12/Application.h>
+#include <FishEngine/Render/D3D12/d3dx12.h>
 #include <DirectXMath.h>
 
 using Microsoft::WRL::ComPtr;
 using DirectX::XMMATRIX;
 #include <FishEngine/Render/ShaderImpl.hpp>
+
+using float4x4 = DirectX::XMFLOAT4X3;
+using float4 = DirectX::XMFLOAT4;
+
+struct RootSignatureGen
+{
+	float4x4 u_modelViewProj;
+	float4x4 u_model;
+	float4 CameraPos;
+
+	void Init()
+	{
+		//static_assert(sizeof(RootSignatureGen) % 256 == 0);
+
+	}
+};
 
 void Material::StaticInit()
 {
@@ -200,6 +218,7 @@ void Material::StaticInit()
 	CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
 	rootSignatureDescription.Init_1_1(_countof(rootParameters), rootParameters, 0, nullptr, rootSignatureFlags);
 
+#if 0
 	// Serialize the root signature.
 	ComPtr<ID3DBlob> rootSignatureBlob;
 	ComPtr<ID3DBlob> errorBlob;
@@ -208,4 +227,6 @@ void Material::StaticInit()
 	// Create the root signature.
 	ThrowIfFailed(device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(),
 		rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(&shader->m_Impl->m_RootSignature)));
+#endif
+	shader->m_Impl->m_RootSignature.SetRootSignatureDesc(rootSignatureDescription.Desc_1_1, featureData.HighestVersion);
 }

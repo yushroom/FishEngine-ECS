@@ -1,11 +1,11 @@
 #include <FishEngine/Render/Window.h>
 
-#include <FishEngine/Render/Application.h>
+#include <FishEngine/Render/D3D12/Application.h>
 #include <FishEngine/Render/CommandQueue.h>
 #include <FishEngine/Render/Game.h>
-#include <FishEngine/Render/Helpers.h>
+#include <FishEngine/Render/D3D12/Helpers.h>
 
-#include <FishEngine/Render/d3dx12.h>
+#include <FishEngine/Render/D3D12/d3dx12.h>
 
 #include <algorithm>
 #include <cassert>

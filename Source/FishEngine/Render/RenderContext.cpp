@@ -1,5 +1,5 @@
 #include <FishEngine/Render/RenderContext.hpp>
-#include <FishEngine/Render/Application.h>
+#include <FishEngine/Render/D3D12/Application.h>
 #include <FishEngine/Render/CommandQueue.h>
 
 #include <FishEngine/Render/RenderBuffer.hpp>
@@ -16,8 +16,8 @@ std::unordered_map<uint16_t, FishEngine::D3D12::IndexBuffer> D3D12::IndexBuffer:
 #include <d3d12.h>
 #include <wrl.h>
 using namespace Microsoft::WRL;
-#include <FishEngine/Render/d3dx12.h>
-#include <FishEngine/Render/Helpers.h>
+#include <FishEngine/Render/D3D12/d3dx12.h>
+#include <FishEngine/Render/D3D12/Helpers.h>
 
 void UpdateBufferResource(
 	ComPtr<ID3D12Device2> device,

@@ -1,8 +1,8 @@
-#include <FishEngine/Render/D3D12Context.hpp>
-#include <FishEngine/Render/Application.h>
-#include <FishEngine/Render/Helpers.h>
+#include <FishEngine/Render/D3D12/D3D12Context.hpp>
+#include <FishEngine/Render/D3D12/Application.h>
+#include <FishEngine/Render/D3D12/Helpers.h>
 #include <FishEngine/Render/CommandQueue.h>
-#include <FishEngine/Render/d3dx12.h>
+#include <FishEngine/Render/D3D12/d3dx12.h>
 
 using namespace FishEngine;
 
@@ -12,7 +12,7 @@ using namespace FishEngine;
 #include <FishEngine/Shader.hpp>
 #include <FishEngine/Render/ShaderImpl.hpp>
 
-#include <FishEngine/Render/D3D12Utils.hpp>
+#include <FishEngine/Render/D3D12/D3D12Utils.hpp>
 
 
 void FishEngine::D3D12Context::Create(ComPtr<ID3D12Device2> device, int m_Width, int m_Height)
@@ -59,7 +59,7 @@ void FishEngine::D3D12Context::Create(ComPtr<ID3D12Device2> device, int m_Width,
 		auto& vertexShaderBlob = Material::ColorMaterial->GetShader()->m_Impl->m_VertexShaderBlob;
 		auto& pixelShaderBlob = Material::ColorMaterial->GetShader()->m_Impl->m_PixelShaderBlob;
 
-		pipelineStateStream.pRootSignature = m_RootSignature.Get();
+		pipelineStateStream.pRootSignature = m_RootSignature.GetRootSignature().Get();
 		pipelineStateStream.InputLayout = { inputLayout, _countof(inputLayout) };
 		pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 		pipelineStateStream.VS = CD3DX12_SHADER_BYTECODE(vertexShaderBlob.Get());

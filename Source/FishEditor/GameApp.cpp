@@ -27,7 +27,7 @@
 
 
 #include <windows.h>
-#include <FishEngine/Render/Application.h>
+#include <FishEngine/Render/D3D12/Application.h>
 
 //#	if BX_PLATFORM_WINDOWS
 //#define GLFW_EXPOSE_NATIVE_WIN32
@@ -188,12 +188,12 @@ void glfw_window_focus_callback(GLFWwindow* window, int focused)
 #include <dxgi1_5.h>
 using Microsoft::WRL::ComPtr;
 
-#include <FishEngine/Render/Application.h>
-#include <FishEngine/Render/Helpers.h>
+#include <FishEngine/Render/D3D12/Application.h>
+#include <FishEngine/Render/D3D12/Helpers.h>
 #include <FishEngine/Render/CommandQueue.h>
-#include <FishEngine/Render/d3dx12.h>
-#include <FishEngine/Render/D3D12Context.hpp>
-#include <FishEngine/Render/D3D12Utils.hpp>
+#include <FishEngine/Render/D3D12/d3dx12.h>
+#include <FishEngine/Render/D3D12/D3D12Context.hpp>
+#include <FishEngine/Render/D3D12/D3D12Utils.hpp>
 
 #include <imgui.h>
 #include <examples/imgui_impl_dx12.h>
