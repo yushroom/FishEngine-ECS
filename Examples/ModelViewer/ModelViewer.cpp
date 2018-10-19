@@ -13,6 +13,8 @@
 //
 
 #include "GameCore.h"
+#include "ModelViewer.h"
+
 #include "GraphicsCore.h"
 #include "CameraController.h"
 #include "BufferManager.h"
@@ -49,61 +51,7 @@
 #endif
 #include "CompiledShaders/WaveTileCountPS.h"
 
-using namespace GameCore;
-using namespace Math;
-using namespace Graphics;
-
-class ModelViewer : public GameCore::IGameApp
-{
-public:
-
-    ModelViewer( void ) {}
-
-    virtual void Startup( void ) override;
-    virtual void Cleanup( void ) override;
-
-    virtual void Update( float deltaT ) override;
-    virtual void RenderScene( void ) override;
-
-private:
-
-    void RenderLightShadows(GraphicsContext& gfxContext);
-
-    enum eObjectFilter { kOpaque = 0x1, kCutout = 0x2, kTransparent = 0x4, kAll = 0xF, kNone = 0x0 };
-    void RenderObjects( GraphicsContext& Context, const Matrix4& ViewProjMat, eObjectFilter Filter = kAll );
-    void CreateParticleEffects();
-    Camera m_Camera;
-    std::auto_ptr<CameraController> m_CameraController;
-    Matrix4 m_ViewProjMatrix;
-    D3D12_VIEWPORT m_MainViewport;
-    D3D12_RECT m_MainScissor;
-
-    RootSignature m_RootSig;
-    GraphicsPSO m_DepthPSO;
-    GraphicsPSO m_CutoutDepthPSO;
-    GraphicsPSO m_ModelPSO;
-#ifdef _WAVE_OP
-    GraphicsPSO m_DepthWaveOpsPSO;
-    GraphicsPSO m_ModelWaveOpsPSO;
-#endif
-    GraphicsPSO m_CutoutModelPSO;
-    GraphicsPSO m_ShadowPSO;
-    GraphicsPSO m_CutoutShadowPSO;
-    GraphicsPSO m_WaveTileCountPSO;
-
-    D3D12_CPU_DESCRIPTOR_HANDLE m_DefaultSampler;
-    D3D12_CPU_DESCRIPTOR_HANDLE m_ShadowSampler;
-    D3D12_CPU_DESCRIPTOR_HANDLE m_BiasedDefaultSampler;
-
-    D3D12_CPU_DESCRIPTOR_HANDLE m_ExtraTextures[6];
-    Model m_Model;
-    std::vector<bool> m_pMaterialIsCutout;
-
-    Vector3 m_SunDirection;
-    ShadowCamera m_SunShadow;
-};
-
-CREATE_APPLICATION( ModelViewer )
+//CREATE_APPLICATION( ModelViewer )
 
 ExpVar m_SunLightIntensity("Application/Lighting/Sun Light Intensity", 4.0f, 0.0f, 16.0f, 0.1f);
 ExpVar m_AmbientIntensity("Application/Lighting/Ambient Intensity", 0.1f, -16.0f, 16.0f, 0.1f);
@@ -118,8 +66,116 @@ BoolVar ShowWaveTileCounts("Application/Forward+/Show Wave Tile Counts", false);
 BoolVar EnableWaveOps("Application/Forward+/Enable Wave Ops", true);
 #endif
 
+#define IMGUI 1
+
+#if IMGUI
+
+#include <GLFW/glfw3.h>
+
+extern GLFWwindow* g_gWindow;
+namespace Graphics
+{
+	extern ID3D12Device* g_Device;
+	extern DXGI_FORMAT DefaultHdrColorFormat;
+}
+
+#include <imgui.h>
+#include <examples/imgui_impl_dx12.h>
+#include <examples/imgui_impl_glfw.h>
+
+
+void NumVar::OnImGUI(const char* label)
+{
+	if (m_MinValue == -FLT_MAX || m_MaxValue == FLT_MAX)
+		ImGui::InputFloat(label, &m_Value);
+	else
+		ImGui::SliderFloat(label, &m_Value, m_MinValue, m_MaxValue);
+}
+
+void IntVar::OnImGUI(const char* label)
+{
+	ImGui::InputInt(label, &m_Value);
+}
+
+void ExpVar::OnImGUI(const char* label)
+{
+	//float val = float(*this);
+	//if (ImGui::DragFloat(label, &val))
+	//	*this = val;
+	NumVar::OnImGUI(label);
+}
+
+void EnumVar::OnImGUI(const char* label)
+{
+	ImGui::Combo(label, &m_Value, m_EnumLabels, m_EnumLength);
+}
+
+void CallbackTrigger::OnImGUI(const char* label)
+{
+	if (ImGui::Button(label))
+		Bang();
+}
+
+void BoolVar::OnImGUI(const char* label)
+{
+	if (ImGui::Checkbox(label, &m_Flag))
+	{
+		printf("Set %s\n", label);
+	}
+}
+
+void VariableGroup::OnImGUI(const char* label)
+{
+	for (auto& pair : m_Children)
+	{
+		//ImGui::Text("%s", pair.first.c_str());
+		const char* label2 = pair.first.c_str();
+		VariableGroup* subGroup = dynamic_cast<VariableGroup*>(pair.second);
+		ImGui::PushID(this);
+		if (subGroup != nullptr)
+		{
+			if (ImGui::CollapsingHeader(label2, ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ImGui::Indent(8);
+				subGroup->OnImGUI(label2);
+				ImGui::Unindent(8);
+			}
+		}
+		else
+		{
+			pair.second->OnImGUI(label2);
+		}
+		ImGui::PopID();
+	}
+}
+
+
+void InitImgui(UserDescriptorHeap& heap)
+{
+#if IMGUI
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGui_ImplGlfw_InitForOpenGL(g_gWindow, false);
+	heap.Create(L"imguiSrvDescHeap");
+	auto pd3dSrvDescHeap = heap.GetHeapPointer();
+	ImGui_ImplDX12_Init(g_Device, 2, DefaultHdrColorFormat,
+		pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart(),
+		pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
+#endif // IMGUI
+}
+
+#endif // IMGUI
+
+ModelViewer::ModelViewer()
+	: m_imguiSrvDescHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1)
+{
+
+}
+
 void ModelViewer::Startup( void )
 {
+	InitImgui(m_imguiSrvDescHeap);
+
     SamplerDesc DefaultSamplerDesc;
     DefaultSamplerDesc.MaxAnisotropy = 8;
 
@@ -209,8 +265,8 @@ void ModelViewer::Startup( void )
     m_ExtraTextures[0] = g_SSAOFullScreen.GetSRV();
     m_ExtraTextures[1] = g_ShadowBuffer.GetSRV();
 
-    TextureManager::Initialize(L"Textures/");
-    ASSERT(m_Model.Load("Models/sponza.h3d"), "Failed to load model");
+    TextureManager::Initialize(L"I:/FishEngine-ECS/ThirdParty/DirectX-Graphics-Samples/MiniEngine/ModelViewer/Textures/");
+    ASSERT(m_Model.Load(R"(I:\FishEngine-ECS\ThirdParty\DirectX-Graphics-Samples\MiniEngine\ModelViewer\Models/sponza.h3d)"), "Failed to load model");
     ASSERT(m_Model.m_Header.meshCount > 0, "Model contains no meshes");
 
     // The caller of this function can override which materials are considered cutouts
@@ -239,7 +295,7 @@ void ModelViewer::Startup( void )
     m_CameraController.reset(new CameraController(m_Camera, Vector3(kYUnitVector)));
 
     MotionBlur::Enable = true;
-    TemporalEffects::EnableTAA = true;
+    TemporalEffects::EnableTAA = false;
     FXAA::Enable = false;
     PostEffects::EnableHDR = true;
     PostEffects::EnableAdaptation = true;
@@ -526,6 +582,7 @@ void ModelViewer::RenderScene( void )
 
     }
 
+
     // Some systems generate a per-pixel velocity buffer to better track dynamic and skinned meshes.  Everything
     // is static in our scene, so we generate velocity from camera motion and the depth buffer.  A velocity buffer
     // is necessary for all temporal effects (and motion blur).
@@ -540,6 +597,28 @@ void ModelViewer::RenderScene( void )
         DepthOfField::Render(gfxContext, m_Camera.GetNearClip(), m_Camera.GetFarClip());
     else
         MotionBlur::RenderObjectBlur(gfxContext, g_VelocityBuffer);
+
+#if IMGUI
+	//auto& gfxContext = GraphicsContext::Begin(L"IMGUI");
+	ImGui_ImplDX12_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+	//ImGui::ShowDemoWindow();
+
+	ImGui::Begin("Engine Tuning");
+	VariableGroup::sm_RootGroup.OnImGUI("Engine Tuning");
+	ImGui::End();
+
+	ImGui::Render();
+
+	gfxContext.TransitionResource(g_SceneColorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+	gfxContext.SetRenderTarget(g_SceneColorBuffer.GetRTV());
+	auto commandList = gfxContext.GetCommandList();
+	//commandList->SetDescriptorHeaps(1, &g_pd3dSrvDescHeap);
+	gfxContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, m_imguiSrvDescHeap.GetHeapPointer());
+	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
+#endif
 
     gfxContext.Finish();
 }

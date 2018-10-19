@@ -96,26 +96,33 @@ target_link_libraries(TestD3D FishEngine)
 
 set(MiniEngine_ROOT_DIR "./ThirdParty/DirectX-Graphics-Samples/MiniEngine")
 set(MINIENGINE_CORE_ROOT_DIR ${MiniEngine_ROOT_DIR}/Core)
-# file(GLOB_RECURSE HEADERS ${MINIENGINE_CORE_ROOT_DIR}/*.h)
-# file(GLOB_RECURSE SRCS ${MINIENGINE_CORE_ROOT_DIR}/*.cpp)
-# add_library(MiniEngine ${HEADERS} ${SRCS})
-
-set(ModelViewer_ROOT_DIR "./ThirdParty/DirectX-Graphics-Samples/MiniEngine/ModelViewer")
-file(GLOB_RECURSE SOURCES ${ModelViewer_ROOT_DIR}/*.h ${ModelViewer_ROOT_DIR}/*.cpp)
-link_directories("${MiniEngine_ROOT_DIR}/Build_VS15/x64/Debug/Output/Core")
-link_directories("${MiniEngine_ROOT_DIR}/Build_VS15/x64/Debug/Output/Model")
+file(GLOB_RECURSE HEADERS ${MINIENGINE_CORE_ROOT_DIR}/*.h)
+file(GLOB_RECURSE SRCS ${MINIENGINE_CORE_ROOT_DIR}/*.cpp)
 link_directories("${MiniEngine_ROOT_DIR}/Packages/zlib-vc140-static-64.1.2.11/lib/native/libs/x64/static/Release")
+add_library(MiniEngine ${HEADERS} ${SRCS})
+target_include_directories(MiniEngine PUBLIC ${MINIENGINE_CORE_ROOT_DIR})
+target_link_libraries(MiniEngine zlibstatic.lib)
+
+
+set(ModelViewer_ROOT_DIR "./Examples/ModelViewer")
+file(GLOB_RECURSE SOURCES ${ModelViewer_ROOT_DIR}/*.h ${ModelViewer_ROOT_DIR}/*.cpp)
+# link_directories("${MiniEngine_ROOT_DIR}/Build_VS15/x64/Debug/Output/Core")
+link_directories("${MiniEngine_ROOT_DIR}/Build_VS15/x64/Debug/Output/Model")
 add_executable(ModelViewer ${SOURCES})
-target_include_directories(ModelViewer PUBLIC ${MINIENGINE_CORE_ROOT_DIR})
 target_include_directories(ModelViewer PUBLIC ${MiniEngine_ROOT_DIR}/Model)
 target_include_directories(ModelViewer PRIVATE "${MiniEngine_ROOT_DIR}/Build_VS15/x64/Debug/Output/ModelViewer")
-target_link_libraries(ModelViewer Core.lib)
+# target_link_libraries(ModelViewer Core.lib)
+target_link_libraries(ModelViewer MiniEngine)
 target_link_libraries(ModelViewer Model.lib)
-target_link_libraries(ModelViewer zlibstatic.lib)
 target_include_directories(ModelViewer PUBLIC "./ThirdParty/imgui")
 target_link_libraries(ModelViewer imgui)
 target_link_libraries(ModelViewer d3dcompiler.lib)
 target_link_libraries(ModelViewer glfw)
+
+# add_custom_command(TARGET ModelViewer
+#     PRE_BUILD
+#     COMMAND "C:/Users/yuyunkang/Downloads/nuget.exe" restore ${CMAKE_CURRENT_LIST_DIR}/build/FishEngine-ECS.sln
+# )
 
 
 if (MSVC)
