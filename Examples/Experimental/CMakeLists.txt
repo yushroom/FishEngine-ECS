@@ -45,10 +45,12 @@ target_compile_options(imgui PRIVATE "-fobjc-arc")
 # set(CMAKE_XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC "YES")
 # set_target_properties(imgui PROPERTIES XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC "YES")
 target_include_directories(imgui PUBLIC "../../ThirdParty/glfw/include")
+target_include_directories(imgui PUBLIC ${IMGUI_ROOT_DIR})
+target_include_directories(imgui PUBLIC ${IMGUI_ROOT_DIR}/examples)
+
 
 file(GLOB SRCS "./*.hpp" "./*.cpp" "*.mm" "*.metal")
 add_executable(Editor MACOSX_BUNDLE ${SRCS})
-target_include_directories(Editor PUBLIC ${IMGUI_ROOT_DIR})
 target_link_libraries(Editor glfw)
 target_link_libraries(Editor imgui)
 set_target_properties(Editor PROPERTIES LINK_FLAGS "-framework Cocoa -framework metal -framework MetalKit -framework QuartzCore")

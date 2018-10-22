@@ -11,10 +11,16 @@
 #import <MetalKit/MetalKit.h>
 
 #include <imgui.h>
-#include <examples/imgui_impl_glfw.h>
-#include <examples/imgui_impl_metal.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_metal.h>
 
 #include "AAPLShaderTypes.h"
+
+#include "Graphics.hpp"
+#define FE_EXPOSE_METAL
+#include "GraphicsPlatform.hpp"
+
+extern id<MTLDevice> g_device;
 
 static void error_callback(int error, const char* description)
 {
@@ -49,6 +55,7 @@ static void glfw_window_size_callback(GLFWwindow* window, int width, int height)
 }
 
 #define Use_MTKView 0
+
 
 int main()
 {
@@ -85,6 +92,8 @@ int main()
 	auto rect = view.bounds;
 	m_metalLayer.frame = rect;
 #endif
+	
+	g_device = m_device;
 	
 	OnWindowResize(window);
 
@@ -147,6 +156,13 @@ int main()
 			{ {    0,   250 }, { 0, 0, 1, 1 } },
 		};
 		
+		FishEngine::Memory data;
+		data.data = (const void*)triangleVertices;
+		data.size = sizeof(triangleVertices);
+		FishEngine::VertexDecl decl;
+		decl.SetVertexSize(sizeof(AAPLVertex));
+		auto vbHandle = FishEngine::CreateVertexBuffer(data, decl);
+		
 		
 #if Use_MTKView
 		MTLRenderPassDescriptor* renderPassDescriptor = view.currentRenderPassDescriptor;
@@ -169,9 +185,14 @@ int main()
 		
 		[renderEncoder setViewport:(MTLViewport){0.0, 0.0, static_cast<double>(viewportSize.x), static_cast<double>(viewportSize.y), -1.0, 1.0}];
 		[renderEncoder setRenderPipelineState:pipelineState];
-		[renderEncoder setVertexBytes:triangleVertices
-							   length:sizeof(triangleVertices)
-							  atIndex:AAPLVertexInputIndexVertices];
+//		[renderEncoder setVertexBytes:triangleVertices
+//							   length:sizeof(triangleVertices)
+//							  atIndex:AAPLVertexInputIndexVertices];
+		id<MTLBuffer> vb = GetVertexBuffer(vbHandle);
+		[renderEncoder setVertexBuffer:vb
+								offset:0
+							   atIndex:AAPLVertexInputIndexVertices];
+		
 		
 		[renderEncoder setVertexBytes:&viewportSize
 							   length:sizeof(viewportSize)
@@ -188,7 +209,7 @@ int main()
 		
 		ImGui::NewFrame();
 		
-		ImGui::ShowDemoWindow();
+//		ImGui::ShowDemoWindow();
 		
 		ImGui::Begin("Hello");
 		ImGui::Text("hhhhhhhhhhh");
