@@ -166,6 +166,14 @@ void InitImgui(UserDescriptorHeap& heap)
 
 #endif // IMGUI
 
+
+#include <FishEngine/Components/Camera.hpp>
+#include <FishEngine/ECS/Scene.hpp>
+#include <FishEngine/Components/Transform.hpp>
+#include <FishEngine/Systems/InputSystem.hpp>
+#include <FishEngine/Components/SingletonTime.hpp>
+
+
 ModelViewer::ModelViewer()
 	: m_imguiSrvDescHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1)
 {
@@ -307,6 +315,24 @@ void ModelViewer::Startup( void )
     m_ExtraTextures[3] = Lighting::m_LightShadowArray.GetSRV();
     m_ExtraTextures[4] = Lighting::m_LightGrid.GetSRV();
     m_ExtraTextures[5] = Lighting::m_LightGridBitMask.GetSRV();
+
+
+	m_Scene = new FishEngine::Scene();
+	FishEngine::Scene::s_Current = m_Scene;
+	m_Scene->AddSystem<FishEngine::InputSystem>();
+	m_Scene->time = m_Scene->AddSingletonComponent<FishEngine::SingletonTime>();
+
+	auto go = m_Scene->CreateGameObject();
+	go->name = "EditorCamera";
+	auto cam = m_Scene->GameObjectAddComponent<FishEngine::Camera>(go);
+	cam->m_Type = FishEngine::CameraType::Editor;
+	go->GetTransform()->SetLocalPosition(eye.GetX(), eye.GetY(), eye.GetZ());
+	cam->SetNearClipPlane(1);
+	cam->SetFarClipPlane(10000);
+	go->GetTransform()->LookAt(FishEngine::Vector3::zero);
+
+
+	m_Scene->Start();
 }
 
 void ModelViewer::Cleanup( void )
@@ -320,9 +346,24 @@ namespace Graphics
     extern EnumVar DebugZoom;
 }
 
+inline Vector4 Convert(const FishEngine::Vector4& v)
+{
+	return Vector4(v.x, v.y, v.z, v.w);
+}
+
+inline Matrix4 Convert(const FishEngine::Matrix4x4& m)
+{
+	return Matrix4(
+		Convert(m.GetColumn(0)), Convert(m.GetColumn(1)),
+		Convert(m.GetColumn(2)), Convert(m.GetColumn(3))
+	);
+}
+
 void ModelViewer::Update( float deltaT )
 {
     ScopedTimer _prof(L"Update State");
+
+	m_Scene->Update();
 
     if (GameInput::IsFirstPressed(GameInput::kLShoulder))
         DebugZoom.Decrement();
@@ -330,7 +371,16 @@ void ModelViewer::Update( float deltaT )
         DebugZoom.Increment();
 
     m_CameraController->Update(deltaT);
+	auto camera = FishEngine::Camera::GetEditorCamera();
+	auto vp = camera->GetViewProjectionMatrix();
     m_ViewProjMatrix = m_Camera.GetViewProjMatrix();
+	//m_ViewProjMatrix = Convert(vp);
+
+	auto v1 = Convert( camera->GetTransform()->GetWorldToLocalMatrix() );
+	auto v2 = m_Camera.GetViewMatrix();
+
+	auto p1 = Convert( camera->GetProjectionMatrix() );
+	auto p2 = m_Camera.GetProjMatrix();
 
     float costheta = cosf(m_SunOrientation);
     float sintheta = sinf(m_SunOrientation);
@@ -357,6 +407,8 @@ void ModelViewer::Update( float deltaT )
     m_MainScissor.top = 0;
     m_MainScissor.right = (LONG)g_SceneColorBuffer.GetWidth();
     m_MainScissor.bottom = (LONG)g_SceneColorBuffer.GetHeight();
+	
+	m_Scene->PostUpdate();
 }
 
 void ModelViewer::RenderObjects( GraphicsContext& gfxContext, const Matrix4& ViewProjMat, eObjectFilter Filter )

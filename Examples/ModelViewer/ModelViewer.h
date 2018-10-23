@@ -12,6 +12,12 @@ using namespace GameCore;
 using namespace Math;
 using namespace Graphics;
 
+namespace FishEngine
+{
+	class Scene;
+	class Camera;
+}
+
 class ModelViewer : public GameCore::IGameApp
 {
 public:
@@ -62,4 +68,7 @@ private:
 	ShadowCamera m_SunShadow;
 
 	UserDescriptorHeap m_imguiSrvDescHeap;
+
+public:
+	FishEngine::Scene* m_Scene = nullptr;
 };

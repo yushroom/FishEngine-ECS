@@ -13,6 +13,10 @@
 #include <CommandContext.h>
 #include <BufferManager.h>
 
+#include <FishEngine/Screen.hpp>
+
+
+
 namespace GameCore
 {
 	void InitializeApplication(IGameApp& game);
@@ -90,6 +94,12 @@ namespace Graphics
 	extern uint32_t g_DisplayHeight;
 }
 
+ModelViewer* mainApp = nullptr;
+using namespace FishEngine;
+#include <FishEngine/Systems/InputSystem.hpp>
+#include <FishEngine/ECS/Scene.hpp>
+#include <FishEngine/Components/SingletonTime.hpp>
+
 static void glfw_window_size_callback(GLFWwindow* window, int width, int height)
 {
 	if (width == 0)
@@ -100,14 +110,63 @@ static void glfw_window_size_callback(GLFWwindow* window, int width, int height)
 	Graphics::Resize(width, height);
 }
 
+inline KeyCode KKK(KeyCode key, int offset)
+{
+	return KeyCode(int(key) + offset);
+}
+
 static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+	if (key == GLFW_KEY_UNKNOWN)
+		return;
 
 	if (key == GLFW_KEY_ESCAPE)
 	{
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
 	}
+
+	KeyEvent e;
+	if (action == GLFW_PRESS)
+		e.action = KeyAction::Pressed;
+	else if (action == GLFW_RELEASE)
+		e.action = KeyAction::Released;
+	else if (action == GLFW_REPEAT)
+		e.action = KeyAction::Held;
+	else
+		return;
+
+	auto s = mainApp->m_Scene->GetSystem<InputSystem>();
+
+	if (key >= GLFW_KEY_0 && key <= GLFW_KEY_9)
+		e.key = KeyCode(key);
+	else if (key >= GLFW_KEY_A && key <= GLFW_KEY_Z)
+		e.key = KKK(KeyCode::A, key - GLFW_KEY_A);
+	else if (key >= GLFW_KEY_F1 && key <= GLFW_KEY_F15)
+		e.key = KKK(KeyCode::F1, key - GLFW_KEY_F1);
+	else if (key == GLFW_KEY_ESCAPE)
+		e.key = KeyCode::Escape;
+	else if (key == GLFW_KEY_LEFT_ALT)
+		e.key = KeyCode::LeftAlt;
+	else if (key == GLFW_KEY_RIGHT_ALT)
+		e.key = KeyCode::RightAlt;
+	else if (key == GLFW_KEY_LEFT_CONTROL)
+		e.key = KeyCode::LeftControl;
+	else if (key == GLFW_KEY_RIGHT_CONTROL)
+		e.key = KeyCode::RightControl;
+	else if (key == GLFW_KEY_LEFT_SUPER)
+		e.key = KeyCode::LeftCommand;
+	else if (key == GLFW_KEY_RIGHT_SUPER)
+		e.key = KeyCode::RightCommand;
+	else if (key == GLFW_KEY_LEFT)
+		e.key = KeyCode::LeftArrow;
+	else if (key == GLFW_KEY_RIGHT)
+		e.key = KeyCode::RightArrow;
+	else if (key == GLFW_KEY_UP)
+		e.key = KeyCode::UpArrow;
+	else if (key == GLFW_KEY_DOWN)
+		e.key = KeyCode::DownArrow;
+	s->PostKeyEvent(e);
 }
 
 static void glfw_char_callback(GLFWwindow* window, unsigned int c)
@@ -118,6 +177,21 @@ static void glfw_char_callback(GLFWwindow* window, unsigned int c)
 static void glfw_mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
 	ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+	auto s = mainApp->m_Scene->GetSystem<InputSystem>();
+	KeyEvent e;
+	if (button == GLFW_MOUSE_BUTTON_LEFT)
+		e.key = KeyCode::MouseLeftButton;
+	else if (button == GLFW_MOUSE_BUTTON_RIGHT)
+		e.key = KeyCode::MouseRightButton;
+	else if (button == GLFW_MOUSE_BUTTON_MIDDLE)
+		e.key = KeyCode::MouseMiddleButton;
+
+	if (action == GLFW_PRESS)
+		e.action = KeyAction::Pressed;
+	else if (action == GLFW_RELEASE)
+		e.action = KeyAction::Released;
+
+	s->PostKeyEvent(e);
 }
 
 
@@ -167,14 +241,22 @@ int main()
 
 	//g_DisplayWidth = 800;
 	//g_DisplayHeight = 600;
+	FishEngine::Screen::width = g_DisplayWidth;
+	FishEngine::Screen::height = g_DisplayHeight;
 
 	ModelViewer app;
+	mainApp = &app;
 	//GameCore::InitializeApplication(app);
 	Initialize(app);
 
 
+	double timeStamp = glfwGetTime();
+
 	while (!glfwWindowShouldClose(g_gWindow))
 	{
+		double now = glfwGetTime();
+		app.m_Scene->time->deltaTime = float(now - timeStamp);
+
 		//UpdateApplication(app);
 		Update(app);
 		glfwPollEvents();

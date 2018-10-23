@@ -94,14 +94,22 @@ target_link_libraries(TestD3D FishEngine)
 # ADD_SUBDIRECTORY("./Examples/Tutorial2")
 
 
+set(PIX_DIR "./ThirdParty\\DirectX-Graphics-Samples\\Packages\\WinPixEventRuntime.1.0.180612001")
 set(MiniEngine_ROOT_DIR "./ThirdParty/DirectX-Graphics-Samples/MiniEngine")
 set(MINIENGINE_CORE_ROOT_DIR ${MiniEngine_ROOT_DIR}/Core)
 file(GLOB_RECURSE HEADERS ${MINIENGINE_CORE_ROOT_DIR}/*.h)
 file(GLOB_RECURSE SRCS ${MINIENGINE_CORE_ROOT_DIR}/*.cpp)
-link_directories("${MiniEngine_ROOT_DIR}/Packages/zlib-vc140-static-64.1.2.11/lib/native/libs/x64/static/Release")
+set(ZLIB_DIR "${MiniEngine_ROOT_DIR}/../Packages/zlib-vc140-static-64.1.2.11/lib/native")
+link_directories("${ZLIB_DIR}/libs/x64/static/Release")
+link_directories("${PIX_DIR}/bin")
 add_library(MiniEngine ${HEADERS} ${SRCS})
+target_include_directories(MiniEngine PRIVATE "${ZLIB_DIR}/include")
+target_include_directories(MiniEngine PRIVATE "${PIX_DIR}/Include/WinPixEventRuntime")
 target_include_directories(MiniEngine PUBLIC ${MINIENGINE_CORE_ROOT_DIR})
 target_link_libraries(MiniEngine zlibstatic.lib)
+target_link_libraries(MiniEngine WinPixEventRuntime.lib)
+target_compile_definitions(MiniEngine PRIVATE _UNICODE UNICODE)
+set_property(TARGET MiniEngine PROPERTY CXX_STANDARD 14)
 
 
 set(ModelViewer_ROOT_DIR "./Examples/ModelViewer")
@@ -118,6 +126,8 @@ target_include_directories(ModelViewer PUBLIC "./ThirdParty/imgui")
 target_link_libraries(ModelViewer imgui)
 target_link_libraries(ModelViewer d3dcompiler.lib)
 target_link_libraries(ModelViewer glfw)
+target_link_libraries(ModelViewer FishEngine)
+target_link_libraries(ModelViewer FishEditor)
 
 # add_custom_command(TARGET ModelViewer
 #     PRE_BUILD
