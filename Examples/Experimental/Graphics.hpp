@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <memory>
 
+#include <Metal/Metal.h>
+
 namespace FishEngine
 {
 	struct Handle
@@ -21,6 +23,8 @@ namespace FishEngine
 	struct FrameBufferHandle : public BufferHandle {};
 	
 	struct ShaderHandle : public Handle {};
+	
+	struct TextureHandle : public Handle {};
 
 	struct VertexDecl
 	{
@@ -63,13 +67,27 @@ namespace FishEngine
 	
 	class RenderPipelineState
 	{
-	private:
+	public:
+		void SetVertexShader(ShaderHandle vs) { vertextShader = vs; }
+		void SetFragmentShader(ShaderHandle fs) { fragmentShader = fs; }
+		
+	protected:
 		std::unique_ptr<RenderPipelineStateImpl> impl;
 		
 		ShaderHandle vertextShader;
 		ShaderHandle fragmentShader;
+//		TextureHandle renderTarget;
 	};
 	
+	struct Viewport
+	{
+		float originX;
+		float originY;
+		float width;
+		float height;
+		float znear;
+		float zfar;
+	};
 	
 	class CommandQueueImpl;
 	class CommandList;
@@ -81,8 +99,9 @@ namespace FishEngine
 		
 		CommandList* GetCommandList();
 		
-	private:
-		std::unique_ptr<CommandQueueImpl> impl;
+//	private:
+//		std::unique_ptr<CommandQueueImpl> impl;
+		id<MTLCommandQueue> commandQueue;
 	};
 	
 	
@@ -91,9 +110,18 @@ namespace FishEngine
 	class CommandList
 	{
 	public:
+		void SetViewport(const Viewport& viewport);
+		void SetRenderPipelineState(RenderPipelineState* psd);
 		void SetVertexBuffer(VertexBufferHandle vbh);
 		
-	private:
-		std::unique_ptr<CommandListImpl> impl;
+		void DrawPrimitives();
+		
+//	private:
+//		std::unique_ptr<CommandListImpl> impl;
+		id<MTLCommandEncoder> commandEncoder;
+		
+		Viewport viewport;
+		RenderPipelineState* psd;
+		VertexBufferHandle vb;
 	};
 }
