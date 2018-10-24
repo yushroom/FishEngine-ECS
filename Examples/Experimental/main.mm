@@ -21,6 +21,7 @@
 #include "GraphicsPlatform.hpp"
 
 extern id<MTLDevice> g_device;
+extern id<MTLLibrary> g_default_library;
 
 static void error_callback(int error, const char* description)
 {
@@ -125,6 +126,15 @@ int main()
 	psd.fragmentFunction = fragmentFunction;
 	psd.colorAttachments[0].pixelFormat = m_metalLayer.pixelFormat;
 	
+	{
+		g_default_library = defaultLibrary;
+		FishEngine::RenderPipelineState psd;
+		auto vs = FishEngine::CreateShader("vertexShader");
+		auto fs = FishEngine::CreateShader("fragmentShader");
+		psd.SetVertexShader(vs);
+		psd.SetFragmentShader(fs);
+	}
+	
 	NSError *error = NULL;
 	pipelineState = [m_device newRenderPipelineStateWithDescriptor:psd error:&error];
 	if (!pipelineState)
@@ -137,6 +147,22 @@ int main()
 		return 1;
 	}
 	
+	static const AAPLVertex triangleVertices[] =
+	{
+		// 2D positions,    RGBA colors
+		{ {  250,  -250 }, { 1, 0, 0, 1 } },
+		{ { -250,  -250 }, { 0, 1, 0, 1 } },
+		{ {    0,   250 }, { 0, 0, 1, 1 } },
+	};
+	
+	FishEngine::Memory data;
+	data.data = (const void*)triangleVertices;
+	data.size = sizeof(triangleVertices);
+	FishEngine::VertexDecl decl;
+	decl.SetVertexSize(sizeof(AAPLVertex));
+	auto vbHandle = FishEngine::CreateVertexBuffer(data, decl);
+
+	
 	
 	while (!glfwWindowShouldClose(window))
 	{
@@ -147,21 +173,6 @@ int main()
 			using namespace std::chrono_literals;
 			//std::this_thread::sleep_for(16.67ms);
 		}
-		
-		static const AAPLVertex triangleVertices[] =
-		{
-			// 2D positions,    RGBA colors
-			{ {  250,  -250 }, { 1, 0, 0, 1 } },
-			{ { -250,  -250 }, { 0, 1, 0, 1 } },
-			{ {    0,   250 }, { 0, 0, 1, 1 } },
-		};
-		
-		FishEngine::Memory data;
-		data.data = (const void*)triangleVertices;
-		data.size = sizeof(triangleVertices);
-		FishEngine::VertexDecl decl;
-		decl.SetVertexSize(sizeof(AAPLVertex));
-		auto vbHandle = FishEngine::CreateVertexBuffer(data, decl);
 		
 		
 #if Use_MTKView
