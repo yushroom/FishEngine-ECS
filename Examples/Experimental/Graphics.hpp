@@ -34,7 +34,7 @@ namespace FishEngine
 	struct Memory
 	{
 		const void* data = nullptr;
-		int size = 0;	// bytes
+		int byteSize = 0;	// bytes
 	};
 
 	enum class MeshIndexType

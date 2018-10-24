@@ -5,3 +5,5 @@
 /Assets/Models
 /Shaders/hlsl/runtime/
 /Tools/ShaderCompiler/bin
+/Examples/Experimental/bin
+/Examples/Experimental/build
