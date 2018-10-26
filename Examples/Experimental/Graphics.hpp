@@ -3,7 +3,11 @@
 #include <cstdint>
 #include <memory>
 
+#ifdef FE_EXPOSE_METAL
 #include <Metal/Metal.h>
+#else
+#include <CommandContext.h>
+#endif
 
 namespace FishEngine
 {
@@ -72,11 +76,15 @@ namespace FishEngine
 		void SetFragmentShader(ShaderHandle fs) { fragmentShader = fs; }
 		
 	protected:
-		std::unique_ptr<RenderPipelineStateImpl> impl;
+		//std::unique_ptr<RenderPipelineStateImpl> impl;
 		
 		ShaderHandle vertextShader;
 		ShaderHandle fragmentShader;
 //		TextureHandle renderTarget;
+#if FE_EXPOSE_METAL
+#else
+		GraphicsPSO GetGraphicsPS() const;
+#endif
 	};
 	
 	struct Viewport
@@ -95,13 +103,22 @@ namespace FishEngine
 	class CommandQueue
 	{
 	public:
-		CommandQueue();
+		CommandQueue() :
+			context(GraphicsContext::Begin(L"Temp"))
+		{
+
+		}
 		
 		CommandList* GetCommandList();
 		
-//	private:
-//		std::unique_ptr<CommandQueueImpl> impl;
+	private:
+		std::string m_Label;
+		//std::unique_ptr<CommandQueueImpl> impl;
+#ifdef FE_EXPOSE_METAL
 		id<MTLCommandQueue> commandQueue;
+#else
+		GraphicsContext& context;
+#endif
 	};
 	
 	
@@ -118,7 +135,9 @@ namespace FishEngine
 		
 //	private:
 //		std::unique_ptr<CommandListImpl> impl;
+#ifdef FE_EXPOSE_METAL
 		id<MTLCommandEncoder> commandEncoder;
+#endif
 		
 		Viewport viewport;
 		RenderPipelineState* psd;

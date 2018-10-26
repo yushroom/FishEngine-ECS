@@ -2,37 +2,65 @@
 
 #include "Graphics.hpp"
 
-#define FE_EXPOSE_METAL
+//#define FE_EXPOSE_METAL
 
 #ifdef FE_EXPOSE_METAL
-#	include <MetalKit/MetalKit.h>
-#endif
+
+#include <MetalKit/MetalKit.h>
 
 namespace FishEngine
 {
-#ifdef FE_EXPOSE_METAL
 	id<MTLBuffer> GetVertexBuffer(VertexBufferHandle handle);
-	
+
 	class RenderPipelineStateImpl
 	{
 	public:
-		
+
 	};
-	
+
 	class CommandQueueImpl
 	{
 	public:
 		CommandQueueImpl();
-		
+
 	private:
 		id<MTLCommandQueue> m_CommandQueue;
 	};
-	
+
 	class CommandListImpl
 	{
-		public:
-		
+	public:
+
 	};
-	
+}
+
+#else
+
+#include <CommandContext.h>
+
+
+namespace FishEngine
+{
+	StructuredBuffer* GetVertexBuffer(VertexBufferHandle handle);
+	ByteAddressBuffer* GetIndexBuffer(IndexBufferHandle handle);
+
+
+	class CommandQueueImpl
+	{
+	public:
+		CommandQueueImpl();
+
+	private:
+		//id<MTLCommandQueue> m_CommandQueue;
+		GraphicsContext& context;
+	};
+
+
+	inline CommandQueueImpl::CommandQueueImpl() :
+		context(GraphicsContext::Begin(L"TEMP"))
+	{
+
+	}
+
 #endif
 }

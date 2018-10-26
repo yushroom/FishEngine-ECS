@@ -14,6 +14,9 @@ namespace FishEngine
 		virtual void Clean() = 0;
 
 	protected:
+
+		int m_WindowWidth = 800;
+		int m_WindowHeight = 600;
 		GLFWwindow* m_Window = nullptr;
 	};
 }

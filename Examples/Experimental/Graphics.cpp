@@ -6,17 +6,18 @@
 #include <GpuBuffer.h>
 
 using namespace FishEngine;
+using Microsoft::WRL::ComPtr;
 
-//struct Buffer
-//{
-//	Microsoft::WRL::ComPtr<ID3D12Resource> buffer;
-//	D3D12_VERTEX_BUFFER_VIEW bufferView;
-//};
 
 constexpr int MAX_BUFFER_SIZE = 1024;
 static int g_current_buffer_index = 0;
 inline int NextBuffer() { return ++g_current_buffer_index; }
 static GpuBuffer* g_buffers[MAX_BUFFER_SIZE] = {nullptr,};
+
+constexpr int MAX_SHADER_SIZE = 1024;
+static int g_current_shader_index = 0;
+inline int NextShader() { return ++g_current_shader_index; }
+static ComPtr<ID3DBlob> g_shader_blobs[MAX_SHADER_SIZE];
 
 
 VertexBufferHandle FishEngine::CreateVertexBuffer(const Memory& data, const VertexDecl& decl)
@@ -49,3 +50,31 @@ FishEngine::IndexBufferHandle FishEngine::CreateIndexBuffer(const Memory& data, 
 	return handle;
 }
 
+FishEngine::ShaderHandle FishEngine::CreateShader(const char* functionName)
+{
+	ShaderHandle handle;
+	handle.idx = NextShader();
+	//ThrowIfFailed(Application)
+
+	return handle;
+}
+
+//FishEngine::CommandQueue::CommandQueue()
+//{
+//	//impl = std::make_unique<CommandQueueImpl>();
+//}
+
+#include "GraphicsPlatform.hpp"
+
+StructuredBuffer* FishEngine::GetVertexBuffer(VertexBufferHandle handle)
+{
+	assert(handle.idx > 0 && handle.idx <= g_current_buffer_index);
+	return (StructuredBuffer*)g_buffers[handle.idx];
+}
+
+
+ByteAddressBuffer* FishEngine::GetIndexBuffer(IndexBufferHandle handle)
+{
+	assert(handle.idx > 0 && handle.idx <= g_current_buffer_index);
+	return (ByteAddressBuffer*)g_buffers[handle.idx];
+}

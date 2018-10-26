@@ -70,7 +70,7 @@ void GameApp::Run()
 	}
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-	m_Window = glfwCreateWindow(800, 600, "Simple example", NULL, NULL);
+	m_Window = glfwCreateWindow(m_WindowWidth, m_WindowHeight, "Simple example", NULL, NULL);
 	if (!m_Window)
 	{
 		glfwTerminate();

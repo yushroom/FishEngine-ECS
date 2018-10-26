@@ -15,6 +15,7 @@
 #include <BufferManager.h>
 
 #include "Graphics.hpp"
+#include "GraphicsPlatform.hpp"
 
 namespace GameCore
 {
@@ -167,6 +168,10 @@ namespace FishEngine
 		virtual void Start() override;
 		virtual void Update() override;
 		virtual void Clean() override;
+
+	private:
+		VertexBufferHandle vb;
+		IndexBufferHandle ib;
 	};
 
 	void WinGameApp::Start()
@@ -180,11 +185,23 @@ namespace FishEngine
 
 		Initialize();
 		InitImgui();
+
+		VertexDecl decl;
+		decl.SetVertexSize(sizeof(VertexPosColor));
+		vb = CreateVertexBuffer(Memory{ g_Vertices, sizeof(g_Vertices) }, decl);
+		ib = CreateIndexBuffer(Memory{ g_Indicies, sizeof(g_Indicies) }, MeshIndexType::UInt16);
 	}
 
 	void WinGameApp::Update()
 	{
 		::Update();
+
+		auto& context = GraphicsContext::Begin(L"cube");
+		auto vbb = GetVertexBuffer(vb);
+		context.SetVertexBuffer(0, vbb->VertexBufferView());
+		auto ibb = GetIndexBuffer(ib);
+		context.SetIndexBuffer(ibb->IndexBufferView());
+		context.Finish();
 	}
 
 	void WinGameApp::Clean()
