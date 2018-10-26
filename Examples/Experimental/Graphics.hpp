@@ -2,11 +2,13 @@
 
 #include <cstdint>
 #include <memory>
+#include <string>
 
+#define FE_EXPOSE_METAL 1
 #ifdef FE_EXPOSE_METAL
 #include <Metal/Metal.h>
 #else
-#include <CommandContext.h>
+#include "CommandContext.hpp"
 #endif
 
 namespace FishEngine
@@ -103,11 +105,12 @@ namespace FishEngine
 	class CommandQueue
 	{
 	public:
-		CommandQueue() :
-			context(GraphicsContext::Begin(L"Temp"))
-		{
-
-		}
+//		CommandQueue() :
+//			context(GraphicsContext::Begin(L"Temp"))
+//		{
+//
+//		}
+		CommandQueue();
 		
 		CommandList* GetCommandList();
 		

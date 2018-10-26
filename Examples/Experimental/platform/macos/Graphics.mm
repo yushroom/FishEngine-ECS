@@ -1,7 +1,5 @@
-#include "Graphics.hpp"
-
-#define FE_EXPOSE_METAL
-#include "GraphicsPlatform.hpp"
+#include "../../Graphics.hpp"
+#include "../../GraphicsPlatform.hpp"
 
 #include <MetalKit/MetalKit.h>
 
@@ -35,9 +33,9 @@ id<MTLTexture> g_textures[MAX_TEXTURE_SIZE];
 VertexBufferHandle FishEngine::CreateVertexBuffer(const Memory& data, const VertexDecl& decl)
 {
 	int size = decl.GetVertexSize();
-	assert(data.size % size == 0);
+	assert(data.byteSize % size == 0);
 	id<MTLBuffer> buffer = [g_device newBufferWithBytes:data.data
-												 length:data.size
+												 length:data.byteSize
 												options:MTLResourceStorageModeShared];
 	VertexBufferHandle handle;
 	handle.idx = NextBuffer();

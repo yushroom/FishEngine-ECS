@@ -2,8 +2,6 @@
 
 #include "Graphics.hpp"
 
-//#define FE_EXPOSE_METAL
-
 #ifdef FE_EXPOSE_METAL
 
 #include <MetalKit/MetalKit.h>
@@ -61,6 +59,6 @@ namespace FishEngine
 	{
 
 	}
+}
 
 #endif
-}

@@ -14,11 +14,11 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_metal.h>
 
-#include "AAPLShaderTypes.h"
+#include "../../AAPLShaderTypes.h"
 
-#include "Graphics.hpp"
 #define FE_EXPOSE_METAL
-#include "GraphicsPlatform.hpp"
+#include "../../Graphics.hpp"
+#include "../../GraphicsPlatform.hpp"
 
 extern id<MTLDevice> g_device;
 extern id<MTLLibrary> g_default_library;
@@ -157,7 +157,7 @@ int main()
 	
 	FishEngine::Memory data;
 	data.data = (const void*)triangleVertices;
-	data.size = sizeof(triangleVertices);
+	data.byteSize = sizeof(triangleVertices);
 	FishEngine::VertexDecl decl;
 	decl.SetVertexSize(sizeof(AAPLVertex));
 	auto vbHandle = FishEngine::CreateVertexBuffer(data, decl);
