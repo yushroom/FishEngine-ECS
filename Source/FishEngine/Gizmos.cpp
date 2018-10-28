@@ -21,7 +21,7 @@ void Gizmos::StaticInit()
 	}
 
 	VertexPC temp;
-	s_LineDynamicVertexBuffer = bgfx::createDynamicVertexBuffer(bgfx::copy(&temp, sizeof(temp)), PUNTVertex::s_PC_decl, BGFX_BUFFER_ALLOW_RESIZE);
+//	s_LineDynamicVertexBuffer = bgfx::createDynamicVertexBuffer(bgfx::copy(&temp, sizeof(temp)), PUNTVertex::s_PC_decl, BGFX_BUFFER_ALLOW_RESIZE);
 
 	{
 		for (int i = 0; i < circle_vertex_count-1; ++i)
@@ -30,7 +30,7 @@ void Gizmos::StaticInit()
 			vertices[i].Set(sin(theta), cos(theta), 0);
 		}
 		vertices[circle_vertex_count-1] = vertices[0];
-		s_CircleVertexBuffer = bgfx::createVertexBuffer(bgfx::copy(vertices, sizeof(Vector3)*circle_vertex_count), PUNTVertex::s_P_decl);
+//		s_CircleVertexBuffer = bgfx::createVertexBuffer(bgfx::copy(vertices, sizeof(Vector3)*circle_vertex_count), PUNTVertex::s_P_decl);
 	}
 }
 
@@ -127,6 +127,7 @@ void Gizmos::DrawFrustum(const Frustum& frustum, const Matrix4x4& cameraToWorld)
 
 void Gizmos::DrawCircle(const Vector3& center, float radius)
 {
+#if 0
 	uint64_t state = BGFX_STATE_WRITE_RGB
 		| BGFX_STATE_DEPTH_TEST_ALWAYS
 		| BGFX_STATE_PT_LINESTRIP;
@@ -151,11 +152,13 @@ void Gizmos::DrawCircle(const Vector3& center, float radius)
 //			DrawLine(v1, v2);
 //		}
 //	}
+#endif
 }
 
 
 void Gizmos::__Draw()
 {
+#if 0
 	if (!s_Lines.empty())
 	{
 		bgfx::update(s_LineDynamicVertexBuffer, 0, bgfxHelper::MakeCopy(s_Lines));
@@ -174,6 +177,7 @@ void Gizmos::__Draw()
 		bgfx::submit(viewId, s_VertexColorMaterial->GetShader()->GetProgram());
 		s_Lines.clear();
 	}
+#endif
 }
 
 

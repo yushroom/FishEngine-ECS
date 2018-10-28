@@ -1,10 +1,10 @@
 #include "FishEngine/Shader.hpp"
 
-#include <bgfx/bgfx.h>
-#include <bgfx/platform.h>
+//#include <bgfx/bgfx.h>
+//#include <bgfx/platform.h>
 
-#include <bx/file.h>
-#include <bx/pixelformat.h>
+//#include <bx/file.h>
+//#include <bx/pixelformat.h>
 
 
 #include <cstdio>
@@ -12,6 +12,7 @@
 
 using namespace FishEngine;
 
+#if 0
 static const bgfx::Memory* loadMem(bx::FileReaderI* _reader, const char* _filePath)
 {
 	if (bx::open(_reader, _filePath) )
@@ -68,3 +69,9 @@ Shader* ShaderUtil::Compile(const std::string& vs_path, const std::string& fs_pa
 	return s;
 }
 
+#endif
+
+Shader* ShaderUtil::Compile(const std::string& vs_path, const std::string& fs_path)
+{
+	return nullptr;
+}

@@ -19,9 +19,10 @@ using namespace FishEngine;
 
 void RenderSystem::OnAdded()
 {
+#if 0
 	bgfx::Init init;
 #if FISHENGINE_PLATFORM_APPLE
-	init.type = bgfx::RendererType::Enum::Metal;
+	init.type = bgfx::RendererType::Enum::OpenGL;
 #else
 	init.type = bgfx::RendererType::Enum::Direct3D12;
 #endif
@@ -45,6 +46,9 @@ void RenderSystem::OnAdded()
 		;
 	
 	//assert(bgfx::getCaps()->supported & BGFX_CAPS_COMPUTE);
+#endif
+	
+	auto state = m_Scene->AddSingletonComponent<SingletonRenderState>();
 }
 
 void RenderSystem::Start()
@@ -81,14 +85,14 @@ void RenderSystem::Draw()
 
 	auto renderState = m_Scene->GetSingletonComponent<SingletonRenderState>();
 
-	bgfx::setUniform(renderState->m_UniformCameraPos, cameraPos.data());
+//	bgfx::setUniform(renderState->m_UniformCameraPos, cameraPos.data());
 
 	Light* light = m_Scene->FindComponent<Light>();
 	if (light != nullptr)
 	{
 		Vector3 lightDir = -light->m_GameObject->GetTransform()->GetForward();
 		Vector3 d = Vector3::Normalize(lightDir);
-		bgfx::setUniform(renderState->m_UniformLightDir, &d);
+//		bgfx::setUniform(renderState->m_UniformLightDir, &d);
 	}
 	
 	
@@ -97,14 +101,15 @@ void RenderSystem::Draw()
 	float aspectRatio = width / height;
 	Matrix4x4 viewMat = camera->GetWorldToCameraMatrix();
 	Matrix4x4 projMat = camera->GetProjectionMatrix();
-	Matrix4x4 viewT = viewMat.transpose();
-	Matrix4x4 projT = projMat.transpose();
-	bgfx::setViewTransform((bgfx::ViewId)RenderViewType::Scene, viewT.data(), projT.data());
-	bgfx::setViewTransform((bgfx::ViewId)RenderViewType::SceneGizmos, viewT.data(), projT.data());
+//	Matrix4x4 viewT = viewMat.transpose();
+//	Matrix4x4 projT = projMat.transpose();
+//	bgfx::setViewTransform((bgfx::ViewId)RenderViewType::Scene, viewT.data(), projT.data());
+//	bgfx::setViewTransform((bgfx::ViewId)RenderViewType::SceneGizmos, viewT.data(), projT.data());
+	SetViewProjectionMatrix(viewMat, projMat);
 	
 	// draw skybox first
 	auto old_state = renderState->m_State;
-	renderState->m_State = BGFX_STATE_CULL_CW | BGFX_STATE_WRITE_MASK | BGFX_STATE_DEPTH_TEST_LESS;
+//	renderState->m_State = BGFX_STATE_CULL_CW | BGFX_STATE_WRITE_MASK | BGFX_STATE_DEPTH_TEST_LESS;
 	m_Scene->ForEach<Skybox>([cameraPos](GameObject* go, Skybox* skybox)
 	{
 		auto mat = Matrix4x4::TRS(Vector3(cameraPos[0], cameraPos[1], cameraPos[2]), Quaternion::identity, Vector3::one*100);
@@ -158,6 +163,7 @@ void RenderSystem::Draw()
 			}
 			
 			
+#if 0
 			auto mem = bgfxHelper::MakeRef(mesh->m_DynamicVertices);
 			if (!bgfx::isValid(mesh->m_DynamicVertexBuffer))
 			{
@@ -167,6 +173,7 @@ void RenderSystem::Draw()
 			{
 				bgfx::update(mesh->m_DynamicVertexBuffer, 0, mem);
 			}
+#endif
 		}
 	});
 #endif
@@ -226,7 +233,7 @@ void RenderSystem::Draw()
 				{
 					for (int i = 0; i < rend->m_Materials.size(); ++i)
 					{
-						Graphics::DrawMesh(rend->m_Mesh, modelMat, rend->m_Materials[i], 0, i);
+						Graphics::DrawMesh(rend->m_Mesh, modelMat, rend->m_Materials[i], i);
 					}
 				}
 			}
@@ -241,5 +248,5 @@ void RenderSystem::Draw()
 void RenderSystem::Resize(int width, int height)
 {
 //	bgfx::reset(width*2, height*2, BGFX_RESET_VSYNC | BGFX_RESET_HIDPI);
-	bgfx::reset(width, height, BGFX_RESET_VSYNC);
+//	bgfx::reset(width, height, BGFX_RESET_VSYNC);
 }

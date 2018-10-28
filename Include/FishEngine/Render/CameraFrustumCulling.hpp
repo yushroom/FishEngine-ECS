@@ -13,10 +13,10 @@ public:
     {
         viewProjMat = gameCamera->GetViewProjectionMatrix();
         
-        if (bgfx::getCaps()->homogeneousDepth)
-            box_ndc.SetMinMax({ -1, -1, -1 }, { 1, 1, 1 });
-        else
-            box_ndc.SetMinMax({ -1, -1, 0 }, { 1, 1, 1 });
+//        if (bgfx::getCaps()->homogeneousDepth)
+//            box_ndc.SetMinMax({ -1, -1, -1 }, { 1, 1, 1 });
+//        else
+//            box_ndc.SetMinMax({ -1, -1, 0 }, { 1, 1, 1 });
     }
     
     bool Visiable(Mesh* mesh, const Matrix4x4& modelMat) const

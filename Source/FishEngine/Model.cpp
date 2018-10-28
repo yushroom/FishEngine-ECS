@@ -653,7 +653,8 @@ bool gltfLoadImageData(tinygltf::Image *image, std::string *err, std::string *wa
 {
 //	bgfx::TextureHandle texture = loadTexture2((void*)bytes, size, "unknown.ext");
 //	assert(bgfx::isValid(texture));
-	Texture* texture = Texture::FromMemory((void*)bytes, size, "unknown.ext");
+//	Texture* texture = Texture::FromMemory((void*)bytes, size, "unknown.ext");
+	Texture* texture = nullptr;
 	current_model->images.push_back(texture);
 	return true;
 }

@@ -2,10 +2,11 @@
 
 #include "Object.hpp"
 #include <vector>
-#include <bgfx/bgfx.h>
+//#include <bgfx/bgfx.h>
 #include <map>
 #include <string>
 #include "Math.hpp"
+#include "GraphicsAPI.hpp"
 
 namespace FishEngine
 {
@@ -42,8 +43,11 @@ namespace FishEngine
 		
 //	protected:
 		Shader* m_Shader = nullptr;
-		std::map<std::string, std::pair<bgfx::UniformHandle, bgfx::UniformInfo>> m_UniformInfos;
+//		std::map<std::string, std::pair<bgfx::UniformHandle, bgfx::UniformInfo>> m_UniformInfos;
 		MaterialProperties m_MaterialProperties;
+		
+		ShaderHandle m_VertexShader;
+		ShaderHandle m_PixelShader;
 	};
 	
 }

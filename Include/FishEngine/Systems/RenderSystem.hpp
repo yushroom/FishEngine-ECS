@@ -1,6 +1,6 @@
 #pragma once
 #include "FishEngine/ECS/System.hpp"
-#include <bgfx/bgfx.h>
+//#include <bgfx/bgfx.h>
 
 namespace FishEngine
 {

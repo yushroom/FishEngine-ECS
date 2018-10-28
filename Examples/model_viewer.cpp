@@ -67,7 +67,7 @@ GameObject* CreateGO(Scene* scene, Mesh* mesh)
 	auto r = scene->GameObjectAddComponent<Renderable>(go);
 	r->m_Mesh = mesh;
 	auto mat = Material::Clone(Material::pbrMetallicRoughness);
-	mat->SetTexture("baseColorTexture", Texture::s_WhiteTexture);
+//	mat->SetTexture("baseColorTexture", Texture::s_WhiteTexture);
 	r->m_Materials.push_back(mat);
 	return go;
 }
@@ -82,9 +82,9 @@ public:
 		//path = GetglTFSample("RiggedSimple");
 		//path = GetglTFSample("TextureCoordinateTest");
 //		path = GetglTFSample("Triangle");
-		//path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/BoomBoxWithAxes/glTF/BoomBoxWithAxes.gltf";
+		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/BoomBoxWithAxes/glTF/BoomBoxWithAxes.gltf";
 //		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Triangle/glTF/Triangle.gltf";
-		path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
+//		path = R"(D:\program\glTF-Sample-Models\2.0\Sponza\glTF\Sponza.gltf)";
 //		path = "/Users/yushroom/program/github/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf";
 //		path = GetglTFSample("Buggy");
 		//path = GetglTFSample("BrainStem");

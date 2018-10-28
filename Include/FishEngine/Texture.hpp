@@ -1,5 +1,6 @@
 #pragma once
 
+#if 0
 #include "ClassDef.hpp"
 #include <bgfx/bgfx.h>
 #include <bimg/bimg.h>
@@ -70,3 +71,4 @@ namespace FishEngine
 		bgfx::TextureHandle m_Handle;
 	};
 }
+#endif

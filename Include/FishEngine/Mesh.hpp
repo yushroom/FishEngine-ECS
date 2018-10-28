@@ -5,7 +5,8 @@
 #include "MeshVertex.hpp"
 
 #include <vector>
-#include <bgfx/bgfx.h>
+//#include <bgfx/bgfx.h>
+#include <FishEngine/GraphicsAPI.hpp>
 
 #include <FishEngine/Math/IntVector.hpp>
 
@@ -23,11 +24,14 @@ class Mesh : public Object
 {
 	friend class MeshUtil;
 public:
-	bgfx::IndexBufferHandle m_IndexBuffer;
-	bgfx::VertexBufferHandle m_VertexBuffer;
+//	bgfx::IndexBufferHandle m_IndexBuffer;
+//	bgfx::VertexBufferHandle m_VertexBuffer;
+	
+	IndexBufferHandle m_IndexBuffer;
+	VertexBufferHandle m_VertexBuffer;
 	
 	// for cpu skinning
-	bgfx::DynamicVertexBufferHandle m_DynamicVertexBuffer = BGFX_INVALID_HANDLE;
+//	bgfx::DynamicVertexBufferHandle m_DynamicVertexBuffer = BGFX_INVALID_HANDLE;
 	std::vector<PUNTVertex> m_DynamicVertices;
 
 	std::vector<FishEngine::Int4> joints;

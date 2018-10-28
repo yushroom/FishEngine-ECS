@@ -4,7 +4,7 @@
 #include "../ECS/Component.hpp"
 #include "../Math/Matrix4x4.hpp"
 
-#include <bgfx/bgfx.h>
+//#include <bgfx/bgfx.h>
 
 namespace FishEngine
 {

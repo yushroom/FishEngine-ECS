@@ -1,5 +1,6 @@
 #include <FishEngine/Texture.hpp>
 
+#if 0
 #include <bimg/bimg.h>
 #include <bx/readerwriter.h>
 #include <bimg/decode.h>
@@ -173,3 +174,5 @@ bgfx::TextureHandle TextureUtils::LoadTexture(const char* path, uint32_t _flags)
 {
 	return loadTexture(path, _flags);
 }
+
+#endif

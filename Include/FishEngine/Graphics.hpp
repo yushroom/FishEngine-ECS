@@ -4,7 +4,7 @@
 #include "ClassDef.hpp"
 #include "Math.hpp"
 
-#include <bgfx/bgfx.h>
+//#include <bgfx/bgfx.h>
 
 namespace FishEngine
 {
@@ -15,9 +15,9 @@ class Material;
 class Graphics : public Static
 {
 public:
-	static void DrawMesh(Mesh* mesh, const Matrix4x4& matrix, Material* material, bgfx::ViewId id=0, int submeshID = -1);
+	static void DrawMesh(Mesh* mesh, const Matrix4x4& matrix, Material* material, int submeshID = -1);
 
-	static void DrawMesh2(Mesh* mesh, const Matrix4x4& matrix, Material* material, uint64_t state, bgfx::ViewId id=0, int submeshID = -1);
+	static void DrawMesh2(Mesh* mesh, const Matrix4x4& matrix, Material* material, uint64_t state, int submeshID = -1);
 };
 
 }

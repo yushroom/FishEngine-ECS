@@ -1,7 +1,7 @@
 #pragma once
 
 #include <FishEngine/ClassDef.hpp>
-#include <FishEngine/Evnet.hpp>
+#include <FishEngine/Event.hpp>
 
 struct GLFWwindow;
 

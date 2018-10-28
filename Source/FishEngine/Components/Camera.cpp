@@ -4,13 +4,15 @@
 #include <FishEngine/Gizmos.hpp>
 #include <FishEngine/ECS/GameObject.hpp>
 
-#include <bx/math.h>
+//#include <bx/math.h>
 
 using namespace FishEngine;
 
 Matrix4x4 FishEngine::Camera::GetProjectionMatrix() const
 {
 	float aspectRatio = Screen::GetAspectRatio();
+	
+#if 0
 	float proj[16];
 	if (m_Orthographic)
 	{
@@ -25,6 +27,9 @@ Matrix4x4 FishEngine::Camera::GetProjectionMatrix() const
 	}
 	memcpy(m_ProjectionMatrix.data(), proj, sizeof(Matrix4x4));
 	m_ProjectionMatrix = m_ProjectionMatrix.transpose();
+#else
+	m_ProjectionMatrix = Matrix4x4::Perspective(m_FieldOfView, aspectRatio, m_NearClipPlane, m_FarClipPlane);
+#endif
 	return m_ProjectionMatrix;
 }
 

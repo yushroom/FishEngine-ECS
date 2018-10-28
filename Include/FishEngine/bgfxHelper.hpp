@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <bgfx/bgfx.h>
+//#include <bgfx/bgfx.h>
 
 namespace bgfxHelper
 {
@@ -12,6 +12,7 @@ namespace bgfxHelper
 		return uint32_t(sizeof(T) * v.size());
 	}
 
+#if 0
 	template<class T>
 	inline auto MakeCopy(const std::vector<T>& v)
 	{
@@ -23,4 +24,5 @@ namespace bgfxHelper
 	{
 		return bgfx::makeRef(v.data(), Sizeof(v));
 	}
+#endif
 }

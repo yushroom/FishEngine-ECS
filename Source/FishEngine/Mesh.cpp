@@ -26,25 +26,25 @@ std::string ReadFileAsString(const std::string &path)
 
 void PUNTVertex::StaticInit()
 {
-	ms_decl
-		.begin()
-		.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
-		.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
-		.add(bgfx::Attrib::Normal, 3, bgfx::AttribType::Float)
-		.add(bgfx::Attrib::Tangent, 4, bgfx::AttribType::Float)
-		.end();
-	assert(PUNTVertex::ms_decl.getStride() == sizeof(PUNTVertex));
-
-	s_P_decl.begin().add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float).end();
-	
-	s_PC_decl.begin()
-		.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
-		.add(bgfx::Attrib::Color0, 3, bgfx::AttribType::Float)
-	.end();
+//	ms_decl
+//		.begin()
+//		.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
+//		.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
+//		.add(bgfx::Attrib::Normal, 3, bgfx::AttribType::Float)
+//		.add(bgfx::Attrib::Tangent, 4, bgfx::AttribType::Float)
+//		.end();
+//	assert(PUNTVertex::ms_decl.getStride() == sizeof(PUNTVertex));
+//
+//	s_P_decl.begin().add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float).end();
+//
+//	s_PC_decl.begin()
+//		.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
+//		.add(bgfx::Attrib::Color0, 3, bgfx::AttribType::Float)
+//	.end();
 }
 
-bgfx::VertexDecl PUNTVertex::ms_decl;
-bgfx::VertexDecl PUNTVertex::s_P_decl;
+//bgfx::VertexDecl PUNTVertex::ms_decl;
+//bgfx::VertexDecl PUNTVertex::s_P_decl;
 
 void Mesh::StaticInit()
 {
@@ -69,8 +69,13 @@ void Mesh::StaticInit()
 
 void Mesh::__Upload()
 {
-	m_VertexBuffer = bgfx::createVertexBuffer(bgfxHelper::MakeRef(m_Vertices), PUNTVertex::ms_decl);
-	m_IndexBuffer = bgfx::createIndexBuffer(bgfxHelper::MakeRef(m_Indices), BGFX_BUFFER_INDEX32);
+//	m_VertexBuffer = bgfx::createVertexBuffer(bgfxHelper::MakeRef(m_Vertices), PUNTVertex::ms_decl);
+//	m_IndexBuffer = bgfx::createIndexBuffer(bgfxHelper::MakeRef(m_Indices), BGFX_BUFFER_INDEX32);
+	
+	VertexDecl decl;
+	decl.SetVertexSize(sizeof(PUNTVertex));
+	m_VertexBuffer = CreateVertexBuffer(Memory::FromVectorArray(m_Vertices), decl);
+	m_IndexBuffer = CreateIndexBuffer(Memory::FromVectorArray(m_Indices), MeshIndexType::UInt32);
 }
 
 void Mesh::Bind(int subMeshIndex/* = -1*/, int bgfxStream/* = 0*/)
@@ -81,18 +86,18 @@ void Mesh::Bind(int subMeshIndex/* = -1*/, int bgfxStream/* = 0*/)
 		return;
 	}
 
-	if (IsSkinned())
-		bgfx::setVertexBuffer(bgfxStream, m_DynamicVertexBuffer);
-	else
-		bgfx::setVertexBuffer(bgfxStream, m_VertexBuffer);
-
-	if (subMeshIndex == -1)
-		bgfx::setIndexBuffer(m_IndexBuffer);
-	else
-	{
-		auto& info = m_SubMeshInfos[subMeshIndex];
-		bgfx::setIndexBuffer(m_IndexBuffer, info.StartIndex, info.Length);
-	}
+//	if (IsSkinned())
+//		bgfx::setVertexBuffer(bgfxStream, m_DynamicVertexBuffer);
+//	else
+//		bgfx::setVertexBuffer(bgfxStream, m_VertexBuffer);
+//
+//	if (subMeshIndex == -1)
+//		bgfx::setIndexBuffer(m_IndexBuffer);
+//	else
+//	{
+//		auto& info = m_SubMeshInfos[subMeshIndex];
+//		bgfx::setIndexBuffer(m_IndexBuffer, info.StartIndex, info.Length);
+//	}
 }
 
 Mesh* MeshUtil::FromTextFile(const String & str)

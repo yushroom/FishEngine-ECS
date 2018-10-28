@@ -18,6 +18,7 @@ bool IsInernalUniform(const char* name)
 void Material::SetShader(Shader* shader)
 {
 	m_Shader = shader;
+#if 0
 	if (shader != nullptr)
 	{
 		auto count = bgfx::getShaderUniforms(shader->m_FragmentShader);
@@ -44,20 +45,24 @@ void Material::SetShader(Shader* shader)
 			}
 		}
 	}
+#endif
 }
 
 
 void Material::SetVector(const std::string& name, const Vector4& value)
 {
+#if 0
 //	assert(m_UniformInfos.find(name) != m_UniformInfos.end());
 	if (m_UniformInfos.find(name) != m_UniformInfos.end())
 		m_MaterialProperties.vec4s[name] = value;
 	else
 		printf("Material::SetVector: %s not found!\n", name.c_str());
+#endif
 }
 
 void Material::SetTexture(const std::string& name, Texture* value)
 {
+#if 0
 //	assert(m_UniformInfos.find(name) != m_UniformInfos.end());
 	//m_MaterialProperties.textures[name] = value;
 	if (m_UniformInfos.find(name) != m_UniformInfos.end())
@@ -73,11 +78,12 @@ void Material::SetTexture(const std::string& name, Texture* value)
 		m_UniformInfos[name] = std::make_pair(handle, info);
 		m_MaterialProperties.textures[name] = value;
 	}
-	
+#endif
 }
 
 void Material::BindUniforms() const
 {
+#if 0
 	int texCount = 0;
 	for (auto& pair : m_UniformInfos)
 	{
@@ -107,6 +113,7 @@ void Material::BindUniforms() const
 		}
 		
 	}
+#endif
 }
 
 Material* Material::Clone(Material* mat)
@@ -115,7 +122,9 @@ Material* Material::Clone(Material* mat)
 	Material* m = new Material();
 	m->name = mat->name;
 	m->m_Shader = mat->m_Shader;
-	m->m_UniformInfos = mat->m_UniformInfos;
+	m->m_VertexShader = mat->m_VertexShader;
+	m->m_PixelShader = mat->m_PixelShader;
+//	m->m_UniformInfos = mat->m_UniformInfos;
 	m->m_MaterialProperties = mat->m_MaterialProperties;
 	return m;
 }
@@ -139,13 +148,20 @@ Material* CreateMaterialFromShadersDir(const char* shader_name)
 
 void Material::StaticInit()
 {
-	ColorMaterial = CreateMaterialFromShadersDir("color");
-	TextureMaterial = CreateMaterialFromShadersDir("Texture");
-	ErrorMaterial = CreateMaterialFromShadersDir("Error");
-
-	pbrMetallicRoughness = CreateMaterialFromShadersDir("pbrMetallicRoughness");
+//	ColorMaterial = CreateMaterialFromShadersDir("color");
+//	TextureMaterial = CreateMaterialFromShadersDir("Texture");
+//	ErrorMaterial = CreateMaterialFromShadersDir("Error");
+//
+//	pbrMetallicRoughness = CreateMaterialFromShadersDir("pbrMetallicRoughness");
 //	pbrMetallicRoughness->SetVector("baseColorFactor", Vector4::one);
 //	pbrMetallicRoughness->SetTexture("baseColorTexture", Texture::s_WhiteTexture);
 	
 //	pbrMetallicRoughness_skinned = CreateMaterialFromShadersDir("pbrMetallicRoughness_skinned");
+	ColorMaterial = new Material();
+	auto vs = FishEngine::CreateShader("vs_main");
+	auto fs = FishEngine::CreateShader("fs_main");
+	ColorMaterial->m_VertexShader = vs;
+	ColorMaterial->m_PixelShader = fs;
+	
+	pbrMetallicRoughness = ColorMaterial;
 }

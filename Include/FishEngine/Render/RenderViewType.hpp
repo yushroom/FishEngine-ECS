@@ -1,9 +1,10 @@
 #pragma once
-#include <bgfx/bgfx.h>
+//#include <bgfx/bgfx.h>
 
 namespace FishEngine
 {
-	enum class RenderViewType : bgfx::ViewId
+//	enum class RenderViewType : bgfx::ViewId
+	enum class RenderViewTyp
 	{
 		// Game
 		Scene 		= 0,

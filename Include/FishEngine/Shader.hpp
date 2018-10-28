@@ -2,7 +2,7 @@
 
 #include "Object.hpp"
 
-#include <bgfx/bgfx.h>
+//#include <bgfx/bgfx.h>
 
 namespace FishEngine
 {
@@ -14,12 +14,12 @@ class Shader : public Object
 public:
 	Shader() = default;
 	
-	bgfx::ProgramHandle& GetProgram() { return m_Program; }
+//	bgfx::ProgramHandle& GetProgram() { return m_Program; }
 	
 public:
-	bgfx::ProgramHandle m_Program;
-	bgfx::ShaderHandle m_VertexShdaer;
-	bgfx::ShaderHandle m_FragmentShader;
+//	bgfx::ProgramHandle m_Program;
+//	bgfx::ShaderHandle m_VertexShdaer;
+//	bgfx::ShaderHandle m_FragmentShader;
 };
 
 

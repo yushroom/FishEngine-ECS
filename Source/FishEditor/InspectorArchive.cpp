@@ -1,4 +1,4 @@
 #include <FishEditor/InspectorArchive.hpp>
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 using namespace FishEditor;

@@ -13,22 +13,12 @@
 #include <FishEditor/Systems/DrawGizmosSystem.hpp>
 #include <FishEditor/Systems/EditorSystem.hpp>
 #include <FishEditor/Systems/SceneViewSystem.hpp>
+#include <FishEngine/GraphicsAPI.hpp>
 
 #include <GLFW/glfw3.h>
-#include <bgfx/bgfx.h>
-#include <bgfx/platform.h>
 
-#include <bx/file.h>
-#include <bx/pixelformat.h>
-
-#include <imgui/imgui.h>
-
-#	if BX_PLATFORM_WINDOWS
-#define GLFW_EXPOSE_NATIVE_WIN32
-#	elif BX_PLATFORM_OSX
-#define GLFW_EXPOSE_NATIVE_COCOA
-#	endif
-#include <GLFW/glfw3native.h>
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
 
 #include <thread>
 
@@ -36,35 +26,14 @@
 using namespace FishEditor;
 using namespace FishEngine;
 
-static void* glfwNativeWindowHandle(GLFWwindow* _window)
-{
-#	if BX_PLATFORM_LINUX || BX_PLATFORM_BSD
-	return (void*)(uintptr_t)glfwGetX11Window(_window);
-#	elif BX_PLATFORM_OSX
-	return glfwGetCocoaWindow(_window);
-#	elif BX_PLATFORM_WINDOWS
-	return glfwGetWin32Window(_window);
-#	endif // BX_PLATFORM_
-}
 
-static void glfwSetWindow(GLFWwindow* _window)
-{
-	bgfx::PlatformData pd;
-#	if BX_PLATFORM_LINUX || BX_PLATFORM_BSD
-	pd.ndt      = glfwGetX11Display();
-#	elif BX_PLATFORM_OSX
-	pd.ndt      = NULL;
-#	elif BX_PLATFORM_WINDOWS
-	pd.ndt      = NULL;
-#	endif // BX_PLATFORM_WINDOWS
-	pd.nwh          = glfwNativeWindowHandle(_window);
-	pd.context      = NULL;
-	pd.backBuffer   = NULL;
-	pd.backBufferDS = NULL;
-	bgfx::setPlatformData(pd);
-}
 
 static GameApp* mainApp = nullptr;
+
+static void glfw_error_callback(int error, const char* description)
+{
+	fprintf(stderr, "Error: %s\n", description);
+}
 
 static void glfw_window_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -72,6 +41,7 @@ static void glfw_window_size_callback(GLFWwindow* window, int width, int height)
 	int fbh = height;
 //	glfwGetFramebufferSize(window, &fbw, &fbh);
 	mainApp->Resize(fbw, fbh);
+	FishEngine::ResetGraphicsAPI();
 }
 
 inline KeyCode KKK(KeyCode key, int offset)
@@ -125,25 +95,16 @@ static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int act
 	else if (key == GLFW_KEY_DOWN)
 		e.key = KeyCode::DownArrow;
 	s->PostKeyEvent(e);
+
+	ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
 	
-	ImGuiIO& io = ImGui::GetIO();
-	if (action == GLFW_PRESS)
-		io.KeysDown[key] = true;
-	else if (action == GLFW_RELEASE)
-		io.KeysDown[key] = false;
-	
-	(void)mods; // Modifiers are not reliable across systems
-	io.KeyCtrl = io.KeysDown[GLFW_KEY_LEFT_CONTROL] || io.KeysDown[GLFW_KEY_RIGHT_CONTROL];
-	io.KeyShift = io.KeysDown[GLFW_KEY_LEFT_SHIFT] || io.KeysDown[GLFW_KEY_RIGHT_SHIFT];
-	io.KeyAlt = io.KeysDown[GLFW_KEY_LEFT_ALT] || io.KeysDown[GLFW_KEY_RIGHT_ALT];
-	io.KeySuper = io.KeysDown[GLFW_KEY_LEFT_SUPER] || io.KeysDown[GLFW_KEY_RIGHT_SUPER];
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
 static void glfw_char_callback(GLFWwindow* window, unsigned int c)
 {
-	auto& io = ImGui::GetIO();
-	if (c > 0 && c < 0x10000)
-		io.AddInputCharacter((unsigned short)c);
+	ImGui_ImplGlfw_CharCallback(window, c);
 }
 
 static void glfw_mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -163,12 +124,16 @@ static void glfw_mouse_button_callback(GLFWwindow* window, int button, int actio
 		e.action = KeyAction::Released;
 	
 	s->PostKeyEvent(e);
+	
+	ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
 }
 
 void glfw_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	auto s = mainApp->m_EditorScene->GetSystem<InputSystem>();
 	s->UpdateAxis(Axis::MouseScrollWheel, (float)yoffset);
+	
+	ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
 }
 
 void glfw_window_iconify_callback(GLFWwindow* window, int iconified)
@@ -186,6 +151,7 @@ void GameApp::Init()
 {
 	mainApp = this;
 
+	glfwSetErrorCallback(glfw_error_callback);
 	/* Initialize the library */
 	if (!glfwInit())
 	{
@@ -206,10 +172,10 @@ void GameApp::Init()
 
 
 	/* Make the window's context current */
-	glfwMakeContextCurrent(m_Window);
+//	glfwMakeContextCurrent(m_Window);
 
 	//bgfx::glfwSetWindow(window);
-	glfwSetWindow(m_Window);
+//	glfwSetWindow(m_Window);
 
 	glfwSetWindowSizeCallback(m_Window, glfw_window_size_callback);
 	glfwSetKeyCallback(m_Window, glfw_key_callback);
@@ -221,7 +187,10 @@ void GameApp::Init()
 	
 	glfwSetWindowSizeLimits(m_Window, 800, 600, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
-	glfwSwapInterval(1);
+//	glfwSwapInterval(1);
+	
+	FishEngine::InitGraphicsAPI(m_Window);
+	
 
 	m_Scene = new Scene();
 	Scene::s_Current = m_Scene;
@@ -229,7 +198,7 @@ void GameApp::Init()
 	auto rs = m_Scene->AddSystem<RenderSystem>();
 	rs->m_Priority = 1000;
 
-	Texture::StaticInit();
+//	Texture::StaticInit();
 	Material::StaticInit();
 	Mesh::StaticInit();
 	Gizmos::StaticInit();
@@ -269,6 +238,9 @@ void GameApp::Run()
 	m_Scene->Start();
 	m_EditorScene->Start();
 	
+	int frameCount = 0;
+	double timeStamp = glfwGetTime();
+	
 	while (!glfwWindowShouldClose(m_Window))
 	{
 		if (m_WindowMinimized)
@@ -278,19 +250,36 @@ void GameApp::Run()
 		}
 		//glfwWaitEvents();
 //		printf("============ frame begin ===========\n");
+		
+		frameCount ++;
+		if (frameCount == 100)
+		{
+			double now = glfwGetTime();
+			float time = now - timeStamp;
+			float fps = 100 / time;
+			printf("[FPS]%f %f\n", time, fps);
+			timeStamp = now;
+			frameCount = 0;
+		}
 
 		auto si = m_EditorScene->GetSingletonComponent<SingletonInput>();
 		if (si->IsButtonPressed(KeyCode::Escape))
 			glfwSetWindowShouldClose(m_Window, 1);
 
+		static bool show_editor = false;
 		if (si->IsButtonPressed(KeyCode::F1))
 		{
-			bgfx::setDebug(BGFX_DEBUG_STATS);
+//			bgfx::setDebug(BGFX_DEBUG_STATS);
+			show_editor = true;
 		}
 		else if (si->IsButtonReleased(KeyCode::F1))
 		{
-			bgfx::setDebug(BGFX_DEBUG_TEXT);
+//			bgfx::setDebug(BGFX_DEBUG_TEXT);
+			show_editor = false;
 		}
+		
+		FishEngine::BeginFrame();
+		FishEngine::ClearColorDepthBuffer();
 
 		double cursor_x = 0, cursor_y = 0;
 		glfwGetCursorPos(m_Window, &cursor_x, &cursor_y);
@@ -298,9 +287,9 @@ void GameApp::Run()
 		cursor_y /= m_WindowHeight;
 		m_EditorScene->GetSystem<InputSystem>()->SetMousePosition((float)cursor_x, 1.0f-(float)cursor_y);
 
-		bgfx::setViewRect((bgfx::ViewId)RenderViewType::Editor, 0, 0, m_WindowWidth, m_WindowHeight);
+//		bgfx::setViewRect((bgfx::ViewId)RenderViewType::Editor, 0, 0, m_WindowWidth, m_WindowHeight);
 		
-		m_EditorSystem->Draw();
+//		m_EditorSystem->Draw();
 
 		// Set view 0 default viewport.
 //		bgfx::setViewRect(0, 0, 0, uint16_t(m_WindowWidth*2), uint16_t(m_WindowHeight*2) );
@@ -332,23 +321,27 @@ void GameApp::Run()
 		}
 
 		m_EditorScene->Update();
-		
 
 		m_Scene->Update();
 		//r = r * Vector4( w, h, w, h );
-		bgfx::setViewRect((bgfx::ViewId)RenderViewType::Scene, r.x, r.y, r.z, r.w);
-		bgfx::setViewRect((bgfx::ViewId)RenderViewType::SceneGizmos, r.x, r.y, r.z, r.w);
-		bgfx::setViewRect((bgfx::ViewId)RenderViewType::Picking, r.x, r.y, r.z, r.w);
+//		bgfx::setViewRect((bgfx::ViewId)RenderViewType::Scene, r.x, r.y, r.z, r.w);
+//		bgfx::setViewRect((bgfx::ViewId)RenderViewType::SceneGizmos, r.x, r.y, r.z, r.w);
+//		bgfx::setViewRect((bgfx::ViewId)RenderViewType::Picking, r.x, r.y, r.z, r.w);
 		m_Scene->GetSystem<RenderSystem>()->Draw();
 		m_SceneViewSystem->DrawGizmos();
 		m_Scene->PostUpdate();
 		//Screen::width = w;
 		//Screen::height = h;
 		m_EditorScene->PostUpdate();
+		
+		FishEngine::EndPass();
+//		if (show_editor)
+			m_EditorSystem->Draw();
 
 		// Advance to next frame. Rendering thread will be kicked to
 		// process submitted rendering primitives.
-		bgfx::frame();
+//		bgfx::frame();
+		FishEngine::EndFrame();
 
 		/* Swap front and back buffers */
 		//glfwSwapBuffers(m_Window);
@@ -373,6 +366,9 @@ void GameApp::Resize(int width, int height)
 
 	EditorScreen::width = width;
 	EditorScreen::height = height;
+	
+	Screen::width = width;
+	Screen::height = height;
 
 	auto rs = m_Scene->GetSystem<RenderSystem>();
 	rs->Resize(width, height);

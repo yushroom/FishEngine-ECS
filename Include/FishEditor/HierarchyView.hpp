@@ -5,7 +5,7 @@
 #include <FishEngine/Components/Camera.hpp>
 #include <FishEngine/ECS/Scene.hpp>
 
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 constexpr int imgui_window_flags = 0
 	| ImGuiWindowFlags_NoResize
@@ -132,7 +132,7 @@ struct HierarchyView
 		if (isLeaf)
 			node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
 		node_flags |= ImGuiTreeNodeFlags_DefaultOpen;
-		bool node_open = ImGui::TreeNodeEx((void*)t, node_flags, name.c_str());
+		bool node_open = ImGui::TreeNodeEx((void*)t, node_flags, "%s", name.c_str());
 		if (ImGui::IsItemClicked())
 		{
 			selected = t;
@@ -142,7 +142,7 @@ struct HierarchyView
 		if (selected == t && !ImGui::IsItemVisible())
 		{
 			if (m_ScrollToSelected)
-				ImGui::SetScrollHere();
+				ImGui::SetScrollHereY();
 		}
 		
 		if (!isLeaf && node_open)

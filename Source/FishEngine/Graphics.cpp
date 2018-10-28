@@ -10,22 +10,26 @@
 
 using namespace FishEngine;
 
-void Graphics::DrawMesh(Mesh* mesh, const Matrix4x4& matrix, Material* material, bgfx::ViewId id, int submeshID)
+void Graphics::DrawMesh(Mesh* mesh, const Matrix4x4& matrix, Material* material, int submeshID)
 {
 	if (mesh == nullptr || material == nullptr)
 		return;
 
 	auto state = Scene::s_Current->GetSingletonComponent<SingletonRenderState>()->GetState();
 	
-	Graphics::DrawMesh2(mesh, matrix, material, state, id, submeshID);
+	Graphics::DrawMesh2(mesh, matrix, material, state, submeshID);
 }
 
 
-void Graphics::DrawMesh2(Mesh* mesh, const Matrix4x4& matrix, Material* material, uint64_t state, bgfx::ViewId id, int submeshID)
+void Graphics::DrawMesh2(Mesh* mesh, const Matrix4x4& matrix, Material* material, uint64_t state, int submeshID)
 {
 	if (mesh == nullptr || material == nullptr)
 		return;
-
+	
+	FishEngine::SetModelMatrix(matrix);
+	FishEngine::Draw(mesh, material);
+	
+#if 0
 	// Set render states.
 	bgfx::setState(state);
 
@@ -35,4 +39,5 @@ void Graphics::DrawMesh2(Mesh* mesh, const Matrix4x4& matrix, Material* material
 	mesh->Bind(submeshID, id);
 	// Submit primitive for rendering to view 0.
 	bgfx::submit(id, material->GetShader()->GetProgram());
+#endif
 }
