@@ -56,17 +56,38 @@ namespace FishEngine
     
     struct TextureHandle : public Handle {};
 
+	enum class VertexAttrib
+	{
+		Position = 0,
+		TexCoord0 = 1,
+		Normal = 2,
+		Tangernt = 3,
+	};
+
+	enum class VertexAttribType
+	{
+		Float,
+	};
+
     struct VertexDecl
     {
     public:
-        int GetVertexSize() const { return this->size; }
-        void SetVertexSize(int size) { this->size = size; }
-		
+        
 		void Begin();
-		void Add();
+		void Add(VertexAttrib attrib, int count, VertexAttribType type);
+		void End();
+		
+		int GetStride() const
+		{
+			assert(m_Valid && m_Index != 0);
+			return this->m_Stride; 
+		}
 		
 	private:
-        int size = 1;
+		bool m_Valid = false;
+		int m_AttribCount = 0;
+        int m_Stride = 0;
+		int m_Index = 0;
     };
 
     struct Memory

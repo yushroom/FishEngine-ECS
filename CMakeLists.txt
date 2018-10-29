@@ -32,18 +32,28 @@ file(GLOB_RECURSE HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/Include/FishEngine.hpp
     ${CMAKE_CURRENT_LIST_DIR}/Include/FishEngine/*.hpp 
     ${CMAKE_CURRENT_LIST_DIR}/Include/FishEngine/*.inl)
+if (MSVC)
+file(GLOB_RECURSE SRCS 
+    ${CMAKE_CURRENT_LIST_DIR}/Source/FishEngine/*.cpp)
+else()
 file(GLOB_RECURSE SRCS 
     ${CMAKE_CURRENT_LIST_DIR}/Source/FishEngine/*.cpp
     ${CMAKE_CURRENT_LIST_DIR}/Source/FishEngine/*.mm)
+endif()
 add_library(FishEngine ${HEADERS} ${SRCS})
 
 
 file(GLOB_RECURSE HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/Include/FishEditor.hpp
     ${CMAKE_CURRENT_LIST_DIR}/Include/FishEditor/*.hpp)
-file(GLOB_RECURSE SRCS
+if (MSVC)
+file(GLOB_RECURSE SRCS 
+    ${CMAKE_CURRENT_LIST_DIR}/Source/FishEditor/*.cpp)
+else()
+file(GLOB_RECURSE SRCS 
     ${CMAKE_CURRENT_LIST_DIR}/Source/FishEditor/*.cpp
     ${CMAKE_CURRENT_LIST_DIR}/Source/FishEditor/*.mm)
+endif()
 add_library(FishEditor ${HEADERS} ${SRCS})
 
 
@@ -55,13 +65,24 @@ target_include_directories(FishEngine PUBLIC "./ThirdParty/tinygltf")
 
 set(IMGUI_ROOT_DIR "./ThirdParty/imgui")
 # set(IMGUI_ROOT_DIR "./ThirdParty/bgfx/3rdparty/dear-imgui")
-file(GLOB IMGUI_HEADERS "${IMGUI_ROOT_DIR}/*.h"
-    "${IMGUI_ROOT_DIR}/examples/imgui_impl_metal.h"
-    "${IMGUI_ROOT_DIR}/examples/imgui_impl_glfw.h")
-file(GLOB IMGUI_SRCS "${IMGUI_ROOT_DIR}/*.cpp"
-    "${IMGUI_ROOT_DIR}/examples/imgui_impl_metal.mm"
-    "${IMGUI_ROOT_DIR}/examples/imgui_impl_glfw.cpp")
-add_library(imgui ${IMGUI_HEADERS} ${IMGUI_SRCS})
+file(GLOB IMGUI_HEADERS "${IMGUI_ROOT_DIR}/*.h")
+file(GLOB IMGUI_SRCS "${IMGUI_ROOT_DIR}/*.cpp")
+if (MSVC)
+    set(IMGUI_PLATFORM_FILES
+        "${IMGUI_ROOT_DIR}/examples/imgui_impl_glfw.h"
+        "${IMGUI_ROOT_DIR}/examples/imgui_impl_glfw.cpp"
+        "${IMGUI_ROOT_DIR}/examples/imgui_impl_dx12.h"
+        "${IMGUI_ROOT_DIR}/examples/imgui_impl_dx12.cpp"
+    )
+else()
+    set(IMGUI_PLATFORM_FILES
+        "${IMGUI_ROOT_DIR}/examples/imgui_impl_glfw.h"
+        "${IMGUI_ROOT_DIR}/examples/imgui_impl_glfw.cpp"
+        "${IMGUI_ROOT_DIR}/examples/imgui_impl_metal.h"
+        "${IMGUI_ROOT_DIR}/examples/imgui_impl_metal.mm"
+    )
+endif()
+add_library(imgui ${IMGUI_HEADERS} ${IMGUI_SRCS} ${IMGUI_PLATFORM_FILES})
 SET_TARGET_PROPERTIES(imgui PROPERTIES FOLDER "ThirdParty")
 target_include_directories(imgui PUBLIC ${IMGUI_ROOT_DIR})
 # target_compile_options(imgui PRIVATE "-fobjc-arc")
@@ -75,8 +96,6 @@ target_link_libraries(FishEngine imgui)
 target_link_libraries(FishEditor FishEngine)
 
 if (MSVC)
-	target_compile_definitions(FishEngine PRIVATE _ITERATOR_DEBUG_LEVEL=0)
-    target_compile_definitions(FishEditor PRIVATE _ITERATOR_DEBUG_LEVEL=0)
 	set(BGFX_LIB_DIR "${CMAKE_CURRENT_LIST_DIR}/ThirdParty/bgfx/.build/win64_vs2017/bin")
 else()
     set_target_properties(FishEngine PROPERTIES XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC "YES")
@@ -86,41 +105,17 @@ endif()
 
 target_include_directories(FishEngine PUBLIC "./Include")
 
-# add_executable(demo1 "./Examples/demo1.cpp")
-# target_link_libraries(demo1 FishEngine)
-
-# add_executable(demo2 "./Examples/demo2.cpp")
-# target_link_libraries(demo2 FishEngine)
-
-add_executable(Editor MACOSX_BUNDLE "./Examples/model_viewer.cpp")
+add_executable(Editor MACOSX_BUNDLE "./Examples/Editor.cpp")
 target_link_libraries(Editor FishEditor)
-set_target_properties(Editor PROPERTIES LINK_FLAGS "-framework OpenGL -framework Cocoa -framework metal -framework QuartzCore")
-
-file(GLOB SRCS "./Examples/Editor/*.hpp" "./Examples/Editor/*.cpp" "./Examples/Editor/*.mm" "./Examples/Editor/*.metal")
-add_executable(Editor2 MACOSX_BUNDLE ${SRCS})
-target_link_libraries(Editor2 FishEditor)
-# set_target_properties(Editor2 PROPERTIES LINK_FLAGS "-framework Cocoa -framework metal -framework MetalKit -framework QuartzCore")
-set_target_properties(Editor2 PROPERTIES XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC "YES")
-set_target_properties(Editor2 PROPERTIES LINK_FLAGS "-framework OpenGL -framework Cocoa -framework metal -framework QuartzCore")
 
 if (MSVC)
-	target_compile_definitions(imgui PRIVATE _ITERATOR_DEBUG_LEVEL=0)
-    target_compile_definitions(demo1 PRIVATE _ITERATOR_DEBUG_LEVEL=0)
-    target_compile_definitions(demo2 PRIVATE _ITERATOR_DEBUG_LEVEL=0)
-    target_compile_definitions(Editor2 PRIVATE _ITERATOR_DEBUG_LEVEL=0)
 else()
-    # target_compile_definitions(demo1 PRIVATE BGFX_CONFIG_RENDERER_OPENGL=410)
-    # target_compile_definitions(imgui PRIVATE BGFX_CONFIG_RENDERER_OPENGL=410)
-    # target_compile_definitions(demo2 PRIVATE BGFX_CONFIG_RENDERER_OPENGL=410)
-    # target_compile_definitions(Editor PRIVATE BGFX_CONFIG_RENDERER_OPENGL=410)
-    # set_target_properties(demo1 PROPERTIES LINK_FLAGS "-framework OpenGL -framework Cocoa -framework metal -framework QuartzCore")
-    # set_target_properties(demo2 PROPERTIES LINK_FLAGS "-framework OpenGL -framework Cocoa -framework metal -framework QuartzCore")
-    # set_target_properties(Editor PROPERTIES LINK_FLAGS "-framework OpenGL -framework Cocoa -framework metal -framework MetalKit -framework QuartzCore")
+    set_target_properties(Editor PROPERTIES LINK_FLAGS "-framework OpenGL -framework Cocoa -framework metal -framework QuartzCore")
 
     SET( INFO_PLIST ${CMAKE_CURRENT_LIST_DIR}/MacOSXBundleInfo.plist.in)
     IF (NOT EXISTS ${INFO_PLIST})
         MESSAGE(FATAL_ERROR "${INFO_PLIST} not found!")
     ENDIF()
     set_target_properties(Editor PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${INFO_PLIST}" )
-    set_target_properties(Editor2 PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${INFO_PLIST}" )
+    # set_target_properties(Editor2 PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${INFO_PLIST}" )
 endif()

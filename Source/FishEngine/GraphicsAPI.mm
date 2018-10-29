@@ -44,6 +44,10 @@ int g_current_texture_index = 0;
 inline int NextTexture() { assert(g_current_texture_index < MAX_TEXTURE_SIZE-1); return ++g_current_texture_index; }
 id<MTLTexture> g_textures[MAX_TEXTURE_SIZE];
 
+constexpr int MAX_VERTEX_DESC_SIZE = 16;
+int g_current_vertex_desc_index = 0;
+inline int NextVertexDesc() { assert(g_current_vertex_desc_index < MAX_VERTEX_DESC_SIZE-1); return ++g_current_vertex_desc_index; }
+MTLVertexDescriptor* g_vertexDescriptors[MAX_VERTEX_DESC_SIZE];
 
 #include <GLFW/glfw3.h>
 #define GLFW_EXPOSE_NATIVE_COCOA 1
@@ -363,6 +367,57 @@ IndexBufferHandle FishEngine::CreateIndexBuffer(const Memory& data, MeshIndexTyp
 //	m_CommandQueue = [g_device newCommandQueue];
 //}
 
+void FishEngine::VertexDecl::Begin()
+{
+	m_Index = NextVertexDesc();
+	MTLVertexDescriptor* desc = [[MTLVertexDescriptor alloc] init];
+	g_vertexDescriptors[m_Index] = desc;
+}
+
+void FishEngine::VertexDecl::Add(VertexAttrib attrib, int count, VertexAttribType type)
+{
+	assert(m_Index != 0);
+	auto a = g_vertexDescriptors[m_Index].attributes[m_AttribCount];
+	int size = 1;
+	if (type == VertexAttribType::Float)
+	{
+		size = sizeof(float);
+		switch (count)
+		{
+		case 1:
+			a.format = MTLVertexFormatFloat; break;
+		case 2:
+			a.format = MTLVertexFormatFloat2; break;
+		case 3:
+			a.format = MTLVertexFormatFloat3; break;
+		case 4:
+			a.format = MTLVertexFormatFloat4; break;
+		default:
+			abort();
+		}
+	}
+	else
+	{
+		abort();
+	}
+
+	//a.format = MTLVertexFormatFloat2;
+	a.offset = m_Stride;
+	a.bufferIndex = static_cast<int>(attrib);
+
+	m_Stride += count*size;
+	m_AttribCount++;
+}
+
+void FishEngine::VertexDecl::End()
+{
+	assert(m_Index != 0);
+
+	auto desc = g_vertexDescriptors[m_Index];
+	desc.layouts[0].stride = m_Stride;
+	//desc.layouts[0].stepRate = 1;
+	m_Valid = true;
+}
 
 
 namespace FishEngine
