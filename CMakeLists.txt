@@ -105,7 +105,12 @@ endif()
 
 target_include_directories(FishEngine PUBLIC "./Include")
 
-add_executable(Editor MACOSX_BUNDLE "./Examples/Editor.cpp")
+if (MSVC)
+else()
+    file(GLOB METAL_SHADERS "./Shaders/hlsl/runtime/*.metal")
+    set_source_files_properties(${METAL_SHADERS} PROPERTIES LANGUAGE METAL)
+endif()
+add_executable(Editor MACOSX_BUNDLE "./Examples/Editor.cpp" ${METAL_SHADERS})
 target_link_libraries(Editor FishEditor)
 
 if (MSVC)

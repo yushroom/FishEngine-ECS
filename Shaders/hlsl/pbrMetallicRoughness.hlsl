@@ -1,8 +1,9 @@
 struct VertexIn
 {
 	float3 Position : POSITION;
-	float3 Normal : NORMAL;
 	float2 TexCoord : TEXCOORD0;
+	float3 Normal : NORMAL;
+	float4 Tangent : TANGENT;
 };
 
 struct VSToPS
@@ -19,33 +20,38 @@ struct VSToPS
 // roughnessFactor number  The roughness of the material.  No, default: 1
 // metallicRoughnessTexture    object  The metallic-roughness texture. No
 
-cbuffer PerFrame : register(b0)
+struct PerFrame
 {
 	// float4x4 u_modelMat;
 	float4x4 u_modelViewProj;
 	float4x4 u_model[32];
 	float4 CameraPos;
-}
+};
+
+ConstantBuffer<PerFrame> PerFrameCB : register(b0);
 
 VSToPS VS(VertexIn vin)
 {
 	VSToPS vout;
-	vout.Position = mul(float4(vin.Position, 1.0), u_modelViewProj);
-	vout.WorldPosition = mul(float4(vin.Position, 1.0), u_model[0]).xyz;
+	vout.Position = mul(float4(vin.Position, 1.0), PerFrameCB.u_modelViewProj);
+	vout.WorldPosition = mul(float4(vin.Position, 1.0), PerFrameCB.u_model[0]).xyz;
 	vout.TexCoord = vin.TexCoord;
-	vout.WorldNormal = mul(float4(vin.Normal, 0.0), u_model[0]).xyz;
+	vout.WorldNormal = mul(float4(vin.Normal, 0.0), PerFrameCB.u_model[0]).xyz;
 
 	return vout;
 }
 
-cbuffer PerFrame : register(b1)
+struct PerFrame2
 {
 	float4 baseColorFactor;
 	float4 lightDir;
-	Texture2D baseColorTexture;
-	SamplerState baseColorTextureSampler;
 	float4 PBRFactor;	// Metallic, Roughness, Specular
-}
+};
+
+ConstantBuffer<PerFrame2> PerFrame2CB : register(b1);
+
+Texture2D baseColorTexture;
+SamplerState baseColorTextureSampler;
 
 struct SurfaceData
 {
@@ -74,15 +80,15 @@ float4 PS(VSToPS pin) : SV_Target
 	// gl_FragColor *= baseColorFactor;
 
 	SurfaceData data;
-	data.L = normalize(lightDir.xyz);
-	data.V = normalize(CameraPos.xyz - pin.WorldPosition);
+	data.L = normalize(PerFrame2CB.lightDir.xyz);
+	data.V = normalize(PerFrameCB.CameraPos.xyz - pin.WorldPosition);
 	data.N = normalize(pin.WorldNormal);
 	// data.UV = pin.v_texcoord0;
 	data.BaseColor = baseColorTexture.Sample(baseColorTextureSampler, pin.TexCoord).rgb;
-	data.BaseColor *= baseColorFactor.rgb;
-	data.Metallic = PBRFactor.x;
-	data.Roughness = PBRFactor.y;
-	data.Specular = PBRFactor.z;
+	data.BaseColor *= PerFrame2CB.baseColorFactor.rgb;
+	data.Metallic = PerFrame2CB.PBRFactor.x;
+	data.Roughness = PerFrame2CB.PBRFactor.y;
+	data.Specular = PerFrame2CB.PBRFactor.z;
 	return SurfacePS(data);
 }
 

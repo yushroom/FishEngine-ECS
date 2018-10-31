@@ -4,6 +4,7 @@
 #include <FishEngine/Components/Transform.hpp>
 #include <FishEngine/Components/Camera.hpp>
 #include <FishEngine/ECS/Scene.hpp>
+#include <FishEngine/Components/SingletonTime.hpp>
 
 #include <imgui.h>
 
@@ -21,20 +22,21 @@ namespace FishEditor
 
 struct HierarchyView
 {
-	void Reset()
+	void Reset(float deltaTime)
 	{
 		hierarchyList.clear();
-		timeSinceLastKey += 0.02f;
+		timeSinceLastKey += deltaTime;
 //		selectedLeft = false;
 //		selectedRight = false;
 //		m_ScrollToSelected = false;
 	}
 	
-	void Draw(FishEngine::Scene* gameScene, FishEngine::SingletonInput* input)
+	void Draw(FishEngine::Scene* gameScene, FishEngine::Scene* editorScene)
 	{
 		this->scene = gameScene;
-		this->input = input;
-		Reset();
+		this->input = editorScene->input;
+		
+		Reset(editorScene->time->deltaTime);
 		
 		ImGui::Begin("Hierarchy", NULL, imgui_window_flags);
 		m_LeftMouseButtonClicked = ImGui::IsWindowHovered() && input->IsButtonPressed(FishEngine::KeyCode::MouseLeftButton);

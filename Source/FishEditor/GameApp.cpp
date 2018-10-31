@@ -8,6 +8,7 @@
 #include <FishEngine/Systems/TransformSystem.hpp>
 #include <FishEngine/Systems/RenderSystem.hpp>
 #include <FishEngine/Systems/InputSystem.hpp>
+#include <FishEngine/Components/SingletonTime.hpp>
 
 #include <FishEditor/Systems/SelectionSystem.hpp>
 #include <FishEditor/Systems/DrawGizmosSystem.hpp>
@@ -51,6 +52,7 @@ inline KeyCode KKK(KeyCode key, int offset)
 
 static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+	ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
 	if (key == GLFW_KEY_UNKNOWN)
 		return;
 
@@ -95,11 +97,6 @@ static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int act
 	else if (key == GLFW_KEY_DOWN)
 		e.key = KeyCode::DownArrow;
 	s->PostKeyEvent(e);
-
-	ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
-	
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
 static void glfw_char_callback(GLFWwindow* window, unsigned int c)
@@ -187,6 +184,8 @@ void GameApp::Init()
 	
 	glfwSetWindowSizeLimits(m_Window, 800, 600, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
+	Screen::width = 800*2;
+	Screen::height = 600*2;
 //	glfwSwapInterval(1);
 	
 	FishEngine::InitGraphicsAPI(m_Window);
@@ -195,6 +194,7 @@ void GameApp::Init()
 	m_Scene = new Scene();
 	Scene::s_Current = m_Scene;
 	m_Scene->AddSystem<InputSystem>();
+	m_Scene->time = m_Scene->AddSingletonComponent<SingletonTime>();
 	auto rs = m_Scene->AddSystem<RenderSystem>();
 	rs->m_Priority = 1000;
 
@@ -210,6 +210,7 @@ void GameApp::Init()
 
 	m_EditorScene = new Scene();
 	m_EditorScene->AddSystem<InputSystem>();
+	m_EditorScene->time = m_EditorScene->AddSingletonComponent<SingletonTime>();
 	auto es = m_EditorScene->AddSystem<EditorSystem>();
 	es->m_GameScene = m_Scene;
 	es->m_Priority = 999;
@@ -243,24 +244,31 @@ void GameApp::Run()
 	
 	while (!glfwWindowShouldClose(m_Window))
 	{
-		if (m_WindowMinimized)
-		{
-			using namespace std::chrono_literals;
-			std::this_thread::sleep_for(200ms);
-		}
+//		if (m_WindowMinimized)
+//		{
+//			using namespace std::chrono_literals;
+//			std::this_thread::sleep_for(200ms);
+//		}
 		//glfwWaitEvents();
 //		printf("============ frame begin ===========\n");
 		
-		frameCount ++;
-		if (frameCount == 100)
-		{
-			double now = glfwGetTime();
-			float time = now - timeStamp;
-			float fps = 100 / time;
-			printf("[FPS]%f %f\n", time, fps);
-			timeStamp = now;
-			frameCount = 0;
-		}
+		double now = glfwGetTime();
+		m_Scene->time->deltaTime = float(now - timeStamp);
+//		printf("deltaTime: %f\n", m_Scene->time->deltaTime);
+		m_EditorScene->time->deltaTime = m_Scene->time->deltaTime;
+		timeStamp = now;
+		
+		
+//		frameCount ++;
+//		if (frameCount == 100)
+//		{
+//			double now = glfwGetTime();
+//			float time = now - timeStamp;
+//			float fps = 100 / time;
+//			printf("[FPS]%f %f\n", time, fps);
+//			timeStamp = now;
+//			frameCount = 0;
+//		}
 
 		auto si = m_EditorScene->GetSingletonComponent<SingletonInput>();
 		if (si->IsButtonPressed(KeyCode::Escape))
@@ -299,8 +307,8 @@ void GameApp::Run()
 		const int h = EditorScreen::height;
 		auto r = m_EditorSystem->m_SceneViewRect;
 		//r = r + Vector4(8, 8, -16, -16);
-		Screen::width = r.z;
-		Screen::height = r.w;
+//		Screen::width = r.z;
+//		Screen::height = r.w;
 		Vector2 old_mouse_position;
 		{
 			auto input1 = m_Scene->GetSingletonComponent<SingletonInput>();
@@ -329,14 +337,16 @@ void GameApp::Run()
 //		bgfx::setViewRect((bgfx::ViewId)RenderViewType::Picking, r.x, r.y, r.z, r.w);
 		m_Scene->GetSystem<RenderSystem>()->Draw();
 		m_SceneViewSystem->DrawGizmos();
-		m_Scene->PostUpdate();
-		//Screen::width = w;
-		//Screen::height = h;
-		m_EditorScene->PostUpdate();
+
 		
 		FishEngine::EndPass();
 //		if (show_editor)
 			m_EditorSystem->Draw();
+		
+		m_Scene->PostUpdate();
+		//Screen::width = w;
+		//Screen::height = h;
+		m_EditorScene->PostUpdate();
 
 		// Advance to next frame. Rendering thread will be kicked to
 		// process submitted rendering primitives.

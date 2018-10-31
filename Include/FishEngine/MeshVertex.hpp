@@ -1,6 +1,7 @@
 #pragma once
 #include "Math.hpp"
 //#include <bgfx/bgfx.h>
+#include "GraphicsAPI.hpp"
 
 namespace FishEngine
 {
@@ -20,6 +21,7 @@ struct PUNTVertex
 
 	static void StaticInit();;
 
+	static VertexDecl ms_decl;
 //	static bgfx::VertexDecl ms_decl;
 
 //	static bgfx::VertexDecl s_P_decl;

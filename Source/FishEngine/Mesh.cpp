@@ -34,7 +34,15 @@ void PUNTVertex::StaticInit()
 //		.add(bgfx::Attrib::Tangent, 4, bgfx::AttribType::Float)
 //		.end();
 //	assert(PUNTVertex::ms_decl.getStride() == sizeof(PUNTVertex));
-//
+	
+	ms_decl.Begin()
+		.Add(VertexAttrib::Position, 3, VertexAttribType::Float)
+		.Add(VertexAttrib::TexCoord0, 2, VertexAttribType::Float)
+		.Add(VertexAttrib::Normal, 3, VertexAttribType::Float)
+		.Add(VertexAttrib::Tangernt, 4, VertexAttribType::Float)
+	.End();
+	assert(ms_decl.GetStride() == sizeof(PUNTVertex));
+
 //	s_P_decl.begin().add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float).end();
 //
 //	s_PC_decl.begin()
@@ -45,10 +53,11 @@ void PUNTVertex::StaticInit()
 
 //bgfx::VertexDecl PUNTVertex::ms_decl;
 //bgfx::VertexDecl PUNTVertex::s_P_decl;
+VertexDecl PUNTVertex::ms_decl;
 
 void Mesh::StaticInit()
 {
-	PUNTVertex::StaticInit();
+//	PUNTVertex::StaticInit();
 
 //	auto meshes = ModelUtil::LoadMeshesFromGLTF(FISHENGINE_ROOT "Assets/Models/Unity2Skfb.gltf");
 //	assert(meshes.size() == 6);
@@ -72,9 +81,9 @@ void Mesh::__Upload()
 //	m_VertexBuffer = bgfx::createVertexBuffer(bgfxHelper::MakeRef(m_Vertices), PUNTVertex::ms_decl);
 //	m_IndexBuffer = bgfx::createIndexBuffer(bgfxHelper::MakeRef(m_Indices), BGFX_BUFFER_INDEX32);
 	
-	VertexDecl decl;
-	decl.SetVertexSize(sizeof(PUNTVertex));
-	m_VertexBuffer = CreateVertexBuffer(Memory::FromVectorArray(m_Vertices), decl);
+//	VertexDecl decl;
+//	decl.SetVertexSize(sizeof(PUNTVertex));
+	m_VertexBuffer = CreateVertexBuffer(Memory::FromVectorArray(m_Vertices), PUNTVertex::ms_decl);
 	m_IndexBuffer = CreateIndexBuffer(Memory::FromVectorArray(m_Indices), MeshIndexType::UInt32);
 }
 

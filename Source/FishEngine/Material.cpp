@@ -133,11 +133,12 @@ Material* Material::Clone(Material* mat)
 
 Material* CreateMaterialFromShadersDir(const char* shader_name)
 {
-	auto vs = "Shaders/runtime/" + std::string(shader_name) + "_vs.bin";
-	auto fs = "Shaders/runtime/" + std::string(shader_name) + "_fs.bin";
-	vs = FISHENGINE_ROOT + vs;
-	fs = FISHENGINE_ROOT + fs;
-	auto shader = ShaderUtil::Compile(vs, fs);
+//	auto vs = "Shaders/runtime/" + std::string(shader_name) + "_vs.bin";
+//	auto fs = "Shaders/runtime/" + std::string(shader_name) + "_fs.bin";
+//	vs = FISHENGINE_ROOT + vs;
+//	fs = FISHENGINE_ROOT + fs;
+//	auto shader = ShaderUtil::Compile(vs, fs);
+	auto shader = ShaderUtil::CompileFromShaderName(shader_name);
 	auto mat = new Material;
 	mat->SetShader(shader);
 	mat->name = shader_name;
@@ -158,8 +159,8 @@ void Material::StaticInit()
 	
 //	pbrMetallicRoughness_skinned = CreateMaterialFromShadersDir("pbrMetallicRoughness_skinned");
 	ColorMaterial = new Material();
-	auto vs = FishEngine::CreateShader("vs_main");
-	auto fs = FishEngine::CreateShader("fs_main");
+	auto vs = FishEngine::CreateShader("Color_VS");
+	auto fs = FishEngine::CreateShader("Color_PS");
 	ColorMaterial->m_VertexShader = vs;
 	ColorMaterial->m_PixelShader = fs;
 	

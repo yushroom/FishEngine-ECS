@@ -14,11 +14,11 @@ cd SPIRV-Cross && git pull && cd ..
 #make config=debug64
 #make config=release64
 
-#cd DirectXShaderCompiler
-#mkdir -p build && cd build
-#cmake .. -DCMAKE_BUILD_TYPE=Release $(cat ../utils/cmake-predefined-config-params)
-#make dxc
-#cd ..
+cd DirectXShaderCompiler
+mkdir -p build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release $(cat ../utils/cmake-predefined-config-params)
+make -j4 dxc
+cd ..
 
 cd SPIRV-Cross
 make

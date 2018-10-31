@@ -73,14 +73,19 @@ namespace FishEngine
     {
     public:
         
-		void Begin();
-		void Add(VertexAttrib attrib, int count, VertexAttribType type);
+		VertexDecl& Begin();
+		VertexDecl& Add(VertexAttrib attrib, int count, VertexAttribType type);
 		void End();
 		
 		int GetStride() const
 		{
 			assert(m_Valid && m_Index != 0);
 			return this->m_Stride; 
+		}
+		
+		int GetIndex() const
+		{
+			return m_Index;
 		}
 		
 	private:
@@ -122,24 +127,80 @@ namespace FishEngine
     {
         R8G8B8,
         R8G8B8A8,
+		BGRA8Unorm,
+		Depth32Float,
     };
     
     FrameBufferHandle CreateFrameBuffer(TextureFormat foramt);
-    
+	
+	// MTLDataType
+	enum class ShaderDataType
+	{
+		Float,
+		Float4,
+		Float4x4,
+	};
+	
+	struct ShaderUniform
+	{
+		std::string name;
+		int offset;
+		ShaderDataType dataType;
+	};
+	
+	struct ShaderUniformBuffer
+	{
+		std::string name;
+		int index;
+		bool isInternal = false;
+		int size;
+		std::vector<ShaderUniform> uniforms;
+	};
+	
+	struct ShaderUniformSignature
+	{
+		std::vector<ShaderUniformBuffer> arguments;
+	};
+	
     
     class RenderPipelineStateImpl;
-    
+	class Shader;
+	
     class RenderPipelineState
     {
     public:
-        void SetVertexShader(ShaderHandle vs) { vertextShader = vs; }
-        void SetFragmentShader(ShaderHandle fs) { fragmentShader = fs; }
-        
-    protected:
-        //std::unique_ptr<RenderPipelineStateImpl> impl;
-        
-        ShaderHandle vertextShader;
-        ShaderHandle fragmentShader;
+		RenderPipelineState();
+		
+		void SetShader(Shader* s) { this->shader = s; }
+		void SetVertexDecl(VertexDecl vertexDecl) { this->vertexDecl = vertexDecl; }
+		
+		void SetColorAttachment0Format(TextureFormat format)
+		{
+			colorAttachment0Format = format;
+		}
+		
+		void SetDepthAttachmentFormat(TextureFormat format)
+		{
+			depthAttachmentFormat = format;
+		}
+		
+		void Create();
+		
+//    protected:
+
+        std::unique_ptr<RenderPipelineStateImpl> impl;
+		
+	private:
+		
+		Shader* shader = nullptr;
+		VertexDecl vertexDecl;
+		
+		TextureFormat colorAttachment0Format = TextureFormat::BGRA8Unorm;
+		TextureFormat depthAttachmentFormat = TextureFormat::Depth32Float;
+		
+		ShaderUniformSignature vertexShaderSignature;
+		ShaderUniformSignature fragmentShaderSignature;
+		
 //      TextureHandle renderTarget;
 #if FISHENGINE_METAL
 #else

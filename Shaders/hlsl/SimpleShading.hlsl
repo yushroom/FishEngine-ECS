@@ -38,7 +38,7 @@ float4 PS(VertexOut pin) : SV_Target
 	// float3 DiffuseColor = float3(1, 0.5, 1);
 	// float3 SpecularColor = float3(0.5, 1, 1);
 	// float Roughness = 0.5f;
-	float3 L = normalize(pin.PosW - gLightPos.xyz);
+	float3 L = normalize(pin.PosW - LightPos.xyz);
 	float3 V = normalize(pin.PosW - WorldSpaceCameraPos.xyz);
 	float3 N = normalize(pin.Normal);
 	float4 color = float4(1, 1, 1, 1);

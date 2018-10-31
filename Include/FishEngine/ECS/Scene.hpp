@@ -12,6 +12,8 @@
 namespace FishEngine
 {
 	class System;
+	class SingletonInput;
+	class SingletonTime;
 	
 	class Scene
 	{
@@ -164,6 +166,9 @@ namespace FishEngine
 		const auto& GetRootTransforms() { return m_RootTransforms; }
 		void AddRootTransform(Transform* t);
 		void RemoveRootTransform(Transform* t);
+		
+		SingletonInput* input = nullptr;
+		SingletonTime* time = nullptr;
 		
 	protected:
 		std::unordered_map<EntityID, GameObject*> m_GameObjects;

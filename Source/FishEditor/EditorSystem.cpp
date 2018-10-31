@@ -18,8 +18,9 @@
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 
-constexpr float main_menu_bar_height = 24;
+float main_menu_bar_height = 24;
 constexpr float main_tool_bar_height = 40;
+constexpr float status_bar_height = 24;
 
 using namespace FishEditor;
 using namespace FishEngine;
@@ -119,7 +120,7 @@ void EditorSystem::OnAdded()
 //	imguiCreate();
 //	ImGui::CreateContext();
 	
-	SetupImGuiStyle(false, 1);
+	SetupImGuiStyle(true, 1);
 	
 //	auto& io = ImGui::GetIO();
 //	s_font = io.Fonts->AddFontFromFileTTF(FISHENGINE_ROOT "Assets/Fonts/SourceCodePro-Regular.ttf", 15.f);
@@ -174,10 +175,10 @@ void EditorSystem::Draw()
 	MainToolBar();
 
 	
-	constexpr float y_start = main_menu_bar_height + main_tool_bar_height;
+	float y_start = main_menu_bar_height + main_tool_bar_height;
 
 	ImGui::SetNextWindowPos(ImVec2(0.0f, y_start));
-	ImGui::SetNextWindowSize(ImVec2(hierarchy_width, (float)EditorScreen::height-y_start));
+	ImGui::SetNextWindowSize(ImVec2(hierarchy_width, (float)EditorScreen::height-y_start-status_bar_height));
 	Hierarchy();
 	if (selected == nullptr)
 		selection->selected = nullptr;
@@ -185,7 +186,7 @@ void EditorSystem::Draw()
 		selection->selected = selected->m_GameObject;
 
 	ImGui::SetNextWindowPos(ImVec2((float)EditorScreen::width - inspector_width, y_start));
-	ImGui::SetNextWindowSize(ImVec2(inspector_width, (float)EditorScreen::height-y_start));
+	ImGui::SetNextWindowSize(ImVec2(inspector_width, (float)EditorScreen::height-y_start-status_bar_height));
 	Inspector();
 
 	m_SceneViewRect.x = hierarchy_width;
@@ -193,6 +194,10 @@ void EditorSystem::Draw()
 	m_SceneViewRect.z = EditorScreen::width - hierarchy_width - inspector_width;
 	m_SceneViewRect.w = EditorScreen::height - y_start;
 
+	ImGui::SetNextWindowPos(ImVec2(0, EditorScreen::height-status_bar_height));
+	ImGui::SetNextWindowSize(ImVec2(EditorScreen::width, status_bar_height));
+	StatusBar();
+	
 #if 0
 	ImGui::SetNextWindowPos(ImVec2(Screen::width - inspector_width, Screen::height / 2));
 	ImGui::SetNextWindowSize(ImVec2(inspector_width, Screen::height / 2));
@@ -219,6 +224,7 @@ void EditorSystem::MainMenu()
 {
 	bool showHelpWindow = false;
 	ImGui::BeginMainMenuBar();
+	main_menu_bar_height = ImGui::GetWindowHeight();
 	if (ImGui::BeginMenu("File"))
 	{
 		ImGui::MenuItem("New Scene", "Ctrl+N");
@@ -292,7 +298,6 @@ void EditorSystem::MainToolBar()
 	float height = 24 + padding;
 	ImVec2 toolbar_size(ImGui::GetIO().DisplaySize.x, height);
 
-	constexpr float main_menu_bar_height = 24;
 	ImGui::SetNextWindowPos(ImVec2(0.0f, main_menu_bar_height));
 	ImGui::SetNextWindowSize(ImVec2(EditorScreen::width, main_tool_bar_height));
 	auto flag = 0
@@ -373,7 +378,7 @@ void EditorSystem::MainToolBar()
 void EditorSystem::Hierarchy()
 {
 	m_HierarchyView.selected = selected;
-	m_HierarchyView.Draw(m_GameScene, m_Scene->GetSingletonComponent<SingletonInput>());
+	m_HierarchyView.Draw(m_GameScene, m_Scene);
 	selected = m_HierarchyView.selected;
 }
 
@@ -514,5 +519,25 @@ void EditorSystem::Inspector()
 			}
 		}
 	}
+	ImGui::End();
+}
+
+
+void FishEditor::EditorSystem::StatusBar()
+{
+	ImGui::Begin("statusbar", nullptr, imgui_window_flags | ImGuiWindowFlags_NoTitleBar);
+	static double timeStamp = glfwGetTime();
+	static int frames = 0;
+	static int fps = 30;
+	constexpr int frameCount = 200;
+	frames++;
+	if (frames == frameCount)
+	{
+		double now = glfwGetTime();
+		fps = int(frameCount / (now - timeStamp));
+		timeStamp = now;
+		frames = 0;
+	}
+	ImGui::Text("fps:%d", fps);
 	ImGui::End();
 }

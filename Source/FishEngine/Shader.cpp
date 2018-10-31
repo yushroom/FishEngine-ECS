@@ -70,8 +70,19 @@ Shader* ShaderUtil::Compile(const std::string& vs_path, const std::string& fs_pa
 }
 
 #endif
+//
+//Shader* ShaderUtil::Compile(const std::string& vs_path, const std::string& fs_path)
+//{
+//	return nullptr;
+//}
 
-Shader* ShaderUtil::Compile(const std::string& vs_path, const std::string& fs_path)
+
+Shader* ShaderUtil::CompileFromShaderName(const std::string& shaderName)
 {
-	return nullptr;
+	Shader* s = new Shader;
+	std::string name = shaderName + "_VS";
+	s->m_VertexShader = FishEngine::CreateShader(name.c_str());
+	name = shaderName + "_PS";
+	s->m_FragmentShader = FishEngine::CreateShader(name.c_str());
+	return s;
 }

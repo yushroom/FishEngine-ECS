@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ShadingModels_hlsl
+#define ShadingModels_hlsl
 
 #include "BRDF.hlsl"
 
@@ -14,3 +15,5 @@ float3 SimpleShading( float3 DiffuseColor, float3 SpecularColor, float Roughness
 
     return Diffuse_Lambert( DiffuseColor ) + (D * Vis) * F;
 }
+
+#endif // ShadingModels_hlsl

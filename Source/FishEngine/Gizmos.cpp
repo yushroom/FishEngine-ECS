@@ -13,9 +13,9 @@ void Gizmos::StaticInit()
 {
 	s_ColorMaterial = Material::Clone(Material::ColorMaterial);
 	{
-		auto vs = FISHENGINE_ROOT "Shaders/runtime/VertexColor_vs.bin";
-		auto fs = FISHENGINE_ROOT "Shaders/runtime/VertexColor_fs.bin";
-		auto shader = ShaderUtil::Compile(vs, fs);
+//		auto vs = FISHENGINE_ROOT "Shaders/runtime/VertexColor_vs.bin";
+//		auto fs = FISHENGINE_ROOT "Shaders/runtime/VertexColor_fs.bin";
+		auto shader = ShaderUtil::CompileFromShaderName("VertexColor");
 		s_VertexColorMaterial = new Material;
 		s_VertexColorMaterial->SetShader(shader);
 	}
@@ -68,7 +68,7 @@ void Gizmos::DrawBounds(const Bounds& bounds)
 {
 	if (!bounds.IsValid())
 	{
-		printf("[%s:%d -- %s] invalid bounds\n", __FILE__, __LINE__, __FUNCTION__);
+//		printf("[%s:%d -- %s] invalid bounds\n", __FILE__, __LINE__, __FUNCTION__);
 		return;
 	}
 	const static Vector3 lines[] = {

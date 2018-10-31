@@ -4,7 +4,8 @@
     PlatformCommon.usf: Common shader code
 =============================================================================*/
 
-#pragma once
+#ifndef Common_hlsl
+#define Common_hlsl
 
 // #include "/Engine/Public/Platform.ush"
 // These types are used for material translator generated code, or any functions the translated code can call
@@ -212,3 +213,5 @@ MaterialFloat PhongShadingPow(MaterialFloat X, MaterialFloat Y)
     return ClampedPow(X, Y);
 }
 
+
+#endif // Common_hlsl
