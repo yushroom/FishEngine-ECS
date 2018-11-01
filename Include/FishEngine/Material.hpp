@@ -28,6 +28,7 @@ namespace FishEngine
 		void SetShader(Shader* shader);
 		Shader* GetShader() const { return m_Shader; }
 		
+		void SetFloat(const char* name, float value);
 		void SetVector(const std::string& name, const Vector4& value);
 		void SetTexture(const std::string& name, Texture* value);
 		void BindUniforms() const;

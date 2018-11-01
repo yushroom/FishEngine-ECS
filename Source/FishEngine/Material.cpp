@@ -50,28 +50,43 @@ void Material::SetShader(Shader* shader)
 	{
 		if (arg.type == ShaderUniformBufferType::Custom)
 		{
-			
-		}
-		for (auto& u : arg.uniforms)
-		{
-			if (u.dataType == ShaderDataType::Float4)
+			for (auto& u : arg.uniforms)
 			{
-				m_MaterialProperties.vec4s[u.name] = Vector4(1, 1, 1, 1);
+				if (u.dataType == ShaderDataType::Float4)
+				{
+					m_MaterialProperties.vec4s[u.name] = Vector4(1, 1, 1, 1);
+				}
+				else if (u.dataType == ShaderDataType::Float)
+				{
+					m_MaterialProperties.vec4s[u.name] = Vector4(1, 1, 1, 1);
+				}
 			}
 		}
 	}
 	
 	for (auto& arg : shader->m_FragmentShaderSignature.arguments)
 	{
-		for (auto& u : arg.uniforms)
+		if (arg.type == ShaderUniformBufferType::Custom)
 		{
-			if (u.dataType == ShaderDataType::Float4)
+			for (auto& u : arg.uniforms)
 			{
-				m_MaterialProperties.vec4s[u.name] = Vector4(1, 1, 1, 1);
+				if (u.dataType == ShaderDataType::Float4)
+				{
+					m_MaterialProperties.vec4s[u.name] = Vector4(1, 1, 1, 1);
+				}
+				else if (u.dataType == ShaderDataType::Float)
+				{
+					m_MaterialProperties.vec4s[u.name] = Vector4(1, 1, 1, 1);
+				}
 			}
 		}
 	}
-	
+}
+
+
+void Material::SetFloat(const char* name, float value)
+{
+	m_MaterialProperties.vec4s[name].x = value;
 }
 
 
@@ -106,6 +121,7 @@ void Material::SetTexture(const std::string& name, Texture* value)
 	}
 #endif
 }
+
 
 void Material::BindUniforms() const
 {
@@ -191,4 +207,7 @@ void Material::StaticInit()
 	pbrMetallicRoughness = new Material();
 	pbrMetallicRoughness->name = "pbrMetallicRoughness";
 	pbrMetallicRoughness->SetShader(ShaderUtil::CompileFromShaderName("pbrMetallicRoughness"));
+	pbrMetallicRoughness->SetFloat("Metallic", 0);
+	pbrMetallicRoughness->SetFloat("Roughness", 0.5f);
+	pbrMetallicRoughness->SetFloat("Specular", 0.5f);
 }

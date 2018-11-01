@@ -12,7 +12,8 @@ elif sys.platform == 'darwin':
 	bin_dir = os.path.normpath(os.path.abspath(bin_dir))
 	# dxc = os.path.join(bin_dir, "dxc")
 	dxc = "../../ThirdParty/DirectXShaderCompiler/build/bin/dxc-3.7"
-	spvir_cross = os.path.join(bin_dir, "spirv-cross")
+	# spvir_cross = os.path.join(bin_dir, "spirv-cross")
+	spvir_cross = "../../ThirdParty/SPIRV-Cross/spirv-cross"
 elif eys.platform == 'linux':
 	exit()
 

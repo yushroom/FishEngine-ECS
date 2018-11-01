@@ -382,10 +382,14 @@ void FishEngine::Draw(FishEngine::Mesh* mesh, FishEngine::Material* mat, int sub
 		{
 			struct {
 				Vector4 a;
-				Vector4 b;
+				float b;
+				float c;
+				float d;
 			} b;
 			b.a = mat->m_MaterialProperties.vec4s["baseColorFactor"];
-			b.b = mat->m_MaterialProperties.vec4s["PBRFactor"];
+			b.b = mat->m_MaterialProperties.vec4s["Metallic"].x;
+			b.c = mat->m_MaterialProperties.vec4s["Roughness"].x;
+			b.d = mat->m_MaterialProperties.vec4s["Specular"].x;
 			[g_mainPassCommandEncoder setFragmentBytes:&b length:arg.size atIndex:arg.index];
 		}
 	}

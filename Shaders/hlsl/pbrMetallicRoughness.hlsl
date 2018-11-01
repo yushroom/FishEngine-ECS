@@ -54,14 +54,16 @@ VSToPS VS(AppData vin)
 	vout.Position = mul(float4(vin.Position, 1.0), MATRIX_MVP);
 	vout.WorldPosition = mul(float4(vin.Position, 1.0), MATRIX_M).xyz;
 	vout.TexCoord = vin.TexCoord;
-	vout.WorldNormal = mul(float4(vin.Normal, 0.0), MATRIX_IT_M).xyz;
+	vout.WorldNormal = normalize(mul(float4(vin.Normal, 0.0), MATRIX_IT_M).xyz);
 
 	return vout;
 }
 
 float4 baseColorFactor;
-// float4 lightDir;
-float4 PBRFactor;	// Metallic, Roughness, Specular
+// float4 PBRFactor;	// Metallic, Roughness, Specular
+float Metallic;
+float Roughness;
+float Specular;
 Texture2D baseColorTexture;
 SamplerState baseColorTextureSampler;
 
@@ -102,9 +104,9 @@ float4 PS(VSToPS pin) : SV_Target
 #else
 	data.BaseColor = baseColorFactor.rgb;
 #endif
-	data.Metallic = PBRFactor.x;
-	data.Roughness = PBRFactor.y;
-	data.Specular = PBRFactor.z;
+	data.Metallic = Metallic;
+	data.Roughness = Roughness;
+	data.Specular = Specular;
 	return SurfacePS(data);
 }
 
@@ -125,6 +127,6 @@ float4 SurfacePS(SurfaceData s)
 	float3 SpecularColor = lerp( float3(0.08, 0.08, 0.08)*s.Specular, s.BaseColor, s.Metallic);
 	float NoL = saturate( dot(N, L) );
 	float NoV = saturate( dot(N, V) );
-	outColor.rgb = PI * LightColor * NoL * SimpleShading(DiffuseColor, SpecularColor, s.Roughness, L, V, N);
+	outColor.rgb = PI * LightColor * NoL * StandardShading(DiffuseColor, SpecularColor, s.Roughness, L, V, N);
 	return outColor;
 }

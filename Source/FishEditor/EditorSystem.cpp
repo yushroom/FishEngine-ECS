@@ -488,6 +488,10 @@ void EditorSystem::Inspector()
 											{
 												ImGui::ColorEdit4(u.name.c_str(), material->m_MaterialProperties.vec4s[u.name].data());
 											}
+											else if (u.dataType == ShaderDataType::Float)
+											{
+												ImGui::SliderFloat(u.name.c_str(), material->m_MaterialProperties.vec4s[u.name].data(), 0, 1);
+											}
 										}
 									}
 									for (auto& arg : s->m_FragmentShaderSignature.arguments)
@@ -498,7 +502,12 @@ void EditorSystem::Inspector()
 											{
 												ImGui::ColorEdit4(u.name.c_str(), material->m_MaterialProperties.vec4s[u.name].data());
 											}
+											else if (u.dataType == ShaderDataType::Float)
+											{
+												ImGui::SliderFloat(u.name.c_str(), material->m_MaterialProperties.vec4s[u.name].data(), 0, 1);
+											}
 										}
+										
 									}
 								}
 //								for (auto& p : material->m_UniformInfos)
