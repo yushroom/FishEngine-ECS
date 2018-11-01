@@ -82,6 +82,8 @@ void RenderSystem::Draw()
 	if (camera == nullptr)
 		return;
 	Vector4 cameraPos(camera->GetTransform()->GetPosition(), 1.0f);
+	
+	FishEngine::SetCamera(camera);
 
 	auto renderState = m_Scene->GetSingletonComponent<SingletonRenderState>();
 
@@ -94,6 +96,8 @@ void RenderSystem::Draw()
 		Vector3 d = Vector3::Normalize(lightDir);
 //		bgfx::setUniform(renderState->m_UniformLightDir, &d);
 	}
+	
+	FishEngine::SetLight(light);
 	
 	
 	float width = (float)Screen::width;

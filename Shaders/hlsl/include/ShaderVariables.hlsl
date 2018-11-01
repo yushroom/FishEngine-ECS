@@ -1,9 +1,9 @@
 #ifndef ShaderVariables_hlsl
 #define ShaderVariables_hlsl
 
-#define fixed4 half4
-
 #if 0
+
+#define fixed4 half4
 
 // Unity-Built-in-Shaders/CGIncludes/UnityShaderVariables.cginc
 // Unity built-in shader source. Copyright (c) 2016 Unity Technologies. MIT license (see license.txt)
@@ -122,7 +122,7 @@ cbuffer PerDrawUniforms : register(b1)
     float4x4 MATRIX_IT_M;
 };
 
-cbuffer PerFrameUniforms : register(b2)
+cbuffer PerCameraUniforms : register(b2)
 {
     float4x4 MATRIX_P;
     float4x4 MATRIX_V;
@@ -131,9 +131,12 @@ cbuffer PerFrameUniforms : register(b2)
 
     float4 WorldSpaceCameraPos;     // w = 1, not used
     float4 WorldSpaceCameraDir;     // w = 0, not used
-
-    float4 LightPos;        // w not used
 };
 
+cbuffer LightingUniforms : register(b3)
+{
+    float4 LightPos;        // w=1 not used
+    float4 LightDir;        // w=0 not used
+}
 
 #endif // ShaderVariables_hlsl

@@ -14,9 +14,12 @@
 #include <FishEditor/Systems/FreeCameraSystem.hpp>
 #include <FishEditor/Systems/SceneViewSystem.hpp>
 #include <FishEngine/Assets.hpp>
+#include <FishEngine/Shader.hpp>
 
 #include <GLFW/glfw3.h>
 #include <imgui.h>
+
+#include <set>
 
 float main_menu_bar_height = 24;
 constexpr float main_tool_bar_height = 40;
@@ -144,11 +147,11 @@ void EditorSystem::Draw()
 	constexpr float hierarchy_width = 220;
 	constexpr float inspector_width = 300;
 	//printf("============here==========\n\n");
-	auto input = m_Scene->GetSingletonComponent<SingletonInput>();
-	if (input->IsButtonHeld(KeyCode::F1))
-	{
-		return;
-	}
+	auto input = m_Scene->input;
+//	if (input->IsButtonHeld(KeyCode::F1))
+//	{
+//		return;
+//	}
 
 	auto selection = m_Scene->GetSingletonComponent<SingletonSelection>();
 	assert(selection != nullptr);
@@ -399,6 +402,7 @@ void EditorSystem::Inspector()
 	{
 		for (auto comp : selected->m_GameObject->GetComponents())
 		{
+			ImGui::PushID(comp);
 			if (ImGui::CollapsingHeader(comp->GetClassName(), ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				comp->Serialize(inspectorArchive);
@@ -437,10 +441,10 @@ void EditorSystem::Inspector()
 //					if (r->mesh->m_SubMeshCount)
 //					ImGui::LabelText("Submesh Count", "%d", r->mesh->m_SubMeshCount);
 					ImGui::Text("Submesh Count: %d", r->m_Mesh->m_SubMeshCount);
-//					for (auto& x : r->mesh->m_SubMeshInfos)
-//					{
-//						ImGui::Text("  %d", x.Length);
-//					}
+					for (auto& x : r->m_Mesh->m_SubMeshInfos)
+					{
+						ImGui::Text("  %d", x.Length);
+					}
 
 					bool skinned = r->m_Skin != nullptr;
 					//ImGui::Checkbox("skinned", &skinned);
@@ -458,14 +462,45 @@ void EditorSystem::Inspector()
 					if (ImGui::CollapsingHeader("Materials", ImGuiTreeNodeFlags_DefaultOpen))
 					{
 						ImGui::Indent();
+						std::set<Material*> materials;
 						for (int i = 0; i < r->m_Materials.size(); ++i)
 						{
 							auto material = r->m_Materials[i];
+							if (materials.find(material) != materials.end())
+							{
+								continue;
+							}
+							materials.insert(material);
+							
 //							auto header = "Material" + std::to_string(i);
 							auto header = material->name;
 							if (ImGui::CollapsingHeader(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
 							{
-//								ImGui::LabelText("name", material->name.c_str());
+//								ImGui::LabelText("name", "%s", material->name.c_str());
+								if (material->m_Shader != nullptr)
+								{
+									auto s = material->m_Shader;
+									for (auto& arg : s->m_VertexShaderSignature.arguments)
+									{
+										for (auto& u : arg.uniforms)
+										{
+											if (u.dataType == ShaderDataType::Float4)
+											{
+												ImGui::ColorEdit4(u.name.c_str(), material->m_MaterialProperties.vec4s[u.name].data());
+											}
+										}
+									}
+									for (auto& arg : s->m_FragmentShaderSignature.arguments)
+									{
+										for (auto& u : arg.uniforms)
+										{
+											if (u.dataType == ShaderDataType::Float4)
+											{
+												ImGui::ColorEdit4(u.name.c_str(), material->m_MaterialProperties.vec4s[u.name].data());
+											}
+										}
+									}
+								}
 //								for (auto& p : material->m_UniformInfos)
 //								{
 //									auto name = p.first.c_str();
@@ -517,6 +552,7 @@ void EditorSystem::Inspector()
 					c->SetOrthographic(perspective);
 				}
 			}
+			ImGui::PopID();
 		}
 	}
 	ImGui::End();

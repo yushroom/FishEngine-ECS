@@ -80,9 +80,11 @@ Shader* ShaderUtil::Compile(const std::string& vs_path, const std::string& fs_pa
 Shader* ShaderUtil::CompileFromShaderName(const std::string& shaderName)
 {
 	Shader* s = new Shader;
+	s->name = shaderName;
 	std::string name = shaderName + "_VS";
 	s->m_VertexShader = FishEngine::CreateShader(name.c_str());
 	name = shaderName + "_PS";
 	s->m_FragmentShader = FishEngine::CreateShader(name.c_str());
+	internal_ReflectShader(s);
 	return s;
 }

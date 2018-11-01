@@ -15,9 +15,9 @@ void Gizmos::StaticInit()
 	{
 //		auto vs = FISHENGINE_ROOT "Shaders/runtime/VertexColor_vs.bin";
 //		auto fs = FISHENGINE_ROOT "Shaders/runtime/VertexColor_fs.bin";
-		auto shader = ShaderUtil::CompileFromShaderName("VertexColor");
-		s_VertexColorMaterial = new Material;
-		s_VertexColorMaterial->SetShader(shader);
+//		auto shader = ShaderUtil::CompileFromShaderName("VertexColor");
+//		s_VertexColorMaterial = new Material;
+//		s_VertexColorMaterial->SetShader(shader);
 	}
 
 	VertexPC temp;

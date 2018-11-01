@@ -16,6 +16,8 @@
 #include <FishEditor/Systems/SceneViewSystem.hpp>
 #include <FishEngine/GraphicsAPI.hpp>
 
+#include <FishEditor/Systems/FreeCameraSystem.hpp>
+
 #include <GLFW/glfw3.h>
 
 #include <imgui.h>
@@ -270,20 +272,15 @@ void GameApp::Run()
 //			frameCount = 0;
 //		}
 
-		auto si = m_EditorScene->GetSingletonComponent<SingletonInput>();
+		auto si = m_EditorScene->input;
 		if (si->IsButtonPressed(KeyCode::Escape))
 			glfwSetWindowShouldClose(m_Window, 1);
 
-		static bool show_editor = false;
+		static bool show_editor = true;
 		if (si->IsButtonPressed(KeyCode::F1))
 		{
 //			bgfx::setDebug(BGFX_DEBUG_STATS);
-			show_editor = true;
-		}
-		else if (si->IsButtonReleased(KeyCode::F1))
-		{
-//			bgfx::setDebug(BGFX_DEBUG_TEXT);
-			show_editor = false;
+			show_editor = !show_editor;
 		}
 		
 		FishEngine::BeginFrame();
@@ -311,24 +308,38 @@ void GameApp::Run()
 //		Screen::height = r.w;
 		Vector2 old_mouse_position;
 		{
-			auto input1 = m_Scene->GetSingletonComponent<SingletonInput>();
-			auto input2 = m_EditorScene->GetSingletonComponent<SingletonInput>();
-			auto mp = input2->m_MousePosition;
+			auto input = m_Scene->input;
+			auto editorInput = m_EditorScene->input;
+			auto mp = editorInput->m_MousePosition;
 			old_mouse_position = mp;
 			mp.y = 1 - mp.y;
 			mp = mp * Vector2(w, h) - Vector2(r.x, r.y);
 			mp.x /= r.z;
 			mp.y /= r.w;
 			mp.y = 1 - mp.y;
-			input1->m_MousePosition = mp;
-			input2->m_MousePosition = mp;
+			input->m_MousePosition = mp;
+			editorInput->m_MousePosition = mp;
 			//printf("%f %f\n", mp.x, mp.y);
 
-			memcpy(input1->m_Axis, input2->m_Axis, sizeof(float)*(int)Axis::AxisCount);
-			memcpy(input1->m_KeyPressed, input2->m_KeyPressed, sizeof(KeyAction)*SingletonInput::ButtonCount);
+			auto& io = ImGui::GetIO();
+			if (!io.WantCaptureMouse)
+				memcpy(input->m_Axis, editorInput->m_Axis, sizeof(float)*(int)Axis::AxisCount);
+			if (!io.WantCaptureKeyboard)
+				memcpy(input->m_KeyPressed, editorInput->m_KeyPressed, sizeof(KeyAction)*SingletonInput::ButtonCount);
+			
+			if (io.WantCaptureMouse)
+				m_EditorScene->GetSystem<FreeCameraSystem>()->m_Enabled = false;
 		}
-
+		
+		
+		// TODO
+//		std::swap(m_Scene->input, m_EditorScene->input);
+//		auto einput = m_EditorScene->input;
+//		m_EditorScene->input = m_Scene->input;
 		m_EditorScene->Update();
+		m_EditorScene->GetSystem<FreeCameraSystem>()->m_Enabled = true;
+//		std::swap(m_Scene->input, m_EditorScene->input);
+//		m_EditorScene->input = einput;
 
 		m_Scene->Update();
 		//r = r * Vector4( w, h, w, h );
@@ -340,7 +351,7 @@ void GameApp::Run()
 
 		
 		FishEngine::EndPass();
-//		if (show_editor)
+		if (show_editor)
 			m_EditorSystem->Draw();
 		
 		m_Scene->PostUpdate();
@@ -356,7 +367,7 @@ void GameApp::Run()
 		/* Swap front and back buffers */
 		//glfwSwapBuffers(m_Window);
 
-		auto input2 = m_EditorScene->GetSingletonComponent<SingletonInput>();
+		auto input2 = m_EditorScene->input;
 		input2->m_MousePosition = old_mouse_position;
 
 		/* Poll for and process events */

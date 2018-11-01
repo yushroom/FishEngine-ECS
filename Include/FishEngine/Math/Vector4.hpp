@@ -36,6 +36,14 @@ namespace FishEngine
 			this->z = z;
 			this->w = w;
 		}
+		
+		void Set(const Vector3& xyz, float w)
+		{
+			x = xyz.x;
+			y = xyz.y;
+			z = xyz.z;
+			this->w = w;
+		}
 
 		const float* data() const {
 			return m;

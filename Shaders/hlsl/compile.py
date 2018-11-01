@@ -22,8 +22,8 @@ shader_include_dir = './include'
 assert(os.path.exists(dxc))
 assert(os.path.exists(spvir_cross))
 
-os.system(dxc + " --help")
-os.system(spvir_cross + " --help")
+# os.system(dxc + " --help")
+# os.system(spvir_cross + " --help")
 # exit()
 
 def RunCommand(cmd):

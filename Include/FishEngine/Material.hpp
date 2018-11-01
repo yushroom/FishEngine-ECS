@@ -46,8 +46,10 @@ namespace FishEngine
 //		std::map<std::string, std::pair<bgfx::UniformHandle, bgfx::UniformInfo>> m_UniformInfos;
 		MaterialProperties m_MaterialProperties;
 		
-		ShaderHandle m_VertexShader;
-		ShaderHandle m_PixelShader;
+//		ShaderHandle m_VertexShader;
+//		ShaderHandle m_PixelShader;
+		
+		std::vector<float> m_UniformBuffers;
 	};
 	
 }

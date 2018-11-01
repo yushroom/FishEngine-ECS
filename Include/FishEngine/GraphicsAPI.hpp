@@ -21,6 +21,8 @@ namespace FishEngine
 {
 	class Mesh;
 	class Material;
+	class Camera;
+	class Light;
 	
 	void InitGraphicsAPI(GLFWwindow* window);
 	void ResetGraphicsAPI();
@@ -30,11 +32,13 @@ namespace FishEngine
 	
 	void SetModelMatrix(const Matrix4x4& model);
 	void SetViewProjectionMatrix(const Matrix4x4& view, const Matrix4x4& proj);
+	void SetCamera(Camera* camera);
+	void SetLight(Light* light);
 	
 	void BeginFrame();
 	void ClearColorDepthBuffer();
 	void EndPass();
-	void Draw(Mesh* mesh, Material* mat);
+	void Draw(Mesh* mesh, Material* mat, int submeshID);
 	void EndFrame();
 	
     struct Handle
@@ -148,13 +152,31 @@ namespace FishEngine
 		ShaderDataType dataType;
 	};
 	
+	enum class ShaderUniformBufferType
+	{
+		// user defined
+		Custom = 0,
+		
+		// internal
+		PerDrawUniforms,
+		PerCameraUniforms,
+		LightingUniforms
+	};
+	
 	struct ShaderUniformBuffer
 	{
 		std::string name;
 		int index;
 		bool isInternal = false;
 		int size;
+		ShaderUniformBufferType type;
 		std::vector<ShaderUniform> uniforms;
+	};
+	
+	struct ShaderUniformInfo
+	{
+		std::string name;
+		ShaderDataType dataType;
 	};
 	
 	struct ShaderUniformSignature
@@ -162,9 +184,12 @@ namespace FishEngine
 		std::vector<ShaderUniformBuffer> arguments;
 	};
 	
+	class Shader;
+	
+	void internal_ReflectShader(Shader* shader);
+	
     
     class RenderPipelineStateImpl;
-	class Shader;
 	
     class RenderPipelineState
     {
@@ -198,8 +223,8 @@ namespace FishEngine
 		TextureFormat colorAttachment0Format = TextureFormat::BGRA8Unorm;
 		TextureFormat depthAttachmentFormat = TextureFormat::Depth32Float;
 		
-		ShaderUniformSignature vertexShaderSignature;
-		ShaderUniformSignature fragmentShaderSignature;
+//		ShaderUniformSignature vertexShaderSignature;
+//		ShaderUniformSignature fragmentShaderSignature;
 		
 //      TextureHandle renderTarget;
 #if FISHENGINE_METAL

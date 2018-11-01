@@ -27,7 +27,7 @@ void Graphics::DrawMesh2(Mesh* mesh, const Matrix4x4& matrix, Material* material
 		return;
 	
 	FishEngine::SetModelMatrix(matrix);
-	FishEngine::Draw(mesh, material);
+	FishEngine::Draw(mesh, material, submeshID);
 	
 #if 0
 	// Set render states.

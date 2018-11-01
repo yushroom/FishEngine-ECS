@@ -46,6 +46,32 @@ void Material::SetShader(Shader* shader)
 		}
 	}
 #endif
+	for (auto& arg : shader->m_VertexShaderSignature.arguments)
+	{
+		if (arg.type == ShaderUniformBufferType::Custom)
+		{
+			
+		}
+		for (auto& u : arg.uniforms)
+		{
+			if (u.dataType == ShaderDataType::Float4)
+			{
+				m_MaterialProperties.vec4s[u.name] = Vector4(1, 1, 1, 1);
+			}
+		}
+	}
+	
+	for (auto& arg : shader->m_FragmentShaderSignature.arguments)
+	{
+		for (auto& u : arg.uniforms)
+		{
+			if (u.dataType == ShaderDataType::Float4)
+			{
+				m_MaterialProperties.vec4s[u.name] = Vector4(1, 1, 1, 1);
+			}
+		}
+	}
+	
 }
 
 
@@ -122,8 +148,8 @@ Material* Material::Clone(Material* mat)
 	Material* m = new Material();
 	m->name = mat->name;
 	m->m_Shader = mat->m_Shader;
-	m->m_VertexShader = mat->m_VertexShader;
-	m->m_PixelShader = mat->m_PixelShader;
+//	m->m_VertexShader = mat->m_VertexShader;
+//	m->m_PixelShader = mat->m_PixelShader;
 //	m->m_UniformInfos = mat->m_UniformInfos;
 	m->m_MaterialProperties = mat->m_MaterialProperties;
 	return m;
@@ -156,13 +182,13 @@ void Material::StaticInit()
 //	pbrMetallicRoughness = CreateMaterialFromShadersDir("pbrMetallicRoughness");
 //	pbrMetallicRoughness->SetVector("baseColorFactor", Vector4::one);
 //	pbrMetallicRoughness->SetTexture("baseColorTexture", Texture::s_WhiteTexture);
-	
 //	pbrMetallicRoughness_skinned = CreateMaterialFromShadersDir("pbrMetallicRoughness_skinned");
-	ColorMaterial = new Material();
-	auto vs = FishEngine::CreateShader("Color_VS");
-	auto fs = FishEngine::CreateShader("Color_PS");
-	ColorMaterial->m_VertexShader = vs;
-	ColorMaterial->m_PixelShader = fs;
 	
-	pbrMetallicRoughness = ColorMaterial;
+	ColorMaterial = new Material();
+	ColorMaterial->name = "Color";
+	ColorMaterial->SetShader(ShaderUtil::CompileFromShaderName("Color"));
+	
+	pbrMetallicRoughness = new Material();
+	pbrMetallicRoughness->name = "pbrMetallicRoughness";
+	pbrMetallicRoughness->SetShader(ShaderUtil::CompileFromShaderName("pbrMetallicRoughness"));
 }
