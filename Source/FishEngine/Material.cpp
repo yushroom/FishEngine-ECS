@@ -81,6 +81,10 @@ void Material::SetShader(Shader* shader)
 			}
 		}
 	}
+	for (auto& t : shader->m_FragmentShaderSignature.textures)
+	{
+		m_MaterialProperties.textures[t.name] = Texture::s_WhiteTexture;
+	}
 }
 
 
@@ -120,6 +124,7 @@ void Material::SetTexture(const std::string& name, Texture* value)
 		m_MaterialProperties.textures[name] = value;
 	}
 #endif
+	m_MaterialProperties.textures[name] = value;
 }
 
 

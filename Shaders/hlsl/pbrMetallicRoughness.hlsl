@@ -66,13 +66,32 @@ float Roughness;
 float Specular;
 Texture2D baseColorTexture;
 SamplerState baseColorTextureSampler;
+// SamplerState baseColorTextureSampler : register(s0);
+// SamplerState baseColorTextureSampler
+// {
+// 	Filter = MIN_MAG_LINEAR;
+// 	AddressU = Wrap;
+// 	AddressV = Wrap;
+// };
+
+Texture2D metallicRoughnessTexture;
+SamplerState metallicRoughnessSampler;
+
+Texture2D emissiveTexture;
+SamplerState emissiveSampler;
+
+Texture2D normalTexture;
+SamplerState normalSampler;
+
+Texture2D occlusionTexture;
+SamplerState occlusionSampler;
 
 struct SurfaceData
 {
 	float3 L;
 	float3 V;
 	float3 N;
-	// float2 UV;
+	float2 UV;
 	// float Depth;
 
 	float3 BaseColor;
@@ -94,18 +113,25 @@ float4 PS(VSToPS pin) : SV_Target
 	// gl_FragColor *= baseColorFactor;
 
 	SurfaceData data;
+	data.UV = pin.TexCoord;
 	data.L = -normalize(LightDir.xyz);
 	data.V = normalize(WorldSpaceCameraPos.xyz - pin.WorldPosition);
 	data.N = normalize(pin.WorldNormal);
 	// data.UV = pin.v_texcoord0;
-#if 0
+#if 1
 	data.BaseColor = baseColorTexture.Sample(baseColorTextureSampler, pin.TexCoord).rgb;
 	data.BaseColor *= baseColorFactor.rgb;
 #else
 	data.BaseColor = baseColorFactor.rgb;
 #endif
+#if 1
+	float4 c = metallicRoughnessTexture.Sample(metallicRoughnessSampler, pin.TexCoord);
+	data.Metallic = c.b;
+	data.Roughness = c.g;
+#else
 	data.Metallic = Metallic;
 	data.Roughness = Roughness;
+#endif
 	data.Specular = Specular;
 	return SurfacePS(data);
 }
@@ -128,5 +154,8 @@ float4 SurfacePS(SurfaceData s)
 	float NoL = saturate( dot(N, L) );
 	float NoV = saturate( dot(N, V) );
 	outColor.rgb = PI * LightColor * NoL * StandardShading(DiffuseColor, SpecularColor, s.Roughness, L, V, N);
+
+	outColor.rgb *= occlusionTexture.Sample(occlusionSampler, s.UV).r;	// ao
+	outColor.rgb += emissiveTexture.Sample(emissiveSampler, s.UV).rgb;
 	return outColor;
 }

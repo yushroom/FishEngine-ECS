@@ -509,6 +509,12 @@ void EditorSystem::Inspector()
 										}
 										
 									}
+									for (auto& t : s->m_FragmentShaderSignature.textures)
+									{
+										ImGui::TextWrapped("%s", t.name.c_str());
+//										ImGui::SameLine();
+										FishEngine::ImGuiDrawTexture(material->m_MaterialProperties.textures[t.name], Vector2(128, 128));
+									}
 								}
 //								for (auto& p : material->m_UniformInfos)
 //								{

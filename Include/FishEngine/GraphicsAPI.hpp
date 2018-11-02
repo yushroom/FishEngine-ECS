@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include "Math/Vector2.hpp"
 #include "Math/Matrix4x4.hpp"
 
 #define FISHENGINE_METAL 1
@@ -23,6 +24,7 @@ namespace FishEngine
 	class Material;
 	class Camera;
 	class Light;
+	class Texture;
 	
 	void InitGraphicsAPI(GLFWwindow* window);
 	void ResetGraphicsAPI();
@@ -55,9 +57,7 @@ namespace FishEngine
     struct IndexBufferHandle : public BufferHandle {};
 //  struct TextureBufferHandle : public BufferHandle {};
     struct FrameBufferHandle : public BufferHandle {};
-    
     struct ShaderHandle : public Handle {};
-    
     struct TextureHandle : public Handle {};
 
 	enum class VertexAttrib
@@ -126,6 +126,8 @@ namespace FishEngine
     IndexBufferHandle CreateIndexBuffer(const Memory& data, MeshIndexType type);
     
     ShaderHandle CreateShader(const char* functionName);
+	
+	TextureHandle CreateTexture(const Memory& data, int width, int height);
     
     enum class TextureFormat
     {
@@ -173,6 +175,18 @@ namespace FishEngine
 		std::vector<ShaderUniform> uniforms;
 	};
 	
+	struct ShaderUniformTexture
+	{
+		std::string name;
+		int bindIndex;
+	};
+	
+	struct ShaderUniformSampler
+	{
+		std::string name;
+		int bindIndex;
+	};
+	
 	struct ShaderUniformInfo
 	{
 		std::string name;
@@ -182,6 +196,8 @@ namespace FishEngine
 	struct ShaderUniformSignature
 	{
 		std::vector<ShaderUniformBuffer> arguments;
+		std::vector<ShaderUniformTexture> textures;
+		std::vector<ShaderUniformSampler> samplers;
 	};
 	
 	class Shader;
@@ -299,4 +315,6 @@ namespace FishEngine
         Viewport viewport;
         VertexBufferHandle vb;
     };
+	
+	void ImGuiDrawTexture(Texture* texture, const Vector2& size);
 }

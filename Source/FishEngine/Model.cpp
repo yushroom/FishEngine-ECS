@@ -600,6 +600,7 @@ Material* ImportMaterial(const tinygltf::Material& gltf_material,
 	
 	if (In(gltf_material.extensions, "KHR_materials_pbrSpecularGlossiness"))
 	{
+		abort();	// TODO
 		const auto& ext = Get(gltf_material.extensions, "KHR_materials_pbrSpecularGlossiness");
 		assert(ext.Get("diffuseTexture").Get("index").IsInt());
 		mat = Material::Clone(Material::TextureMaterial);
@@ -611,6 +612,12 @@ Material* ImportMaterial(const tinygltf::Material& gltf_material,
 	else
 	{
 		mat = Material::Clone(Material::pbrMetallicRoughness);
+		if (In(gltf_material.values, "baseColorFactor"))
+		{
+			auto color = Get(gltf_material.values, "baseColorFactor").ColorFactor();
+			Vector4 vcolor((float)color[0], (float)color[1], (float)color[2], (float)color[3]);
+			mat->SetVector("baseColorFactor", vcolor);
+		}
 		if (In(gltf_material.values, "baseColorTexture"))
 		{
 			int id = Get(gltf_material.values, "baseColorTexture").TextureIndex();
@@ -618,11 +625,26 @@ Material* ImportMaterial(const tinygltf::Material& gltf_material,
 			auto img = model.images[imageId];
 			mat->SetTexture("baseColorTexture", img);
 		}
-		if (In(gltf_material.values, "baseColorFactor"))
+		if (In(gltf_material.values, "metallicRoughnessTexture"))
 		{
-			auto color = Get(gltf_material.values, "baseColorFactor").ColorFactor();
-			Vector4 vcolor((float)color[0], (float)color[1], (float)color[2], (float)color[3]);
-			mat->SetVector("baseColorFactor", vcolor);
+			int id = Get(gltf_material.values, "metallicRoughnessTexture").TextureIndex();
+			int imageId = gltf_model.textures[id].source;
+			auto img = model.images[imageId];
+			mat->SetTexture("metallicRoughnessTexture", img);
+		}
+		if (In(gltf_material.additionalValues, "emissiveTexture"))
+		{
+			int id = Get(gltf_material.additionalValues, "emissiveTexture").TextureIndex();
+			int imageId = gltf_model.textures[id].source;
+			auto img = model.images[imageId];
+			mat->SetTexture("emissiveTexture", img);
+		}
+		if (In(gltf_material.additionalValues, "occlusionTexture"))
+		{
+			int id = Get(gltf_material.additionalValues, "occlusionTexture").TextureIndex();
+			int imageId = gltf_model.textures[id].source;
+			auto img = model.images[imageId];
+			mat->SetTexture("occlusionTexture", img);
 		}
 	}
 
@@ -630,6 +652,7 @@ Material* ImportMaterial(const tinygltf::Material& gltf_material,
 	//{
 	//	mat = Material::Clone(Material::ColorMaterial);
 	//}
+	mat->name = gltf_material.name;
 	return mat;
 }
 
@@ -654,7 +677,10 @@ bool gltfLoadImageData(tinygltf::Image *image, std::string *err, std::string *wa
 //	bgfx::TextureHandle texture = loadTexture2((void*)bytes, size, "unknown.ext");
 //	assert(bgfx::isValid(texture));
 //	Texture* texture = Texture::FromMemory((void*)bytes, size, "unknown.ext");
-	Texture* texture = nullptr;
+	Memory m;
+	m.data = bytes;
+	m.byteSize = size;
+	Texture* texture = TextureUtils::TextureFromMemory(m);
 	current_model->images.push_back(texture);
 	return true;
 }

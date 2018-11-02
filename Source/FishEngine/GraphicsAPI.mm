@@ -12,6 +12,7 @@
 #include <FishEngine/Components/Camera.hpp>
 #include <FishEngine/Components/Light.hpp>
 #include <FishEngine/Components/Transform.hpp>
+#include <FishEngine/Texture.hpp>
 
 using namespace FishEngine;
 
@@ -36,6 +37,8 @@ dispatch_semaphore_t g_inFlightSemaphore;
 
 //MTLRenderPassDescriptor* g_mainRenderPassDesc;
 id<MTLRenderCommandEncoder> g_mainPassCommandEncoder;
+
+id<MTLSamplerState> g_sampler;
 
 
 template<class T, int MaxCount>
@@ -211,6 +214,14 @@ void FishEngine::InitGraphicsAPI(GLFWwindow* window)
 	depthBufferDesc.usage = MTLTextureUsageRenderTarget;
 	g_mainDepthBuffer = [g_device newTextureWithDescriptor:depthBufferDesc];
 	g_mainDepthBuffer.label = @"Main Depth buffer";
+	
+	MTLSamplerDescriptor* samplerDesc = [MTLSamplerDescriptor new];
+	samplerDesc.minFilter = MTLSamplerMinMagFilterLinear;
+	samplerDesc.magFilter = MTLSamplerMinMagFilterLinear;
+	samplerDesc.mipFilter = MTLSamplerMipFilterLinear;
+	samplerDesc.sAddressMode = MTLSamplerAddressModeRepeat;
+	samplerDesc.tAddressMode = MTLSamplerAddressModeRepeat;
+	g_sampler = [g_device newSamplerStateWithDescriptor:samplerDesc];
 }
 
 void FishEngine::ResetGraphicsAPI()
@@ -393,6 +404,18 @@ void FishEngine::Draw(FishEngine::Mesh* mesh, FishEngine::Material* mat, int sub
 			[g_mainPassCommandEncoder setFragmentBytes:&b length:arg.size atIndex:arg.index];
 		}
 	}
+	
+	for (auto& t : mat->m_Shader->m_FragmentShaderSignature.textures)
+	{
+		Texture* tex = mat->m_MaterialProperties.textures[t.name];
+		[g_mainPassCommandEncoder setFragmentTexture:g_textures[tex->m_Handle.idx] atIndex:t.bindIndex];
+	}
+	
+	for (auto& s : mat->m_Shader->m_FragmentShaderSignature.samplers)
+	{
+		[g_mainPassCommandEncoder setFragmentSamplerState:g_sampler atIndex:s.bindIndex];
+	}
+	
 //	[g_mainPassCommandEncoder setVertexBytes:&g_perDrawUniforms length:sizeof(PerDrawUniforms) atIndex:1];
 //	[g_mainPassCommandEncoder setFragmentBytes:&u_color length:16 atIndex:2];
 	if (submeshID == -1)
@@ -477,6 +500,36 @@ IndexBufferHandle FishEngine::CreateIndexBuffer(const Memory& data, MeshIndexTyp
 	IndexBufferHandle handle;
 	handle.idx = g_buffers.Next();
 	g_buffers[handle.idx] = buffer;
+	return handle;
+}
+
+TextureHandle FishEngine::CreateTexture(const Memory& data, int width, int height)
+{
+	MTLTextureDescriptor *textureDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:width height:height mipmapped:YES];
+//	textureDesc.pixelFormat = MTLPixelFormatRGBA8Unorm;
+//	textureDesc.width = width;
+//	textureDesc.height = height;
+	id<MTLTexture> texture = [g_device newTextureWithDescriptor:textureDesc];
+	
+	NSUInteger bytesPerRow = 4 * static_cast<NSUInteger>(width);
+	
+	MTLRegion region = {
+		{0, 0, 0},				// MTLOrigin
+		{static_cast<NSUInteger>(width), static_cast<NSUInteger>(height), 1}		// MTLSize
+	};
+	
+	[texture replaceRegion:region mipmapLevel:0 withBytes:data.data bytesPerRow:bytesPerRow];
+	
+	id<MTLCommandBuffer> commandBuffer = [g_commandQueue commandBuffer];
+	id<MTLBlitCommandEncoder> commandEncoder = [commandBuffer blitCommandEncoder];
+	[commandEncoder generateMipmapsForTexture:texture];
+	[commandEncoder endEncoding];
+	[commandBuffer commit];
+	
+	
+	TextureHandle handle;
+	handle.idx = g_textures.Next();
+	g_textures[handle.idx] = texture;
 	return handle;
 }
 
@@ -613,6 +666,20 @@ ShaderUniformSignature GetShaderUniformSignature(NSArray <MTLArgument *> *args)
 				
 				signature.arguments.push_back(ub);
 			}
+			else if (arg.type == MTLArgumentTypeTexture)
+			{
+				ShaderUniformTexture t;
+				t.name = arg.name.UTF8String;
+				t.bindIndex = arg.index;
+				signature.textures.push_back(t);
+			}
+			else if (arg.type == MTLArgumentTypeSampler)
+			{
+				ShaderUniformSampler s;
+				s.name = arg.name.UTF8String;
+				s.bindIndex = arg.index;
+				signature.samplers.push_back(s);
+			}
 		}
 	}
 	
@@ -718,4 +785,12 @@ namespace FishEngine
 			exit(1);
 		}
 	}
+}
+
+
+void FishEngine::ImGuiDrawTexture(Texture* texture, const Vector2& size)
+{
+	int idx = texture->m_Handle.idx;
+	auto t = g_textures[idx];
+	ImGui::Image((__bridge ImTextureID)t, ImVec2(size.x, size.y));
 }

@@ -1,4 +1,47 @@
 #include <FishEngine/Texture.hpp>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
+using namespace FishEngine;
+
+Texture* Texture::s_WhiteTexture = nullptr;
+
+void Texture::StaticInit()
+{
+	s_WhiteTexture = TextureUtils::TextureFromFile(FISHENGINE_ROOT "Assets/Textures/white.png");
+}
+
+
+Texture* TextureUtils::TextureFromFile(const char *path)
+{
+	int w, h, n;
+	unsigned char* data = stbi_load(path, &w, &h, &n, 4);
+	Texture* t = new Texture();
+	t->m_Width = w;
+	t->m_Height = h;
+	Memory pixels;
+	pixels.data = data;
+	pixels.byteSize = w*h*4*sizeof(unsigned char);
+	t->m_Handle = FishEngine::CreateTexture(pixels, w, h);
+	return t;
+}
+
+Texture* TextureUtils::TextureFromMemory(const Memory& mem)
+{
+	int w, h, n;
+	const unsigned char* buffer = (unsigned char*)mem.data;
+	unsigned char* data = stbi_load_from_memory(buffer, mem.byteSize, &w, &h, &n, 4);
+	Texture* t = new Texture();
+	t->m_Width = w;
+	t->m_Height = h;
+	Memory pixels;
+	pixels.data = data;
+	pixels.byteSize = w*h*4*sizeof(unsigned char);
+	t->m_Handle = FishEngine::CreateTexture(pixels, w, h);
+	free(data);
+	return t;
+}
+
 
 #if 0
 #include <bimg/bimg.h>

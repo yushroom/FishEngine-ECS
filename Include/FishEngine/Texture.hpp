@@ -1,5 +1,35 @@
 #pragma once
 
+#include "ClassDef.hpp"
+#include "Object.hpp"
+#include "Assets.hpp"
+#include "GraphicsAPI.hpp"
+
+namespace FishEngine
+{
+	class Texture : public Object
+	{
+	public:
+		
+		static void StaticInit();
+		
+		static Texture* s_WhiteTexture;
+		
+		int m_Width = 1;
+		int m_Height = 1;
+		TextureHandle m_Handle;
+	};
+	
+	
+	class TextureUtils : public Static
+	{
+	public:
+		static Texture* TextureFromFile(const char* path);
+		static Texture* TextureFromMemory(const Memory& mem);
+	};
+}
+
+
 #if 0
 #include "ClassDef.hpp"
 #include <bgfx/bgfx.h>
