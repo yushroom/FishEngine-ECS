@@ -4,6 +4,7 @@
 #include "Math.hpp"
 #include "Material.hpp"
 #include "MeshVertex.hpp"
+#include "GraphicsAPI.hpp"
 #include <vector>
 
 namespace FishEngine
@@ -36,12 +37,15 @@ namespace FishEngine
 		inline static std::vector<VertexPC> s_Lines;
 //		inline static bgfx::DynamicVertexBufferHandle s_LineDynamicVertexBuffer;
 //		inline static bgfx::VertexBufferHandle s_CircleVertexBuffer;
+		inline static DynamicVertexBufferHandle s_LineDynamaicVertexBuffer;
 		
 		
 	public:
 		static constexpr int circle_vertex_count = 64;
 		inline static Vector3 vertices[circle_vertex_count];
 		static bool s_EnableDepthTest;
+		
+		static RenderPipelineState s_gizmosRPS;
 	};
 
 }

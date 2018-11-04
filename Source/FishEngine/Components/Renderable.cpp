@@ -10,7 +10,7 @@ void Renderable::OnDrawGizmosSelected() const
 {
 	// draw bounding box
 	Gizmos::color = Vector4(0, 1, 0, 1);
-	Gizmos::matrix = GetTransform()->GetLocalToWorldMatrix();
+	Gizmos::matrix = m_GameObject->GetTransform()->GetLocalToWorldMatrix();
 	if (this->m_Mesh != nullptr)
 	{
 		Gizmos::DrawBounds(m_Mesh->bounds);

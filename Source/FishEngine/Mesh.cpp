@@ -49,11 +49,17 @@ void PUNTVertex::StaticInit()
 //		.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
 //		.add(bgfx::Attrib::Color0, 3, bgfx::AttribType::Float)
 //	.end();
+	s_PC_decl.Begin()
+		.Add(VertexAttrib::Position, 3, VertexAttribType::Float)
+		.Add(VertexAttrib::Color, 3, VertexAttribType::Float)
+	.End();
+	assert(s_PC_decl.GetStride() == 6*4);
 }
 
 //bgfx::VertexDecl PUNTVertex::ms_decl;
 //bgfx::VertexDecl PUNTVertex::s_P_decl;
 VertexDecl PUNTVertex::ms_decl;
+VertexDecl PUNTVertex::s_PC_decl;
 
 void Mesh::StaticInit()
 {

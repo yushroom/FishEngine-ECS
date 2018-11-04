@@ -9,19 +9,27 @@
 
 using namespace FishEngine;
 
+RenderPipelineState Gizmos::s_gizmosRPS;
+RenderPipelineState g_VertexColorRPS;
+
+
 void Gizmos::StaticInit()
 {
 	s_ColorMaterial = Material::Clone(Material::ColorMaterial);
 	{
 //		auto vs = FISHENGINE_ROOT "Shaders/runtime/VertexColor_vs.bin";
 //		auto fs = FISHENGINE_ROOT "Shaders/runtime/VertexColor_fs.bin";
-//		auto shader = ShaderUtil::CompileFromShaderName("VertexColor");
-//		s_VertexColorMaterial = new Material;
-//		s_VertexColorMaterial->SetShader(shader);
+		auto shader = ShaderUtil::CompileFromShaderName("VertexColor");
+		s_VertexColorMaterial = new Material;
+		s_VertexColorMaterial->SetShader(shader);
+		g_VertexColorRPS.SetShader(shader);
+		g_VertexColorRPS.SetVertexDecl(PUNTVertex::s_PC_decl);
+		g_VertexColorRPS.Create();
 	}
 
-	VertexPC temp;
+//	VertexPC temp;
 //	s_LineDynamicVertexBuffer = bgfx::createDynamicVertexBuffer(bgfx::copy(&temp, sizeof(temp)), PUNTVertex::s_PC_decl, BGFX_BUFFER_ALLOW_RESIZE);
+	s_LineDynamaicVertexBuffer = FishEngine::CreateDynamicVertexBufferHandle(16, PUNTVertex::s_PC_decl);
 
 	{
 		for (int i = 0; i < circle_vertex_count-1; ++i)
@@ -32,6 +40,10 @@ void Gizmos::StaticInit()
 		vertices[circle_vertex_count-1] = vertices[0];
 //		s_CircleVertexBuffer = bgfx::createVertexBuffer(bgfx::copy(vertices, sizeof(Vector3)*circle_vertex_count), PUNTVertex::s_P_decl);
 	}
+	
+	s_gizmosRPS.SetShader(s_ColorMaterial->m_Shader);
+	s_gizmosRPS.SetVertexDecl(PUNTVertex::ms_decl);
+	s_gizmosRPS.Create();
 }
 
 void Gizmos::DrawCube(const Vector3& center, const Vector3& size)
@@ -178,6 +190,17 @@ void Gizmos::__Draw()
 		s_Lines.clear();
 	}
 #endif
+	if (!s_Lines.empty())
+	{
+		FishEngine::BeginPass(g_VertexColorRPS);
+		Memory m = Memory::FromVectorArray(s_Lines);
+		FishEngine::UpdateDynamicVertexBuffer(s_LineDynamaicVertexBuffer, 0, m);
+		FishEngine::SetVertexBuffer(s_LineDynamaicVertexBuffer);
+		FishEngine::SetModelMatrix(Matrix4x4::identity);
+		FishEngine::Submit(s_VertexColorMaterial);
+		FishEngine::EndPass();
+		s_Lines.clear();
+	}
 }
 
 

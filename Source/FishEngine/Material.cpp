@@ -103,6 +103,7 @@ void Material::SetVector(const std::string& name, const Vector4& value)
 	else
 		printf("Material::SetVector: %s not found!\n", name.c_str());
 #endif
+	m_MaterialProperties.vec4s[name] = value;
 }
 
 void Material::SetTexture(const std::string& name, Texture* value)
@@ -185,7 +186,7 @@ Material* CreateMaterialFromShadersDir(const char* shader_name)
 //	vs = FISHENGINE_ROOT + vs;
 //	fs = FISHENGINE_ROOT + fs;
 //	auto shader = ShaderUtil::Compile(vs, fs);
-	auto shader = ShaderUtil::CompileFromShaderName(shader_name);
+	auto shader = Shader::Find(shader_name);
 	auto mat = new Material;
 	mat->SetShader(shader);
 	mat->name = shader_name;
@@ -207,11 +208,11 @@ void Material::StaticInit()
 	
 	ColorMaterial = new Material();
 	ColorMaterial->name = "Color";
-	ColorMaterial->SetShader(ShaderUtil::CompileFromShaderName("Color"));
+	ColorMaterial->SetShader(Shader::Find("Color"));
 	
 	pbrMetallicRoughness = new Material();
 	pbrMetallicRoughness->name = "pbrMetallicRoughness";
-	pbrMetallicRoughness->SetShader(ShaderUtil::CompileFromShaderName("pbrMetallicRoughness"));
+	pbrMetallicRoughness->SetShader(Shader::Find("pbrMetallicRoughness"));
 	pbrMetallicRoughness->SetFloat("Metallic", 0);
 	pbrMetallicRoughness->SetFloat("Roughness", 0.5f);
 	pbrMetallicRoughness->SetFloat("Specular", 0.5f);

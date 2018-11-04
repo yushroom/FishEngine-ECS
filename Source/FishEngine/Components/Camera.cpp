@@ -37,12 +37,12 @@ Matrix4x4 FishEngine::Camera::GetProjectionMatrix() const
 
 Matrix4x4 FishEngine::Camera::GetWorldToCameraMatrix() const
 {
-	return GetTransform()->GetWorldToLocalMatrix();
+	return GetGameObject()->GetTransform()->GetWorldToLocalMatrix();
 }
 
 inline Matrix4x4 FishEngine::Camera::GetCameraToWorldMatrix() const
 {
-	return GetTransform()->GetLocalToWorldMatrix();
+	return GetGameObject()->GetTransform()->GetLocalToWorldMatrix();
 }
 
 Matrix4x4 FishEngine::Camera::GetViewProjectionMatrix() const
@@ -65,9 +65,9 @@ Ray FishEngine::Camera::ScreenPointToRay(const Vector3 & position)
 	ray_eye.z = 1.0f; // forward
 	ray_eye.w = 0.0f;
 
-	Vector4 ray_world_h = GetTransform()->GetLocalToWorldMatrix() * ray_eye;
+	Vector4 ray_world_h = GetGameObject()->GetTransform()->GetLocalToWorldMatrix() * ray_eye;
 	Vector3 ray_world(ray_world_h.x, ray_world_h.y, ray_world_h.z);
-	return Ray(GetTransform()->GetPosition(), ray_world.normalized());
+	return Ray(GetGameObject()->GetTransform()->GetPosition(), ray_world.normalized());
 }
 
 Camera * FishEngine::Camera::GetMainCamera()

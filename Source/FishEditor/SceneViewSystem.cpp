@@ -11,6 +11,8 @@
 
 #include <FishEditor/Components/SingletonSelection.hpp>
 
+#include <FishEngine/GraphicsAPI.hpp>
+
 using namespace FishEditor;
 using namespace FishEngine;
 
@@ -111,7 +113,7 @@ public:
 			auto axis_origin = world2clip.MultiplyPoint(o);
 			axis_origin.z = 0;
 			
-			const float depth = Vector3::Distance(camera->GetTransform()->GetPosition(), selectedT->GetPosition());
+			const float depth = Vector3::Distance(camera->GetGameObject()->GetTransform()->GetPosition(), selectedT->GetPosition());
 			const float scale = get_gizmo_scale(depth, camera->GetFieldOfView());
 			
 			for (int i = 0; i < 3; ++i)
@@ -173,7 +175,7 @@ public:
 			Vector3 p{ 0, 0, 0 };
 			p[i] = 1;
 			
-			float depth = Vector3::Distance(camera->GetTransform()->GetPosition(), selectedT->GetPosition());
+			float depth = Vector3::Distance(camera->GetGameObject()->GetTransform()->GetPosition(), selectedT->GetPosition());
 			float scale = get_gizmo_scale(depth, camera->GetFieldOfView());
 			
 //			Gizmos::matrix = t->GetLocalToWorldMatrix() * Matrix4x4::Scale(scale);
@@ -200,6 +202,7 @@ public:
 //				| BGFX_STATE_DEPTH_TEST_ALWAYS
 //				| BGFX_STATE_CULL_CCW;
 //			Graphics::DrawMesh2(Mesh::Cone, m, s_color_material, state, (bgfx::ViewId)RenderViewType::SceneGizmos);
+			Graphics::DrawMesh(Mesh::Cone, m, s_color_material);
 		}
 	}
 	
@@ -273,10 +276,14 @@ class ScaleTransformGizmo : public TransformGizmo
 	
 };
 
+RenderPipelineState g_TransformGizmosRPS;
 
 void SceneViewSystem::OnAdded()
 {
 	s_color_material = Material::Clone(Material::ColorMaterial);
+	g_TransformGizmosRPS.SetShader(Shader::Find("Color"));
+	g_TransformGizmosRPS.SetVertexDecl(PUNTVertex::ms_decl);
+	g_TransformGizmosRPS.Create();
 }
 
 
@@ -335,7 +342,7 @@ public:
 		m_Camera = camera;
 		m_SelectedT = selectedT;
 		
-		auto cameraPos = camera->GetTransform()->GetPosition();
+		auto cameraPos = camera->GetGameObject()->GetTransform()->GetPosition();
 		float depth = Vector3::Distance(cameraPos, selectedT->GetPosition());
 		float scale = get_gizmo_scale(depth, camera->GetFieldOfView());
 		m_Scale = scale;
@@ -363,7 +370,7 @@ public:
 		}
 		else
 		{
-			rot = Quaternion::LookRotation(camera->GetTransform()->GetForward());
+			rot = Quaternion::LookRotation(camera->GetGameObject()->GetTransform()->GetForward());
 			Gizmos::color = {1, 1, 1, 1};
 			Gizmos::matrix = Matrix4x4::TRS(pos, rot, s);
 			Gizmos::DrawCircle(Vector3::zero, 1.1);
@@ -456,6 +463,7 @@ void SceneViewSystem::DrawGizmos()
 	static TranslationTransformGizmo tg;
 	static RotationTransformGizmo rg;
 	
+	FishEngine::BeginPass(g_TransformGizmosRPS);
 	if (m_transformToolType == TransformToolType::Translate)
 		tg.Update(m_transformSpace, input, camera, selectedT);
 	else if (m_transformToolType == TransformToolType::Rotate)
@@ -471,4 +479,5 @@ void SceneViewSystem::DrawGizmos()
 		else if (input->IsButtonReleased(KeyCode::MouseLeftButton))
 			tg.OnLMBReleased();
 	}
+	FishEngine::EndPass();
 }

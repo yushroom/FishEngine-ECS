@@ -20,7 +20,7 @@ struct SubMeshInfo
 	int VertexOffset = 0;
 };
 
-class Mesh : public Object
+class Mesh : public NamedObject
 {
 	friend class MeshUtil;
 public:

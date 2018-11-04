@@ -26,23 +26,6 @@ namespace FishEngine
 	class Light;
 	class Texture;
 	
-	void InitGraphicsAPI(GLFWwindow* window);
-	void ResetGraphicsAPI();
-	
-	void ImguiNewFrame();
-	void ImguiRender();
-	
-	void SetModelMatrix(const Matrix4x4& model);
-	void SetViewProjectionMatrix(const Matrix4x4& view, const Matrix4x4& proj);
-	void SetCamera(Camera* camera);
-	void SetLight(Light* light);
-	
-	void BeginFrame();
-	void ClearColorDepthBuffer();
-	void EndPass();
-	void Draw(Mesh* mesh, Material* mat, int submeshID);
-	void EndFrame();
-	
     struct Handle
     {
     //protected:
@@ -55,6 +38,7 @@ namespace FishEngine
     struct BufferHandle : public Handle {};
     struct VertexBufferHandle : public BufferHandle {};
     struct IndexBufferHandle : public BufferHandle {};
+	struct DynamicVertexBufferHandle : public BufferHandle {};
 //  struct TextureBufferHandle : public BufferHandle {};
     struct FrameBufferHandle : public BufferHandle {};
     struct ShaderHandle : public Handle {};
@@ -66,6 +50,7 @@ namespace FishEngine
 		TexCoord0 = 1,
 		Normal = 2,
 		Tangernt = 3,
+		Color = 4,
 	};
 
 	enum class VertexAttribType
@@ -90,6 +75,11 @@ namespace FishEngine
 		int GetIndex() const
 		{
 			return m_Index;
+		}
+		
+		bool IsValid() const
+		{
+			return m_Valid;
 		}
 		
 	private:
@@ -124,10 +114,14 @@ namespace FishEngine
     VertexBufferHandle CreateVertexBuffer(const Memory& data, const VertexDecl& decl);
 
     IndexBufferHandle CreateIndexBuffer(const Memory& data, MeshIndexType type);
-    
+	
+	DynamicVertexBufferHandle CreateDynamicVertexBufferHandle(int vertexCount, const VertexDecl& decl);
+	
     ShaderHandle CreateShader(const char* functionName);
 	
 	TextureHandle CreateTexture(const Memory& data, int width, int height);
+	
+	void UpdateDynamicVertexBuffer(DynamicVertexBufferHandle handle, int startVertex, const Memory& data);
     
     enum class TextureFormat
     {
@@ -158,6 +152,9 @@ namespace FishEngine
 	{
 		// user defined
 		Custom = 0,
+		
+		// vertex buffer is also a shader argument in metal
+		VertexBuffer,
 		
 		// internal
 		PerDrawUniforms,
@@ -205,39 +202,37 @@ namespace FishEngine
 	void internal_ReflectShader(Shader* shader);
 	
     
-    class RenderPipelineStateImpl;
+//    class RenderPipelineStateImpl;
 	
     class RenderPipelineState
     {
     public:
 		RenderPipelineState();
 		
-		void SetShader(Shader* s) { this->shader = s; }
-		void SetVertexDecl(VertexDecl vertexDecl) { this->vertexDecl = vertexDecl; }
-		
-		void SetColorAttachment0Format(TextureFormat format)
+		void SetShader(Shader* s) { m_Shader = s; }
+		void SetVertexDecl(VertexDecl vertexDecl)
 		{
-			colorAttachment0Format = format;
+			assert(vertexDecl.IsValid());
+			m_VertexDecl = vertexDecl;
 		}
-		
-		void SetDepthAttachmentFormat(TextureFormat format)
-		{
-			depthAttachmentFormat = format;
-		}
+		void SetColorAttachment0Format(TextureFormat format) { m_ColorAttachment0Format = format; }
+		void SetDepthAttachmentFormat(TextureFormat format) { m_DepthAttachmentFormat = format; }
 		
 		void Create();
 		
 //    protected:
 
-        std::unique_ptr<RenderPipelineStateImpl> impl;
+//        std::unique_ptr<RenderPipelineStateImpl> impl;
+		
+		int m_Index = 0;
 		
 	private:
+		bool m_Created = false;
+		Shader* m_Shader = nullptr;
+		VertexDecl m_VertexDecl;
 		
-		Shader* shader = nullptr;
-		VertexDecl vertexDecl;
-		
-		TextureFormat colorAttachment0Format = TextureFormat::BGRA8Unorm;
-		TextureFormat depthAttachmentFormat = TextureFormat::Depth32Float;
+		TextureFormat m_ColorAttachment0Format = TextureFormat::BGRA8Unorm;
+		TextureFormat m_DepthAttachmentFormat = TextureFormat::Depth32Float;
 		
 //		ShaderUniformSignature vertexShaderSignature;
 //		ShaderUniformSignature fragmentShaderSignature;
@@ -248,6 +243,14 @@ namespace FishEngine
         GraphicsPSO GetGraphicsPS() const;
 #endif
     };
+	
+	
+	class RenderPass
+	{
+	public:
+		RenderPipelineState rps;
+	};
+	
     
     struct Viewport
     {
@@ -316,5 +319,27 @@ namespace FishEngine
         VertexBufferHandle vb;
     };
 	
+	void InitGraphicsAPI(GLFWwindow* window);
+	void ResetGraphicsAPI();
+	
+	void ImguiNewFrame();
+	void ImguiRender();
 	void ImGuiDrawTexture(Texture* texture, const Vector2& size);
+	
+	void SetModelMatrix(const Matrix4x4& model);
+	void SetViewProjectionMatrix(const Matrix4x4& view, const Matrix4x4& proj);
+	void SetCamera(Camera* camera);
+	void SetLight(Light* light);
+	
+	void BeginFrame();
+	void EndFrame();
+	void ClearColorDepthBuffer();
+	
+	void BeginPass(const RenderPipelineState& rps, bool clear = false);
+	void EndPass();
+	
+	void SetVertexBuffer(VertexBufferHandle handle);
+	void SetVertexBuffer(DynamicVertexBufferHandle handle);
+	void Draw(Mesh* mesh, Material* material, int submeshID);
+	void Submit(Material* material);
 }

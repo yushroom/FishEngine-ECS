@@ -7,6 +7,7 @@ struct AppData
 	float2 TexCoord : TEXCOORD0;
 	float3 Normal : NORMAL;
 	float4 Tangent : TANGENT;
+	float3 Color : COLOR0;
 };
 
 

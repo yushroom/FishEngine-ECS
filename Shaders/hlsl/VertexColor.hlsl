@@ -1,13 +1,5 @@
 #include <ShaderVariables.hlsl>
-
-struct VSInput
-{
-    float3 position : POSITION;
-    float2 uv : TEXXOORD0;
-    float3 normal : NORMAL;
-    float4 tangent : TANGENT;
-    float3 color : COLOR0;
-};
+#include <AppData.hlsl>
 
 struct VSOutput
 {
@@ -15,12 +7,12 @@ struct VSOutput
     float3 color : COLOR0;
 };
 
-VSOutput VS(VSInput i)
+VSOutput VS(AppData i)
 {
     VSOutput o;
-    o.position = mul(float4(i.position, 1), MATRIX_MVP);
+    o.position = mul(float4(i.Position, 1), MATRIX_MVP);
     // o.position = mul(MATRIX_MVP, float4(i.position, 1));
-    o.color = i.color;
+    o.color = i.Color;
     return o;
 }
 

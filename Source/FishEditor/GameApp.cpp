@@ -302,7 +302,8 @@ void GameApp::Run()
 //		Update();
 		const int w = EditorScreen::width;
 		const int h = EditorScreen::height;
-		auto r = m_EditorSystem->m_SceneViewRect;
+//		auto r = m_EditorSystem->m_SceneViewRect;
+		auto r = Vector4(0, 0, w, h);		// TODO
 		//r = r + Vector4(8, 8, -16, -16);
 //		Screen::width = r.z;
 //		Screen::height = r.w;

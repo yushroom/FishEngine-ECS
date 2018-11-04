@@ -21,7 +21,7 @@ namespace FishEngine
 	class Shader;
 	class Texture;
 
-	class Material : public Object
+	class Material : public NamedObject
 	{
 	public:
 		

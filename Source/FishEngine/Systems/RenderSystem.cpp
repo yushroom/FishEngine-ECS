@@ -81,7 +81,7 @@ void RenderSystem::Draw()
 	Camera* camera = Camera::GetEditorCamera();
 	if (camera == nullptr)
 		return;
-	Vector4 cameraPos(camera->GetTransform()->GetPosition(), 1.0f);
+	Vector4 cameraPos(camera->GetGameObject()->GetTransform()->GetPosition(), 1.0f);
 	
 	FishEngine::SetCamera(camera);
 
@@ -134,7 +134,7 @@ void RenderSystem::Draw()
 		if (mesh != nullptr && mesh->IsSkinned())
 		{
 			auto skin = r->m_Skin;
-			const auto worldToObject = r->GetTransform()->GetWorldToLocalMatrix();
+			const auto worldToObject = r->GetGameObject()->GetTransform()->GetWorldToLocalMatrix();
 			for (int i = 0; i < skin->joints.size(); ++i)
 			{
 				auto bone = skin->joints[i]->GetTransform();

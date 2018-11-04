@@ -8,7 +8,7 @@ namespace FishEngine
 	class Component;
 	class Transform;
 	
-	class GameObject
+	class GameObject : public NamedObject
 	{
 		friend class Scene;
 	public:
@@ -33,7 +33,7 @@ namespace FishEngine
 		
 		Scene* GetScene() { return m_Scene; }
 		
-		std::string name;
+//		std::string name;
 		
 	protected:
 		GameObject(EntityID entityID, Scene* scene);
@@ -47,11 +47,4 @@ namespace FishEngine
 	private:
 		EntityID ID;
 	};
-
-	
-	
-	inline Transform* Component::GetTransform() const
-	{
-		return m_GameObject->GetTransform();
-	}
 }

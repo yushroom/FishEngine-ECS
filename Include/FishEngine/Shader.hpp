@@ -8,7 +8,7 @@
 namespace FishEngine
 {
 
-	class Shader : public Object
+	class Shader : public NamedObject
 	{
 		friend class ShaderUtil;
 		
@@ -16,6 +16,8 @@ namespace FishEngine
 		Shader() = default;
 		
 	//	bgfx::ProgramHandle& GetProgram() { return m_Program; }
+		
+		static Shader* Find(const std::string& shaderName);
 		
 	public:
 	//	bgfx::ProgramHandle m_Program;

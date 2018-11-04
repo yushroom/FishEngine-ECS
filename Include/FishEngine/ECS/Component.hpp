@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Object.hpp"
 #include "../Engine.hpp"
 #include "../ISerializable.hpp"
 
@@ -16,7 +17,7 @@ namespace FishEngine
 	class Transform;
 	class Scene;
 
-	class Component : public ISerializabe
+	class Component : public ISerializabe, public Object
 	{
 	public:
 		EntityID entityID;
@@ -47,13 +48,21 @@ namespace FishEngine
 		void Deserialize(InputArchive& archive) override;
 		void Serialize(OutputArchive& archive) const override;
 		
+		GameObject* GetGameObject() const
+		{
+			return m_GameObject;
+		}
+		
 	protected:
 		Component() = default;
 		
 	public:
 		// temp
 		GameObject* m_GameObject = nullptr;
-		Transform* GetTransform() const;
+//		Transform* GetTransform() const
+//		{
+//			return m_GameObject->GetTransform();
+//		}
 	};
 
 

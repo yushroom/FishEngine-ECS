@@ -1,4 +1,5 @@
 #include "FishEngine/Shader.hpp"
+#include <map>
 
 //#include <bgfx/bgfx.h>
 //#include <bgfx/platform.h>
@@ -8,9 +9,27 @@
 
 
 #include <cstdio>
-#define DBG printf
+//#define DBG printf
 
 using namespace FishEngine;
+
+std::map<std::string, Shader*> g_NameToShaders;
+
+Shader* Shader::Find(const std::string &shaderName)
+{
+	Shader* shader = nullptr;
+	auto it = g_NameToShaders.find(shaderName);
+	if (it != g_NameToShaders.end())
+	{
+		shader = it->second;
+	}
+	else
+	{
+		shader = ShaderUtil::CompileFromShaderName(shaderName);
+		g_NameToShaders[shaderName] = shader;
+	}
+	return shader;
+}
 
 #if 0
 static const bgfx::Memory* loadMem(bx::FileReaderI* _reader, const char* _filePath)
@@ -79,6 +98,7 @@ Shader* ShaderUtil::Compile(const std::string& vs_path, const std::string& fs_pa
 
 Shader* ShaderUtil::CompileFromShaderName(const std::string& shaderName)
 {
+	printf("Compiling %s...\n", shaderName.c_str());
 	Shader* s = new Shader;
 	s->name = shaderName;
 	std::string name = shaderName + "_VS";

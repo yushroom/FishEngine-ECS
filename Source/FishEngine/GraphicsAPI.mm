@@ -9,6 +9,8 @@
 #include <FishEngine/Mesh.hpp>
 #include <FishEngine/Material.hpp>
 #include <FishEngine/Shader.hpp>
+#include <FishEngine/ECS/GameObject.hpp>
+#include <FishEngine/Components/Transform.hpp>
 #include <FishEngine/Components/Camera.hpp>
 #include <FishEngine/Components/Light.hpp>
 #include <FishEngine/Components/Transform.hpp>
@@ -22,12 +24,13 @@ GLFWwindow* g_window = nullptr;
 id<MTLDevice> g_device;
 CAMetalLayer* g_metalLayer = nil;
 id<MTLTexture> g_mainDepthBuffer;
+id<MTLTexture> g_mainStencilBuffer;
 id<CAMetalDrawable> g_currentFrameDrawable;
 MTLRenderPassDescriptor* g_imguiRenderPassDesc = nil;
 id<MTLCommandQueue> g_commandQueue;
 id<MTLCommandBuffer> g_currentCommandBuffer;
 id<MTLLibrary> g_defaultLibrary;
-id<MTLRenderPipelineState> g_pipelineState;
+//id<MTLRenderPipelineState> g_pipelineState;
 //NSArray<id<MTLBuffer>> *g_uniformBuffers;
 id<MTLDepthStencilState> g_normalDepthStencilState;
 
@@ -40,6 +43,9 @@ id<MTLRenderCommandEncoder> g_mainPassCommandEncoder;
 
 id<MTLSamplerState> g_sampler;
 
+VertexDecl g_fullVertexDecl;
+
+RenderPipelineState g_rps;
 
 template<class T, int MaxCount>
 struct TArray
@@ -68,11 +74,11 @@ private:
 	T arrays[MaxCount];
 };
 
-static TArray<id<MTLBuffer>, 1024> g_buffers;
-static TArray<id<MTLFunction>, 1024> g_shaders;
-static TArray<id<MTLTexture>, 1024> g_textures;
+static TArray<id<MTLBuffer>, 128> g_buffers;
+static TArray<id<MTLFunction>, 128> g_shaders;
+static TArray<id<MTLTexture>, 128> g_textures;
 static TArray<MTLVertexDescriptor*, 16> g_vertexDescriptors;
-static TArray<id<MTLRenderPipelineState>, 16> g_renderPipelineStates;
+static TArray<id<MTLRenderPipelineState>, 64> g_renderPipelineStates;
 
 std::unordered_map<std::string, Shader*> g_CompiledShaders;
 
@@ -116,14 +122,14 @@ static PerCameraUniforms g_perCameraUniforms;
 static LightingUniforms g_lightinUniforms;
 
 
-namespace FishEngine
-{
-	class RenderPipelineStateImpl
-	{
-	public:
-		id<MTLRenderPipelineState> m_rps;
-	};
-}
+//namespace FishEngine
+//{
+//	class RenderPipelineStateImpl
+//	{
+//	public:
+//		id<MTLRenderPipelineState> m_rps;
+//	};
+//}
 
 	
 void FishEngine::InitGraphicsAPI(GLFWwindow* window)
@@ -178,20 +184,26 @@ void FishEngine::InitGraphicsAPI(GLFWwindow* window)
 		NSLog(@"%@\n", name);
 	}
 	
+	g_fullVertexDecl.Begin()
+		.Add(VertexAttrib::Position, 3, VertexAttribType::Float)
+		.Add(VertexAttrib::TexCoord0, 2, VertexAttribType::Float)
+		.Add(VertexAttrib::Normal, 3, VertexAttribType::Float)
+		.Add(VertexAttrib::Tangernt, 4, VertexAttribType::Float)
+		.Add(VertexAttrib::Color, 3, VertexAttribType::Float)
+	.End();
+	
 	PUNTVertex::StaticInit();
 	
 	// before shader compile
 	
 //	id<MTLFunction> vertexFunction = [g_defaultLibrary newFunctionWithName:@"Normal_VS"];
 //	id<MTLFunction> fragmentFunction = [g_defaultLibrary newFunctionWithName:@"Normal_PS"];
-	Shader* normalShader = ShaderUtil::CompileFromShaderName("pbrMetallicRoughness");
+	Shader* normalShader = Shader::Find("pbrMetallicRoughness");
+	g_rps.SetShader(normalShader);
+	g_rps.SetVertexDecl(PUNTVertex::ms_decl);
+	g_rps.Create();
 	
-	RenderPipelineState rps;
-	rps.SetShader(normalShader);
-	rps.SetVertexDecl(PUNTVertex::ms_decl);
-	rps.Create();
-	
-	g_pipelineState = rps.impl->m_rps;
+//	g_pipelineState = g_renderPipelineStates[rps.m_Index];
 	
 //	id<MTLBuffer> uniformBuffersCArray[AAPLMaxBuffersInFlight];
 	
@@ -209,7 +221,7 @@ void FishEngine::InitGraphicsAPI(GLFWwindow* window)
 	depthStateDesc.depthWriteEnabled = YES;
 	g_normalDepthStencilState = [g_device newDepthStencilStateWithDescriptor:depthStateDesc];
 	
-	MTLTextureDescriptor* depthBufferDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float width:800*2 height:600*2 mipmapped:NO];
+	MTLTextureDescriptor* depthBufferDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float_Stencil8 width:800*2 height:600*2 mipmapped:NO];
 	depthBufferDesc.resourceOptions = MTLResourceStorageModePrivate;
 	depthBufferDesc.usage = MTLTextureUsageRenderTarget;
 	g_mainDepthBuffer = [g_device newTextureWithDescriptor:depthBufferDesc];
@@ -237,11 +249,24 @@ void FishEngine::ResetGraphicsAPI()
 //	viewportSize.x = fbw;
 //	viewportSize.y = fbh;
 	
-	MTLTextureDescriptor* depthBufferDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float width:fbw height:fbh mipmapped:NO];
+	if (![g_device isDepth24Stencil8PixelFormatSupported])
+	{
+		puts("Depth24Stencil8PixelFormat is not supported.");
+	}
+	
+	
+	MTLTextureDescriptor* depthBufferDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float_Stencil8 width:fbw height:fbh mipmapped:NO];
 	depthBufferDesc.resourceOptions = MTLResourceStorageModePrivate;
 	depthBufferDesc.usage = MTLTextureUsageRenderTarget;
 	g_mainDepthBuffer = [g_device newTextureWithDescriptor:depthBufferDesc];
 	g_mainDepthBuffer.label = @"Main Depth buffer";
+	
+	MTLTextureDescriptor* stencilBufferDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatStencil8 width:fbw height:fbh mipmapped:NO];
+	stencilBufferDesc.textureType = MTLTextureType2D;
+	stencilBufferDesc.resourceOptions = MTLResourceStorageModePrivate;
+	stencilBufferDesc.usage = MTLTextureUsageRenderTarget;
+	g_mainStencilBuffer = [g_device newTextureWithDescriptor:stencilBufferDesc];
+	g_mainStencilBuffer.label = @"Main Stencil Buffer";
 }
 
 //Matrix4x4 g_modelMat;
@@ -272,14 +297,14 @@ void FishEngine::SetViewProjectionMatrix(const Matrix4x4& view, const Matrix4x4&
 
 void FishEngine::SetCamera(Camera* camera)
 {
-	auto t = camera->GetTransform();
+	auto t = camera->GetGameObject()->GetTransform();
 	g_perCameraUniforms.WorldSpaceCameraPos.Set( t->GetPosition().normalized(), 1 );
 	g_perCameraUniforms.WorldSpaceCameraDir.Set( t->GetForward(), 0);
 }
 
 void FishEngine::SetLight(Light* light)
 {
-	auto t = light->GetTransform();
+	auto t = light->GetGameObject()->GetTransform();
 	g_lightinUniforms.LightPos.Set( t->GetPosition().normalized(), 1 );
 	g_lightinUniforms.LightDir.Set( t->GetForward(), 0);
 }
@@ -307,23 +332,7 @@ void FishEngine::BeginFrame()
 	g_frameNumber ++;
 	g_currentBufferIndex = (g_currentBufferIndex+1) % MaxBuffersInFlight;
 	
-	 MTLRenderPassDescriptor* renderPassDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
-	renderPassDescriptor.colorAttachments[0].texture = g_currentFrameDrawable.texture;
-	renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
-	renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(1.0, 1.0, 1.0, 1.0);
-	renderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
-	renderPassDescriptor.depthAttachment.texture = g_mainDepthBuffer;
-	renderPassDescriptor.depthAttachment.loadAction = MTLLoadActionClear;
-	renderPassDescriptor.depthAttachment.storeAction = MTLStoreActionStore;
-	
-	g_mainPassCommandEncoder = [g_currentCommandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
-	[g_mainPassCommandEncoder setLabel:@"MainPass"];
-	//	[renderEncoder setFrontFacingWinding:MTLWindingCounterClockwise];
-	[g_mainPassCommandEncoder setCullMode:MTLCullModeBack];
-//	MTLViewport vp = {0, 0, 1600, 1200, 0, 1};
-//	[g_mainPassCommandEncoder setViewport:vp];
-	[g_mainPassCommandEncoder setDepthStencilState:g_normalDepthStencilState];
-	[g_mainPassCommandEncoder setRenderPipelineState:g_pipelineState];
+	BeginPass(g_rps, true);
 }
 
 void FishEngine::ClearColorDepthBuffer()
@@ -342,16 +351,138 @@ void FishEngine::ClearColorDepthBuffer()
 	[encoder endEncoding];
 }
 
+void FishEngine::BeginPass(const RenderPipelineState& rps, bool clear)
+{
+	EndPass();
+	assert(rps.m_Index != 0);
+	MTLRenderPassDescriptor* renderPassDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
+	renderPassDescriptor.colorAttachments[0].texture = g_currentFrameDrawable.texture;
+	if (clear)
+	{
+		renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
+		renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(1.0, 1.0, 1.0, 1.0);
+	}
+	else
+	{
+		renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionDontCare;
+	}
+	renderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
+	renderPassDescriptor.depthAttachment.texture = g_mainDepthBuffer;
+	renderPassDescriptor.depthAttachment.loadAction = MTLLoadActionClear;
+	renderPassDescriptor.depthAttachment.storeAction = MTLStoreActionStore;
+	renderPassDescriptor.stencilAttachment.texture = g_mainDepthBuffer;
+	renderPassDescriptor.stencilAttachment.loadAction = MTLLoadActionClear;
+	renderPassDescriptor.stencilAttachment.storeAction = MTLStoreActionStore;
+	renderPassDescriptor.stencilAttachment.clearStencil = 0;
+	
+	g_mainPassCommandEncoder = [g_currentCommandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
+	[g_mainPassCommandEncoder setLabel:@"MainPass"];
+	//	[renderEncoder setFrontFacingWinding:MTLWindingCounterClockwise];
+	[g_mainPassCommandEncoder setCullMode:MTLCullModeBack];
+	//	MTLViewport vp = {0, 0, 1600, 1200, 0, 1};
+	//	[g_mainPassCommandEncoder setViewport:vp];
+	[g_mainPassCommandEncoder setDepthStencilState:g_normalDepthStencilState];
+	[g_mainPassCommandEncoder setRenderPipelineState:g_renderPipelineStates[rps.m_Index]];
+}
+
 void FishEngine::EndPass()
 {
 	[g_mainPassCommandEncoder endEncoding];
+	g_mainPassCommandEncoder = nil;
+}
+
+void FishEngine::SetVertexBuffer(VertexBufferHandle handle)
+{
+	[g_mainPassCommandEncoder setVertexBuffer:g_buffers[handle.idx] offset:0 atIndex:0];
+}
+
+void FishEngine::SetVertexBuffer(DynamicVertexBufferHandle handle)
+{
+	[g_mainPassCommandEncoder setVertexBuffer:g_buffers[handle.idx] offset:0 atIndex:0];
+}
+
+void FishEngine::Submit(Material* mat)
+{
+	for (auto& arg : mat->m_Shader->m_VertexShaderSignature.arguments)
+	{
+		if (arg.type == ShaderUniformBufferType::PerDrawUniforms)
+		{
+			[g_mainPassCommandEncoder setVertexBytes:&g_perDrawUniforms length:sizeof(PerDrawUniforms) atIndex:arg.index];
+		}
+		else if (arg.type == ShaderUniformBufferType::PerCameraUniforms)
+		{
+			[g_mainPassCommandEncoder setVertexBytes:&g_perCameraUniforms length:sizeof(g_perCameraUniforms) atIndex:arg.index];
+		}
+		else if (arg.type == ShaderUniformBufferType::LightingUniforms)
+		{
+			[g_mainPassCommandEncoder setVertexBytes:&g_lightinUniforms length:sizeof(g_lightinUniforms) atIndex:arg.index];
+		}
+	}
+	for (auto& arg : mat->m_Shader->m_FragmentShaderSignature.arguments)
+	{
+		if (arg.type == ShaderUniformBufferType::PerDrawUniforms)
+		{
+			[g_mainPassCommandEncoder setFragmentBytes:&g_perDrawUniforms length:sizeof(PerDrawUniforms) atIndex:arg.index];
+		}
+		else if (arg.type == ShaderUniformBufferType::PerCameraUniforms)
+		{
+			[g_mainPassCommandEncoder setFragmentBytes:&g_perCameraUniforms length:sizeof(g_perCameraUniforms) atIndex:arg.index];
+		}
+		else if (arg.type == ShaderUniformBufferType::LightingUniforms)
+		{
+			[g_mainPassCommandEncoder setFragmentBytes:&g_lightinUniforms length:sizeof(g_lightinUniforms) atIndex:arg.index];
+		}
+		else
+		{
+			assert(arg.size % 4 == 0);
+			std::vector<float> buffer(arg.size/4);
+			auto ptr = (std::byte*)buffer.data();
+			for (auto& u : arg.uniforms)
+			{
+				int size = 1;
+				switch (u.dataType)
+				{
+					case ShaderDataType::Float:
+						size = 4; break;
+					case ShaderDataType::Float4:
+						size = 4*4; break;
+					default:
+						abort();
+				}
+				auto& v = mat->m_MaterialProperties.vec4s[u.name];
+				memcpy(ptr+u.offset, v.data(), size);
+			}
+			[g_mainPassCommandEncoder setFragmentBytes:ptr length:arg.size atIndex:arg.index];
+		}
+	}
+	
+	for (auto& t : mat->m_Shader->m_FragmentShaderSignature.textures)
+	{
+		Texture* tex = mat->m_MaterialProperties.textures[t.name];
+		[g_mainPassCommandEncoder setFragmentTexture:g_textures[tex->m_Handle.idx] atIndex:t.bindIndex];
+	}
+	
+	for (auto& s : mat->m_Shader->m_FragmentShaderSignature.samplers)
+	{
+		[g_mainPassCommandEncoder setFragmentSamplerState:g_sampler atIndex:s.bindIndex];
+	}
+	
+	//	[g_mainPassCommandEncoder setVertexBytes:&g_perDrawUniforms length:sizeof(PerDrawUniforms) atIndex:1];
+	//	[g_mainPassCommandEncoder setFragmentBytes:&u_color length:16 atIndex:2];
+//	[g_mainPassCommandEncoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle
+//										 indexCount:mesh->m_TriangleCount*3
+//										  indexType:MTLIndexTypeUInt32
+//										indexBuffer:g_buffers[ib.idx]
+//								  indexBufferOffset:0];
+	[g_mainPassCommandEncoder drawPrimitives:MTLPrimitiveTypeLine vertexStart:0 vertexCount:12];
 }
 
 void FishEngine::Draw(FishEngine::Mesh* mesh, FishEngine::Material* mat, int submeshID)
 {
 	auto vb = mesh->m_VertexBuffer;
 	auto ib = mesh->m_IndexBuffer;
-	[g_mainPassCommandEncoder setVertexBuffer:g_buffers[vb.idx] offset:0 atIndex:0];
+//	[g_mainPassCommandEncoder setVertexBuffer:g_buffers[vb.idx] offset:0 atIndex:0];
+	SetVertexBuffer(vb);
 //	PerDrawUniforms uniforms;
 //	uniforms.MATRIX_M = g_modelMat;
 //	uniforms.MATRIX_MV = g_viewMat * g_modelMat;
@@ -391,17 +522,25 @@ void FishEngine::Draw(FishEngine::Mesh* mesh, FishEngine::Material* mat, int sub
 		}
 		else
 		{
-			struct {
-				Vector4 a;
-				float b;
-				float c;
-				float d;
-			} b;
-			b.a = mat->m_MaterialProperties.vec4s["baseColorFactor"];
-			b.b = mat->m_MaterialProperties.vec4s["Metallic"].x;
-			b.c = mat->m_MaterialProperties.vec4s["Roughness"].x;
-			b.d = mat->m_MaterialProperties.vec4s["Specular"].x;
-			[g_mainPassCommandEncoder setFragmentBytes:&b length:arg.size atIndex:arg.index];
+			assert(arg.size % 4 == 0);
+			std::vector<float> buffer(arg.size/4);
+			auto ptr = (std::byte*)buffer.data();
+			for (auto& u : arg.uniforms)
+			{
+				int size = 1;
+				switch (u.dataType)
+				{
+					case ShaderDataType::Float:
+						size = 4; break;
+					case ShaderDataType::Float4:
+						size = 4*4; break;
+					default:
+						abort();
+				}
+				auto& v = mat->m_MaterialProperties.vec4s[u.name];
+				memcpy(ptr+u.offset, v.data(), size);
+			}
+			[g_mainPassCommandEncoder setFragmentBytes:ptr length:arg.size atIndex:arg.index];
 		}
 	}
 	
@@ -488,6 +627,17 @@ VertexBufferHandle FishEngine::CreateVertexBuffer(const Memory& data, const Vert
 	return handle;
 }
 
+DynamicVertexBufferHandle FishEngine::CreateDynamicVertexBufferHandle(int vertexCount, const VertexDecl& decl)
+{
+	int byteSize = vertexCount * decl.GetStride();
+	id<MTLBuffer> buffer = [g_device newBufferWithLength:byteSize options:MTLResourceStorageModeShared];
+	DynamicVertexBufferHandle handle;
+	handle.idx = g_buffers.Next();
+	g_buffers[handle.idx] = buffer;
+	return handle;
+}
+
+
 IndexBufferHandle FishEngine::CreateIndexBuffer(const Memory& data, MeshIndexType type)
 {
 //	int size = decl.GetVertexSize();
@@ -505,10 +655,47 @@ IndexBufferHandle FishEngine::CreateIndexBuffer(const Memory& data, MeshIndexTyp
 
 TextureHandle FishEngine::CreateTexture(const Memory& data, int width, int height)
 {
+#if 0
+	id<MTLTexture> texture;
+	id<MTLTexture> texture2; // intermediate
+	
+	{
+		MTLTextureDescriptor *textureDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:width height:height mipmapped:NO];
+		textureDesc.resourceOptions = MTLResourceStorageModeManaged;
+		texture2 = [g_device newTextureWithDescriptor:textureDesc];
+		
+		NSUInteger bytesPerRow = 4 * static_cast<NSUInteger>(width);
+		
+		MTLRegion region = {
+			{0, 0, 0},				// MTLOrigin
+			{static_cast<NSUInteger>(width), static_cast<NSUInteger>(height), 1}		// MTLSize
+		};
+		
+		[texture2 replaceRegion:region mipmapLevel:0 withBytes:data.data bytesPerRow:bytesPerRow];
+	}
+	
+	{
+		MTLTextureDescriptor *textureDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:width height:height mipmapped:YES];
+		textureDesc.resourceOptions = MTLResourceStorageModePrivate;
+		texture = [g_device newTextureWithDescriptor:textureDesc];
+	}
+	
+	MTLSize size = {static_cast<NSUInteger>(width), static_cast<NSUInteger>(height), 1};
+	
+	
+	id<MTLCommandBuffer> commandBuffer = [g_commandQueue commandBuffer];
+	id<MTLBlitCommandEncoder> commandEncoder = [commandBuffer blitCommandEncoder];
+	
+	[commandEncoder copyFromTexture:texture2 sourceSlice:0 sourceLevel:0 sourceOrigin:{0, 0, 0} sourceSize:size toTexture:texture destinationSlice:0 destinationLevel:0 destinationOrigin:{0, 0, 0}];
+	[commandEncoder generateMipmapsForTexture:texture];
+	[commandEncoder endEncoding];
+	[commandBuffer commit];
+	[commandBuffer waitUntilCompleted];
+#endif
+	// see https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/MTLBestPracticesGuide/ResourceOptions.html
 	MTLTextureDescriptor *textureDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:width height:height mipmapped:YES];
-//	textureDesc.pixelFormat = MTLPixelFormatRGBA8Unorm;
-//	textureDesc.width = width;
-//	textureDesc.height = height;
+	textureDesc.resourceOptions = MTLResourceStorageModeManaged;
+	textureDesc.usage = MTLTextureUsageShaderRead;
 	id<MTLTexture> texture = [g_device newTextureWithDescriptor:textureDesc];
 	
 	NSUInteger bytesPerRow = 4 * static_cast<NSUInteger>(width);
@@ -531,6 +718,22 @@ TextureHandle FishEngine::CreateTexture(const Memory& data, int width, int heigh
 	handle.idx = g_textures.Next();
 	g_textures[handle.idx] = texture;
 	return handle;
+}
+
+void FishEngine::UpdateDynamicVertexBuffer(DynamicVertexBufferHandle handle, int startVertex, const Memory& data)
+{
+	assert(handle.IsValid());
+//	id<MTLBuffer> buffer = g_buffers[handle.idx];
+//	assert(buffer.length == data.byteSize);
+	if (g_buffers[handle.idx].length == data.byteSize)
+	{
+		memcpy(g_buffers[handle.idx].contents, data.data, data.byteSize);
+	}
+	else
+	{
+		g_buffers[handle.idx] = [g_device newBufferWithBytes:data.data length:data.byteSize options:MTLResourceStorageModeShared];
+	}
+//	memcpy(buffer.contents, data.data, data.byteSize);
 }
 
 //id<MTLBuffer> FishEngine::GetVertexBuffer(VertexBufferHandle handle)
@@ -562,7 +765,7 @@ VertexDecl& FishEngine::VertexDecl::Begin()
 VertexDecl& FishEngine::VertexDecl::Add(VertexAttrib attrib, int count, VertexAttribType type)
 {
 	assert(m_Index != 0);
-	auto a = g_vertexDescriptors[m_Index].attributes[m_AttribCount];
+	auto a = g_vertexDescriptors[m_Index].attributes[static_cast<int>(attrib)];
 	int size = 1;
 	if (type == VertexAttribType::Float)
 	{
@@ -605,6 +808,14 @@ void FishEngine::VertexDecl::End()
 	m_Valid = true;
 }
 
+bool DoesStringStartWith(const std::string& str, const std::string& prefix)
+{
+	int size2 = prefix.size();
+	if (str.size() < size2)
+		return false;
+//	return str.substr(0, size2) == prefix;
+	return strncmp(str.c_str(), prefix.c_str(), size2) == 0;
+}
 
 ShaderUniformBufferType IsInternalShaderUniformBuffer(const std::string& name)
 {
@@ -620,6 +831,10 @@ ShaderUniformBufferType IsInternalShaderUniformBuffer(const std::string& name)
 	{
 		return ShaderUniformBufferType::LightingUniforms;
 	}
+	else if (name == "vertexBuffer.0")
+	{
+		return ShaderUniformBufferType::VertexBuffer;
+	}
 	return ShaderUniformBufferType::Custom;
 };
 
@@ -627,9 +842,10 @@ ShaderUniformBufferType IsInternalShaderUniformBuffer(const std::string& name)
 ShaderUniformSignature GetShaderUniformSignature(NSArray <MTLArgument *> *args)
 {
 	ShaderUniformSignature signature;
+//	puts("Reflect shader uniforms:");
 	for (MTLArgument* arg in args)
 	{
-		printf("arg: %s type: %lu index: %lu\n", arg.name.UTF8String, arg.type, (unsigned long)arg.index);
+		printf("\targ: %s type: %lu index: %lu\n", arg.name.UTF8String, arg.type, (unsigned long)arg.index);
 		
 		if (arg.active)
 		{
@@ -640,7 +856,7 @@ ShaderUniformSignature GetShaderUniformSignature(NSArray <MTLArgument *> *args)
 				ub.index = arg.index;
 				if (MTLDataTypeStruct == arg.bufferDataType)
 				{
-					printf("size: %lu\n", (unsigned long)arg.bufferDataSize);
+					printf("\t\tsize: %lu\n", (unsigned long)arg.bufferDataSize);
 					ub.size = arg.bufferDataSize;
 				}
 				
@@ -650,7 +866,7 @@ ShaderUniformSignature GetShaderUniformSignature(NSArray <MTLArgument *> *args)
 					for (MTLStructMember* uniform in arg.bufferStructType.members)
 					{
 						const char* name = uniform.name.UTF8String;
-						printf("uniform name: %s offset: %lu type: %lu\n", name, (unsigned long)uniform.offset, (unsigned long)uniform.dataType);
+						printf("\t\tuniform name: %s offset: %lu type: %lu\n", name, (unsigned long)uniform.offset, (unsigned long)uniform.dataType);
 						ShaderUniform u;
 						u.name = name;
 						u.offset = uniform.offset;
@@ -699,13 +915,12 @@ ShaderUniformSignature GetShaderUniformSignature(NSArray <MTLArgument *> *args)
 void FishEngine::internal_ReflectShader(Shader* shader)
 {
 	MTLRenderPipelineDescriptor* psd = [[MTLRenderPipelineDescriptor alloc] init];
-	psd.label = @"Simple Pipeline";
+	psd.label = @"ReflectShaderPipeline";
 	psd.vertexFunction = g_shaders[shader->m_VertexShader.idx];
 	psd.fragmentFunction = g_shaders[shader->m_FragmentShader.idx];
 	psd.colorAttachments[0].pixelFormat = g_metalLayer.pixelFormat;
-	psd.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
-	
-	psd.vertexDescriptor = g_vertexDescriptors[PUNTVertex::ms_decl.GetIndex()];
+//	psd.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
+	psd.vertexDescriptor = g_vertexDescriptors[g_fullVertexDecl.GetIndex()];	// real vertex decl is not known before reflection, so use full decl here
 	
 	NSError* error = NULL;
 	
@@ -713,9 +928,9 @@ void FishEngine::internal_ReflectShader(Shader* shader)
 	MTLRenderPipelineReflection* reflection;
 	id<MTLRenderPipelineState> rps = [g_device newRenderPipelineStateWithDescriptor:psd options:option reflection:&reflection error:&error];
 	
-	printf("vertex arguments:\n");
+	printf("  vertex arguments:\n");
 	shader->m_VertexShaderSignature = GetShaderUniformSignature(reflection.vertexArguments);
-	printf("fragment arguments:\n");
+	printf("  fragment arguments:\n");
 	shader->m_FragmentShaderSignature = GetShaderUniformSignature(reflection.fragmentArguments);
 	
 	if (!rps)
@@ -755,19 +970,22 @@ namespace FishEngine
 	
 	void RenderPipelineState::Create()
 	{
-		assert(impl == nullptr);
-		impl = std::make_unique<RenderPipelineStateImpl>();
+//		assert(impl == nullptr);
+		assert(!m_Created);
+		assert(m_VertexDecl.IsValid());
+//		impl = std::make_unique<RenderPipelineStateImpl>();
 		MTLRenderPipelineDescriptor* psd = [[MTLRenderPipelineDescriptor alloc] init];
 		psd.label = @"Simple Pipeline";
-		psd.vertexFunction = g_shaders[shader->m_VertexShader.idx];
-		psd.fragmentFunction = g_shaders[shader->m_FragmentShader.idx];
+		psd.vertexFunction = g_shaders[m_Shader->m_VertexShader.idx];
+		psd.fragmentFunction = g_shaders[m_Shader->m_FragmentShader.idx];
 		psd.colorAttachments[0].pixelFormat = g_metalLayer.pixelFormat;
-		psd.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
+		psd.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
+		psd.stencilAttachmentPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
 		
-		psd.vertexDescriptor = g_vertexDescriptors[vertexDecl.GetIndex()];
+		psd.vertexDescriptor = g_vertexDescriptors[m_VertexDecl.GetIndex()];
 		
 		NSError* error = NULL;
-		impl->m_rps = [g_device newRenderPipelineStateWithDescriptor:psd error:&error];
+		id<MTLRenderPipelineState> mtl_rps = [g_device newRenderPipelineStateWithDescriptor:psd error:&error];
 #if 0
 		MTLPipelineOption option = MTLPipelineOptionArgumentInfo | MTLPipelineOptionBufferTypeInfo;
 		MTLRenderPipelineReflection* reflection;
@@ -778,12 +996,16 @@ namespace FishEngine
 		printf("fragment arguments:\n");
 		fragmentShaderSignature = GetShaderUniformSignature(reflection.fragmentArguments);
 #endif
-		if (!impl->m_rps)
+		if (!mtl_rps)
 		{
 			NSLog(@"Failed to created pipeline state, error %@", error);
 			abort();
 			exit(1);
 		}
+		
+		m_Index = g_renderPipelineStates.Next();
+		g_renderPipelineStates[m_Index] = mtl_rps;
+		m_Created = true;
 	}
 }
 

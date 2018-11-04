@@ -46,7 +46,7 @@ struct HierarchyView
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 		
-		HierarchyNode(FishEngine::Camera::GetEditorCamera()->GetTransform());
+		HierarchyNode(FishEngine::Camera::GetEditorCamera()->GetGameObject()->GetTransform());
 		for (auto t : scene->m_RootTransforms)
 		{
 			HierarchyNode(t);
