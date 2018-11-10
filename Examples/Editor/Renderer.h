@@ -5,6 +5,7 @@
 -(nonnull instancetype)initWithView:(nonnull MTKView *)view;
 
 -(void)handleEvent:(nonnull NSEvent*)event;
+-(void)handleKeyEvent:(nonnull NSEvent*)event;
 -(void)handleMouseButtonEvent:(nonnull NSEvent*)event;
 -(void)handleMouseScrollEvent:(nonnull NSEvent*)event;
 

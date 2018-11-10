@@ -38,6 +38,7 @@
 															   userInfo:nil];
 	[self.view addTrackingArea:trackingArea];
 	
+#if 0
 	// If we want to receive key events, we either need to be in the responder chain of the key view,
 	// or else we can install a local monitor. The consequence of this heavy-handed approach is that
 	// we receive events for all controls, not just Dear ImGui widgets. If we had native controls in our
@@ -51,12 +52,23 @@
 		} else {
 			return event;
 		}
-		
 	}];
+#endif
 	
 	ImGui_ImplOSX_Init();
 	
 //	[self.mtkView setPreferredFramesPerSecond:30];
+}
+
+- (void)viewDidAppear
+{
+	// Make the view controller the window's first responder so that it can handle the Key events
+	[self.mtkView.window makeFirstResponder:self];
+}
+
+- (BOOL)acceptsFirstResponder
+{
+	return YES;
 }
 
 
@@ -64,6 +76,16 @@
 	[super setRepresentedObject:representedObject];
 
 	// Update the view, if already loaded.
+}
+
+- (void)keyDown:(NSEvent *)event {
+	ImGui_ImplOSX_HandleEvent(event, self.view);
+	[self.renderer handleKeyEvent:event];
+}
+
+- (void)keyUp:(NSEvent *)event {
+	ImGui_ImplOSX_HandleEvent(event, self.view);
+	[self.renderer handleKeyEvent:event];
 }
 
 - (void)mouseMoved:(NSEvent *)event {

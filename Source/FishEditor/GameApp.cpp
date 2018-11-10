@@ -161,7 +161,7 @@ void GameApp::Update()
 		if (!io.WantCaptureMouse)
 		memcpy(input->m_Axis, editorInput->m_Axis, sizeof(float)*(int)Axis::AxisCount);
 		if (!io.WantCaptureKeyboard)
-		memcpy(input->m_KeyPressed, editorInput->m_KeyPressed, sizeof(KeyAction)*SingletonInput::ButtonCount);
+		memcpy(input->m_KeyStates, editorInput->m_KeyStates, sizeof(KeyAction)*SingletonInput::ButtonCount);
 		
 		if (io.WantCaptureMouse)
 		m_EditorScene->GetSystem<FreeCameraSystem>()->m_Enabled = false;
@@ -187,7 +187,7 @@ void GameApp::Update()
 	
 	
 	FishEngine::EndPass();
-	if (show_editor)
+	if (show_editor && m_EditorSystem->m_Enabled)
 		m_EditorSystem->Draw();
 	
 	m_Scene->PostUpdate();

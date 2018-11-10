@@ -3,7 +3,7 @@
 #include "Object.hpp"
 #include <vector>
 //#include <bgfx/bgfx.h>
-#include <map>
+#include <unordered_map>
 #include <string>
 #include "Math.hpp"
 #include "GraphicsAPI.hpp"
@@ -14,8 +14,8 @@ namespace FishEngine
 	
 	struct MaterialProperties
 	{
-		std::map<std::string, Vector4> vec4s;
-		std::map<std::string, Texture*> textures;
+		std::unordered_map<std::string, Vector4> vec4s;
+		std::unordered_map<std::string, Texture*> textures;
 	};
 
 	class Shader;

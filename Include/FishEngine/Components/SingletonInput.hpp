@@ -372,7 +372,7 @@ public:
 	static constexpr int ButtonCount = 512;
 
 private:
-	KeyAction m_KeyPressed[ButtonCount] = { KeyAction::Normal };
+	KeyAction m_KeyStates[ButtonCount] = { KeyAction::Normal };
 	float m_KeyHeldTime[ButtonCount] = { 0 };
 	float m_Axis[(int)Axis::AxisCount] = { 0 };
 	Vector2 m_MousePosition;
@@ -382,19 +382,19 @@ private:
 inline bool SingletonInput::IsButtonPressed(KeyCode code) const
 {
 	int icode = (int)code;
-	return m_KeyPressed[icode] == KeyAction::Pressed;
+	return m_KeyStates[icode] == KeyAction::Pressed;
 }
 
 inline bool SingletonInput::IsButtonHeld(KeyCode code) const
 {
 	int icode = (int)code;
-	return m_KeyPressed[icode] == KeyAction::Held;
+	return m_KeyStates[icode] == KeyAction::Held;
 }
 
 inline bool SingletonInput::IsButtonReleased(KeyCode code) const
 {
 	int icode = (int)code;
-	return m_KeyPressed[icode] == KeyAction::Released;
+	return m_KeyStates[icode] == KeyAction::Released;
 }
 
 

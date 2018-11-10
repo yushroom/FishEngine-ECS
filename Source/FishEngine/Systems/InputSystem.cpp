@@ -19,7 +19,7 @@ void InputSystem::PostUpdate()
 	auto input = m_Scene->input;
 	for (int i = 0; i < SingletonInput::ButtonCount; ++i)
 	{
-		auto& action = input->m_KeyPressed[i];
+		auto& action = input->m_KeyStates[i];
 		if (action == KeyAction::Normal)
 		{
 		}
@@ -63,5 +63,5 @@ void InputSystem::UpdateAxis(Axis axis, float value)
 void InputSystem::PostKeyEvent(const KeyEvent& e)
 {
 	auto si = m_Scene->input;
-	si->m_KeyPressed[(int)e.key] = e.action;
+	si->m_KeyStates[(int)e.key] = e.action;
 }

@@ -39,11 +39,11 @@ id<MTLDevice> g_device;
 #if USE_GLFW
 GLFWwindow* g_window = nullptr;
 CAMetalLayer* g_metalLayer = nil;
+id<MTLTexture> g_mainDepthBuffer;
+id<MTLTexture> g_mainStencilBuffer;
 #else
 MTKView* g_MTKView;
 #endif
-id<MTLTexture> g_mainDepthBuffer;
-id<MTLTexture> g_mainStencilBuffer;
 id<CAMetalDrawable> g_currentFrameDrawable;
 MTLRenderPassDescriptor* g_imguiRenderPassDesc = nil;
 id<MTLCommandQueue> g_commandQueue;
@@ -133,15 +133,6 @@ static PerCameraUniforms g_perCameraUniforms;
 static LightingUniforms g_lightinUniforms;
 
 
-//namespace FishEngine
-//{
-//	class RenderPipelineStateImpl
-//	{
-//	public:
-//		id<MTLRenderPipelineState> m_rps;
-//	};
-//}
-
 
 void FishEngine::InitGraphicsAPI()
 {
@@ -160,6 +151,9 @@ void FishEngine::InitGraphicsAPI()
 	g_metalLayer.magnificationFilter = kCAFilterNearest;
 	auto rect = view.bounds;
 	g_metalLayer.frame = rect;
+#else
+	g_MTKView.depthStencilPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
+//	g_MTKView.colorPixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
 #endif
 	
 	IMGUI_CHECKVERSION();
@@ -218,9 +212,6 @@ void FishEngine::InitGraphicsAPI()
 	PUNTVertex::StaticInit();
 	
 	// before shader compile
-	
-//	id<MTLFunction> vertexFunction = [g_defaultLibrary newFunctionWithName:@"Normal_VS"];
-//	id<MTLFunction> fragmentFunction = [g_defaultLibrary newFunctionWithName:@"Normal_PS"];
 	Shader* normalShader = Shader::Find("pbrMetallicRoughness");
 	g_rps.SetShader(normalShader);
 	g_rps.SetVertexDecl(PUNTVertex::ms_decl);
@@ -244,11 +235,13 @@ void FishEngine::InitGraphicsAPI()
 	depthStateDesc.depthWriteEnabled = YES;
 	g_normalDepthStencilState = [g_device newDepthStencilStateWithDescriptor:depthStateDesc];
 	
+#if USE_GLFW
 	MTLTextureDescriptor* depthBufferDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float_Stencil8 width:800*2 height:600*2 mipmapped:NO];
 	depthBufferDesc.resourceOptions = MTLResourceStorageModePrivate;
 	depthBufferDesc.usage = MTLTextureUsageRenderTarget;
 	g_mainDepthBuffer = [g_device newTextureWithDescriptor:depthBufferDesc];
 	g_mainDepthBuffer.label = @"Main Depth buffer";
+#endif
 	
 	MTLSamplerDescriptor* samplerDesc = [MTLSamplerDescriptor new];
 	samplerDesc.minFilter = MTLSamplerMinMagFilterLinear;
@@ -275,7 +268,6 @@ void FishEngine::ResetGraphicsAPI(int framebufferWidth, int framebufferHeight)
 	layer.drawableSize = CGSizeMake(fbw, fbh);
 //	viewportSize.x = fbw;
 //	viewportSize.y = fbh;
-#endif
 	
 	MTLTextureDescriptor* depthBufferDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float_Stencil8 width:fbw height:fbh mipmapped:NO];
 	depthBufferDesc.resourceOptions = MTLResourceStorageModePrivate;
@@ -289,6 +281,7 @@ void FishEngine::ResetGraphicsAPI(int framebufferWidth, int framebufferHeight)
 	stencilBufferDesc.usage = MTLTextureUsageRenderTarget;
 	g_mainStencilBuffer = [g_device newTextureWithDescriptor:stencilBufferDesc];
 	g_mainStencilBuffer.label = @"Main Stencil Buffer";
+#endif
 }
 
 //Matrix4x4 g_modelMat;
@@ -369,7 +362,11 @@ void FishEngine::ClearColorDepthBuffer()
 	passDesc.colorAttachments[0].loadAction = MTLLoadActionClear;
 	passDesc.colorAttachments[0].storeAction = MTLStoreActionStore;
 	passDesc.colorAttachments[0].clearColor = MTLClearColorMake(0.63, 0.81, 0, 1);
+#if USE_GLFW
 	passDesc.depthAttachment.texture = g_mainDepthBuffer;
+#else
+	passDesc.depthAttachment.texture = g_MTKView.depthStencilTexture;
+#endif
 	passDesc.depthAttachment.loadAction = MTLLoadActionClear;
 	passDesc.depthAttachment.clearDepth = 0.0;
 	id<MTLCommandBuffer> cmdBuffer = [g_commandQueue commandBuffer];
@@ -382,6 +379,7 @@ void FishEngine::BeginPass(const RenderPipelineState& rps, bool clear)
 {
 	EndPass();
 	assert(rps.m_Index != 0);
+#if 0
 	MTLRenderPassDescriptor* renderPassDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
 	renderPassDescriptor.colorAttachments[0].texture = g_currentFrameDrawable.texture;
 	if (clear)
@@ -394,13 +392,34 @@ void FishEngine::BeginPass(const RenderPipelineState& rps, bool clear)
 		renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionDontCare;
 	}
 	renderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
+#if USE_GLFW
 	renderPassDescriptor.depthAttachment.texture = g_mainDepthBuffer;
+#else
+	renderPassDescriptor.depthAttachment.texture = g_MTKView.depthStencilTexture;
+#endif
 	renderPassDescriptor.depthAttachment.loadAction = MTLLoadActionClear;
 	renderPassDescriptor.depthAttachment.storeAction = MTLStoreActionStore;
+#if USE_GLFW
 	renderPassDescriptor.stencilAttachment.texture = g_mainDepthBuffer;
+#else
+	renderPassDescriptor.stencilAttachment.texture = g_MTKView.depthStencilTexture;
+#endif
 	renderPassDescriptor.stencilAttachment.loadAction = MTLLoadActionClear;
 	renderPassDescriptor.stencilAttachment.storeAction = MTLStoreActionStore;
 	renderPassDescriptor.stencilAttachment.clearStencil = 0;
+#else
+	MTLRenderPassDescriptor* renderPassDescriptor = g_MTKView.currentRenderPassDescriptor;
+//	renderPassDescriptor.depthAttachment.loadAction = MTLLoadActionLoad;
+	if (clear)
+	{
+		renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
+		renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0.81, 0.81, 0.81, 1);
+	}
+	else
+	{
+		renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionDontCare;
+	}
+#endif
 	
 	g_mainPassCommandEncoder = [g_currentCommandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
 	[g_mainPassCommandEncoder setLabel:[NSString stringWithUTF8String:rps.GetName().c_str()]];
@@ -999,22 +1018,22 @@ namespace FishEngine
 	
 	void RenderPipelineState::Create(const char* name)
 	{
-//		assert(impl == nullptr);
 		assert(!m_Created);
 		assert(m_VertexDecl.IsValid());
 		m_Name = name;
-//		impl = std::make_unique<RenderPipelineStateImpl>();
 		MTLRenderPipelineDescriptor* psd = [[MTLRenderPipelineDescriptor alloc] init];
 		psd.label = [NSString stringWithUTF8String:name];
 		psd.vertexFunction = g_shaders[m_Shader->m_VertexShader.idx];
 		psd.fragmentFunction = g_shaders[m_Shader->m_FragmentShader.idx];
 #if USE_GLFW
 		psd.colorAttachments[0].pixelFormat = g_metalLayer.pixelFormat;
-#else
-		psd.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
-#endif
 		psd.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
 		psd.stencilAttachmentPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
+#else
+		psd.colorAttachments[0].pixelFormat = g_MTKView.colorPixelFormat;
+		psd.depthAttachmentPixelFormat = g_MTKView.depthStencilPixelFormat;
+		psd.stencilAttachmentPixelFormat = g_MTKView.depthStencilPixelFormat;
+#endif
 		
 		psd.vertexDescriptor = g_vertexDescriptors[m_VertexDecl.GetIndex()];
 		
