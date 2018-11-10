@@ -1,9 +1,10 @@
 cd ./ThirdParty
-cd glfw && git pull && cd ..
 #cd bgfx && git pull && cd ..
 #cd bx && git pull && cd ..
 #cd bimg && git pull && cd ..
+cd glfw && git pull && cd ..
 cd imgui && git pull && cd ..
+cd tinygltf && git pull && cd ..
 cd DirectXShaderCompiler && git pull && cd ..
 cd SPIRV-Cross && git pull && cd ..
 
@@ -18,7 +19,7 @@ cd DirectXShaderCompiler
 mkdir -p build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release $(cat ../utils/cmake-predefined-config-params)
 make -j4 dxc
-cd ..
+cd ../..
 
 cd SPIRV-Cross
 make

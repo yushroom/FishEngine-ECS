@@ -13,6 +13,6 @@ void Renderable::OnDrawGizmosSelected() const
 	Gizmos::matrix = m_GameObject->GetTransform()->GetLocalToWorldMatrix();
 	if (this->m_Mesh != nullptr)
 	{
-		Gizmos::DrawBounds(m_Mesh->bounds);
+		Gizmos::DrawBounds(m_Mesh->m_Bounds);
 	}
 }

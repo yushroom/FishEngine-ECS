@@ -17,8 +17,8 @@ namespace FishEditor
 		void Stop();
 
 		bool m_IsPlaying = false;
-		int m_WindowWidth = 4;
-		int m_WindowHeight = 4;
+//		int m_WindowWidth = 4;
+//		int m_WindowHeight = 4;
 		FishEngine::Scene* m_GameScene = nullptr;
 
 		FishEngine::Vector4 m_SceneViewRect{ 0, 0, 1, 1 };

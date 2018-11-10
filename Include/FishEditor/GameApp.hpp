@@ -3,9 +3,6 @@
 #include <FishEngine/ClassDef.hpp>
 #include <FishEngine/Event.hpp>
 
-struct GLFWwindow;
-
-
 namespace FishEngine
 {
 	class Scene;
@@ -22,25 +19,29 @@ namespace FishEditor
 	public:
 		GameApp() = default;
 
-		void Init();
+		virtual void Init();
+		virtual void Update();
+		virtual void CleanUp() {};
+		
 		void Run();
 
-		virtual void Start() { };
+		virtual void Start();
 	//	void Update();
 		virtual void Clean() { };
 
 		void Resize(int width, int height);
 
 		static GameApp* GetMainApp();
-		//int GetWidth() const { return m_WindowWidth; }
-		//int GetHeight() const { return m_WindowHeight; }
+		int GetWidth() const { return m_WindowWidth; }
+		int GetHeight() const { return m_WindowHeight; }
 
 		FishEngine::Scene* GetScene() const { return m_Scene; }
+		FishEngine::Scene* GetEditorScene() const { return m_EditorScene; }
 
 		FishEngine::Event<void(int, int)> OnWindowSizeChanged;
 
 	protected:
-		GLFWwindow * 	m_Window 		= nullptr;
+//		GLFWwindow * 	m_Window 		= nullptr;
 		int 			m_WindowWidth 	= 800;
 		int 			m_WindowHeight 	= 600;
 
@@ -53,6 +54,7 @@ namespace FishEditor
 		
 	public:
 		bool			m_WindowMinimized = false;
+		
+		bool m_GameOver = false;
 	};
-	
 }

@@ -16,13 +16,32 @@
 #include <FishEngine/Components/Transform.hpp>
 #include <FishEngine/Texture.hpp>
 
+#if USE_GLFW
+#include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_COCOA 1
+#include <GLFW/glfw3native.h>
+
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_metal.h>
+#else
+#include <imgui.h>
+#include <imgui_impl_osx.h>
+#include <imgui_impl_metal.h>
+#endif
+
+
 using namespace FishEngine;
 
 constexpr int MaxBuffersInFlight = 3;
 
-GLFWwindow* g_window = nullptr;
 id<MTLDevice> g_device;
+#if USE_GLFW
+GLFWwindow* g_window = nullptr;
 CAMetalLayer* g_metalLayer = nil;
+#else
+MTKView* g_MTKView;
+#endif
 id<MTLTexture> g_mainDepthBuffer;
 id<MTLTexture> g_mainStencilBuffer;
 id<CAMetalDrawable> g_currentFrameDrawable;
@@ -74,21 +93,13 @@ private:
 	T arrays[MaxCount];
 };
 
-static TArray<id<MTLBuffer>, 128> g_buffers;
+static TArray<id<MTLBuffer>, 256> g_buffers;
 static TArray<id<MTLFunction>, 128> g_shaders;
 static TArray<id<MTLTexture>, 128> g_textures;
 static TArray<MTLVertexDescriptor*, 16> g_vertexDescriptors;
 static TArray<id<MTLRenderPipelineState>, 64> g_renderPipelineStates;
 
 std::unordered_map<std::string, Shader*> g_CompiledShaders;
-
-#include <GLFW/glfw3.h>
-#define GLFW_EXPOSE_NATIVE_COCOA 1
-#include <GLFW/glfw3native.h>
-
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_metal.h>
 
 
 struct PerDrawUniforms
@@ -131,13 +142,14 @@ static LightingUniforms g_lightinUniforms;
 //	};
 //}
 
-	
-void FishEngine::InitGraphicsAPI(GLFWwindow* window)
+
+void FishEngine::InitGraphicsAPI()
 {
 	g_inFlightSemaphore = dispatch_semaphore_create(MaxBuffersInFlight);
 	
-	g_window = window;
-	NSWindow* nsWindow = (NSWindow*)glfwGetCocoaWindow(window);
+#if USE_GLFW
+	assert(g_window != nullptr);
+	NSWindow* nsWindow = (NSWindow*)glfwGetCocoaWindow(g_window);
 	NSView* view = nsWindow.contentView;
 	[view setWantsLayer:YES];
 	g_metalLayer = [CAMetalLayer layer];
@@ -148,21 +160,26 @@ void FishEngine::InitGraphicsAPI(GLFWwindow* window)
 	g_metalLayer.magnificationFilter = kCAFilterNearest;
 	auto rect = view.bounds;
 	g_metalLayer.frame = rect;
-	
+#endif
 	
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	auto& io = ImGui::GetIO();
 	io.Fonts->AddFontFromFileTTF("/Users/yushroom/program/FishEngine-ECS/Assets/Fonts/DroidSans.ttf", 16.0f);
 	ImGui_ImplMetal_Init(g_device);
-	ImGui_ImplGlfw_InitForOpenGL(window, false);
+#if USE_GLFW
+	ImGui_ImplGlfw_InitForOpenGL(g_window, false);
+#else
+//	ImGui_ImplOSX_Init();
+#endif
 	
 	
-	NSString* osxMode = [[NSUserDefaults standardUserDefaults] stringForKey:@"AppleInterfaceStyle"];
-	if ([osxMode  isEqual: @"Dark"])
-		ImGui::StyleColorsDark();
-	else
-		ImGui::StyleColorsLight();
+//	NSString* osxMode = [[NSUserDefaults standardUserDefaults] stringForKey:@"AppleInterfaceStyle"];
+//	if ([osxMode  isEqual: @"Dark"])
+//		ImGui::StyleColorsDark();
+//	else
+//		ImGui::StyleColorsLight();
+	ImGui::StyleColorsLight();
 	
 	g_commandQueue = [g_device newCommandQueue];
 	[g_commandQueue setLabel:@"MainCmdQueue"];
@@ -184,6 +201,12 @@ void FishEngine::InitGraphicsAPI(GLFWwindow* window)
 		NSLog(@"%@\n", name);
 	}
 	
+	if (![g_device isDepth24Stencil8PixelFormatSupported])
+	{
+		puts("Depth24Stencil8PixelFormat is not supported.");
+	}
+	
+	
 	g_fullVertexDecl.Begin()
 		.Add(VertexAttrib::Position, 3, VertexAttribType::Float)
 		.Add(VertexAttrib::TexCoord0, 2, VertexAttribType::Float)
@@ -201,7 +224,7 @@ void FishEngine::InitGraphicsAPI(GLFWwindow* window)
 	Shader* normalShader = Shader::Find("pbrMetallicRoughness");
 	g_rps.SetShader(normalShader);
 	g_rps.SetVertexDecl(PUNTVertex::ms_decl);
-	g_rps.Create();
+	g_rps.Create("pbrMetallicRoughness");
 	
 //	g_pipelineState = g_renderPipelineStates[rps.m_Index];
 	
@@ -236,10 +259,14 @@ void FishEngine::InitGraphicsAPI(GLFWwindow* window)
 	g_sampler = [g_device newSamplerStateWithDescriptor:samplerDesc];
 }
 
-void FishEngine::ResetGraphicsAPI()
+void FishEngine::ResetGraphicsAPI(int framebufferWidth, int framebufferHeight)
 {
-	int fbw, fbh;
-	glfwGetFramebufferSize(g_window, &fbw, &fbh);
+	printf("ResetGraphicsAPI %d, %d\n", framebufferWidth, framebufferHeight);
+//	int fbw, fbh;
+	int fbw = framebufferWidth;
+	int fbh = framebufferHeight;
+#if USE_GLFW
+//	glfwGetFramebufferSize(g_window, &fbw, &fbh);
 	auto w = (NSWindow*)glfwGetCocoaWindow(g_window);
 	auto view = w.contentView;
 	auto layer = (CAMetalLayer*)view.layer;
@@ -248,12 +275,7 @@ void FishEngine::ResetGraphicsAPI()
 	layer.drawableSize = CGSizeMake(fbw, fbh);
 //	viewportSize.x = fbw;
 //	viewportSize.y = fbh;
-	
-	if (![g_device isDepth24Stencil8PixelFormatSupported])
-	{
-		puts("Depth24Stencil8PixelFormat is not supported.");
-	}
-	
+#endif
 	
 	MTLTextureDescriptor* depthBufferDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float_Stencil8 width:fbw height:fbh mipmapped:NO];
 	depthBufferDesc.resourceOptions = MTLResourceStorageModePrivate;
@@ -304,6 +326,7 @@ void FishEngine::SetCamera(Camera* camera)
 
 void FishEngine::SetLight(Light* light)
 {
+	assert(light);
 	auto t = light->GetGameObject()->GetTransform();
 	g_lightinUniforms.LightPos.Set( t->GetPosition().normalized(), 1 );
 	g_lightinUniforms.LightDir.Set( t->GetForward(), 0);
@@ -327,7 +350,11 @@ void FishEngine::BeginFrame()
 		dispatch_semaphore_signal(block_sema);
 	}];
 	
+#if USE_GLFW
 	g_currentFrameDrawable = [g_metalLayer nextDrawable];
+#else
+	g_currentFrameDrawable = [g_MTKView currentDrawable];
+#endif
 	
 	g_frameNumber ++;
 	g_currentBufferIndex = (g_currentBufferIndex+1) % MaxBuffersInFlight;
@@ -360,7 +387,7 @@ void FishEngine::BeginPass(const RenderPipelineState& rps, bool clear)
 	if (clear)
 	{
 		renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
-		renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(1.0, 1.0, 1.0, 1.0);
+		renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0.81, 0.81, 0.81, 1);
 	}
 	else
 	{
@@ -376,7 +403,7 @@ void FishEngine::BeginPass(const RenderPipelineState& rps, bool clear)
 	renderPassDescriptor.stencilAttachment.clearStencil = 0;
 	
 	g_mainPassCommandEncoder = [g_currentCommandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
-	[g_mainPassCommandEncoder setLabel:@"MainPass"];
+	[g_mainPassCommandEncoder setLabel:[NSString stringWithUTF8String:rps.GetName().c_str()]];
 	//	[renderEncoder setFrontFacingWinding:MTLWindingCounterClockwise];
 	[g_mainPassCommandEncoder setCullMode:MTLCullModeBack];
 	//	MTLViewport vp = {0, 0, 1600, 1200, 0, 1};
@@ -401,7 +428,7 @@ void FishEngine::SetVertexBuffer(DynamicVertexBufferHandle handle)
 	[g_mainPassCommandEncoder setVertexBuffer:g_buffers[handle.idx] offset:0 atIndex:0];
 }
 
-void FishEngine::Submit(Material* mat)
+void FishEngine::Submit(Material* mat, int vertexCount)
 {
 	for (auto& arg : mat->m_Shader->m_VertexShaderSignature.arguments)
 	{
@@ -467,29 +494,22 @@ void FishEngine::Submit(Material* mat)
 		[g_mainPassCommandEncoder setFragmentSamplerState:g_sampler atIndex:s.bindIndex];
 	}
 	
-	//	[g_mainPassCommandEncoder setVertexBytes:&g_perDrawUniforms length:sizeof(PerDrawUniforms) atIndex:1];
+
 	//	[g_mainPassCommandEncoder setFragmentBytes:&u_color length:16 atIndex:2];
 //	[g_mainPassCommandEncoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle
 //										 indexCount:mesh->m_TriangleCount*3
 //										  indexType:MTLIndexTypeUInt32
 //										indexBuffer:g_buffers[ib.idx]
 //								  indexBufferOffset:0];
-	[g_mainPassCommandEncoder drawPrimitives:MTLPrimitiveTypeLine vertexStart:0 vertexCount:12];
+	[g_mainPassCommandEncoder drawPrimitives:MTLPrimitiveTypeLine vertexStart:0 vertexCount:vertexCount];
 }
 
 void FishEngine::Draw(FishEngine::Mesh* mesh, FishEngine::Material* mat, int submeshID)
 {
 	auto vb = mesh->m_VertexBuffer;
 	auto ib = mesh->m_IndexBuffer;
-//	[g_mainPassCommandEncoder setVertexBuffer:g_buffers[vb.idx] offset:0 atIndex:0];
+	
 	SetVertexBuffer(vb);
-//	PerDrawUniforms uniforms;
-//	uniforms.MATRIX_M = g_modelMat;
-//	uniforms.MATRIX_MV = g_viewMat * g_modelMat;
-//	uniforms.MATRIX_MVP = g_projMat * uniforms.MATRIX_MV;
-//	uniforms.MATRIX_IT_M = g_modelMat.inverse().transpose();
-//	[g_mainPassCommandEncoder setVertexBuffer:g_uniformBuffers[g_currentBufferIndex] offset:0 atIndex:1];
-//	FishEngine::Vector4 u_color(1, 1, 0, 1);
 	
 	for (auto& arg : mat->m_Shader->m_VertexShaderSignature.arguments)
 	{
@@ -574,7 +594,6 @@ void FishEngine::Draw(FishEngine::Mesh* mesh, FishEngine::Material* mat, int sub
 											indexBuffer:g_buffers[ib.idx]
 									  indexBufferOffset:info.StartIndex*4];
 	}
-//	[g_mainPassCommandEncoder endEncoding];
 }
 
 void FishEngine::EndFrame()
@@ -594,7 +613,11 @@ void FishEngine::ImguiNewFrame()
 //	renderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
 	
 	ImGui_ImplMetal_NewFrame(renderPassDescriptor);
+#if USE_GLFW
 	ImGui_ImplGlfw_NewFrame();
+#else
+	ImGui_ImplOSX_NewFrame(g_MTKView);
+#endif
 	ImGui::NewFrame();
 	
 	g_imguiRenderPassDesc = renderPassDescriptor;
@@ -605,6 +628,7 @@ void FishEngine::ImguiRender()
 	ImGui::Render();
 	ImDrawData* drawData = ImGui::GetDrawData();
 	id<MTLRenderCommandEncoder> renderEncoder = [g_currentCommandBuffer renderCommandEncoderWithDescriptor:g_imguiRenderPassDesc];
+	renderEncoder.label = @"ImGui";
 	
 	ImGui_ImplMetal_RenderDrawData(drawData, g_currentCommandBuffer, renderEncoder);
 	
@@ -660,7 +684,7 @@ TextureHandle FishEngine::CreateTexture(const Memory& data, int width, int heigh
 	id<MTLTexture> texture2; // intermediate
 	
 	{
-		MTLTextureDescriptor *textureDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:width height:height mipmapped:NO];
+		MTLTextureDescriptor *textureDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm width:width height:height mipmapped:NO];
 		textureDesc.resourceOptions = MTLResourceStorageModeManaged;
 		texture2 = [g_device newTextureWithDescriptor:textureDesc];
 		
@@ -675,7 +699,7 @@ TextureHandle FishEngine::CreateTexture(const Memory& data, int width, int heigh
 	}
 	
 	{
-		MTLTextureDescriptor *textureDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:width height:height mipmapped:YES];
+		MTLTextureDescriptor *textureDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm width:width height:height mipmapped:YES];
 		textureDesc.resourceOptions = MTLResourceStorageModePrivate;
 		texture = [g_device newTextureWithDescriptor:textureDesc];
 	}
@@ -693,7 +717,7 @@ TextureHandle FishEngine::CreateTexture(const Memory& data, int width, int heigh
 	[commandBuffer waitUntilCompleted];
 #endif
 	// see https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/MTLBestPracticesGuide/ResourceOptions.html
-	MTLTextureDescriptor *textureDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:width height:height mipmapped:YES];
+	MTLTextureDescriptor *textureDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm width:width height:height mipmapped:YES];
 	textureDesc.resourceOptions = MTLResourceStorageModeManaged;
 	textureDesc.usage = MTLTextureUsageShaderRead;
 	id<MTLTexture> texture = [g_device newTextureWithDescriptor:textureDesc];
@@ -918,7 +942,11 @@ void FishEngine::internal_ReflectShader(Shader* shader)
 	psd.label = @"ReflectShaderPipeline";
 	psd.vertexFunction = g_shaders[shader->m_VertexShader.idx];
 	psd.fragmentFunction = g_shaders[shader->m_FragmentShader.idx];
+#if USE_GLFW
 	psd.colorAttachments[0].pixelFormat = g_metalLayer.pixelFormat;
+#else
+	psd.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
+#endif
 //	psd.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
 	psd.vertexDescriptor = g_vertexDescriptors[g_fullVertexDecl.GetIndex()];	// real vertex decl is not known before reflection, so use full decl here
 	
@@ -946,6 +974,7 @@ namespace FishEngine
 {
 	ShaderHandle CreateShader(const char* functionName)
 	{
+		assert(g_defaultLibrary != nil);
 		NSString* s = [NSString stringWithUTF8String:functionName];
 		id<MTLFunction> f = [g_defaultLibrary newFunctionWithName:s];
 		
@@ -968,17 +997,22 @@ namespace FishEngine
 //		SetFragmentShader( s->m_FragmentShader );
 //	}
 	
-	void RenderPipelineState::Create()
+	void RenderPipelineState::Create(const char* name)
 	{
 //		assert(impl == nullptr);
 		assert(!m_Created);
 		assert(m_VertexDecl.IsValid());
+		m_Name = name;
 //		impl = std::make_unique<RenderPipelineStateImpl>();
 		MTLRenderPipelineDescriptor* psd = [[MTLRenderPipelineDescriptor alloc] init];
-		psd.label = @"Simple Pipeline";
+		psd.label = [NSString stringWithUTF8String:name];
 		psd.vertexFunction = g_shaders[m_Shader->m_VertexShader.idx];
 		psd.fragmentFunction = g_shaders[m_Shader->m_FragmentShader.idx];
+#if USE_GLFW
 		psd.colorAttachments[0].pixelFormat = g_metalLayer.pixelFormat;
+#else
+		psd.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
+#endif
 		psd.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
 		psd.stencilAttachmentPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
 		

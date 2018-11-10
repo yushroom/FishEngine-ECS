@@ -16,7 +16,7 @@
 #include <FishEngine/Assets.hpp>
 #include <FishEngine/Shader.hpp>
 
-#include <GLFW/glfw3.h>
+//#include <GLFW/glfw3.h>
 #include <imgui.h>
 
 #include <set>
@@ -123,7 +123,9 @@ void EditorSystem::OnAdded()
 //	imguiCreate();
 //	ImGui::CreateContext();
 	
-	SetupImGuiStyle(true, 1);
+//	SetupImGuiStyle(true, 1);
+	ImGuiStyle& style = ImGui::GetStyle();
+	style.WindowRounding = 0.0f;
 	
 //	auto& io = ImGui::GetIO();
 //	s_font = io.Fonts->AddFontFromFileTTF(FISHENGINE_ROOT "Assets/Fonts/SourceCodePro-Regular.ttf", 15.f);
@@ -144,8 +146,8 @@ void EditorSystem::OnAdded()
 
 void EditorSystem::Draw()
 {
-	constexpr float hierarchy_width = 220;
-	constexpr float inspector_width = 300;
+	constexpr float hierarchy_width = 200;
+	constexpr float inspector_width = 250;
 	//printf("============here==========\n\n");
 	auto input = m_Scene->input;
 //	if (input->IsButtonHeld(KeyCode::F1))
@@ -294,6 +296,90 @@ void EditorSystem::MainMenu()
 	
 }
 
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include <imgui_internal.h>
+
+namespace ImGui
+{
+	static int _count = 2;
+	static int _width = 1;
+	static int _index = 0;
+	constexpr float _roundRadius = 3.0f;
+	void BeginSegmentedButtons(int count, int width)
+	{
+		assert(count >= 2);
+		assert(width > 1);
+		_count = count;
+		_index = 0;
+		_width = width;
+	}
+	
+	void EndSegmentedButtons()
+	{
+		assert(_index == _count);
+	}
+	
+	bool SegmentedButton(const char* label, bool checked=false)
+	{
+		assert(_index < _count);
+		int index = _index;
+		_index++;
+		
+		auto& style = ImGui::GetStyle();
+		if (index > 0)
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+			ImGui::SameLine();
+			ImGui::PopStyleVar();
+		}
+		
+		ImGuiWindow* window = GetCurrentWindow();
+		if (window->SkipItems)
+			return false;
+		
+//		ImGuiContext& g = *GImGui;
+//		const ImGuiStyle& style = g.Style;
+		const ImGuiID id = window->GetID(label);
+		const ImVec2 label_size = CalcTextSize(label, NULL, true);
+		
+		const ImVec2 pos = window->DC.CursorPos;
+		float x_padding = 0;
+		if (index == 0 || index == _count-1)
+			x_padding = style.FramePadding.x;
+		ImVec2 size = CalcItemSize(ImVec2(0, 0), label_size.x + style.FramePadding.x * 2.0f, label_size.y + style.FramePadding.y * 2.0f);
+		
+		const ImRect bb(pos, pos + size);
+		ItemSize(bb, style.FramePadding.y);
+		if (!ItemAdd(bb, id))
+			return false;
+		
+		
+		ImGuiButtonFlags flags = 0;
+		if (window->DC.ItemFlags & ImGuiItemFlags_ButtonRepeat)
+			flags |= ImGuiButtonFlags_Repeat;
+		bool hovered, held;
+		bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
+		if (pressed)
+			MarkItemEdited(id);
+		
+		ImDrawList* draw_list = ImGui::GetWindowDrawList();
+		
+		const ImU32 col = GetColorU32(checked||(held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+		int cornerFlags = 0;
+		if (index == 0)
+			cornerFlags |= ImDrawCornerFlags_Left;
+		else if (index == _count-1)
+			cornerFlags |= ImDrawCornerFlags_Right;
+		draw_list->AddRectFilled(bb.Min, bb.Max, col, 4.f, cornerFlags);
+		const ImU32 borderCol = GetColorU32(ImGuiCol_Text);
+		draw_list->AddRect(bb.Min, bb.Max, borderCol, 4.f, cornerFlags);
+		
+		RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb);
+		
+		return pressed;
+	}
+}
+
 void EditorSystem::MainToolBar()
 {
 	auto frame_padding = ImGui::GetStyle().FramePadding;
@@ -311,66 +397,55 @@ void EditorSystem::MainToolBar()
 	//if (ImGui::BeginToolbar("MainToolBar", ImVec2(0, g_editorGUISettings.mainMenubarHeight), toolbar_size))
 	ImGui::Begin("MainToolBar", nullptr, flag);
 	{
-		ImGui::SameLine();
-		//if (FishEditorWindow::InPlayMode())
-		if (true)
-		{
-			if (ImGui::Button("Stop"))
-			{
-				//FishEditorWindow::Stop();
-			}
-		}
-		else
-		{
-			if (ImGui::Button("Play"))
-			{
-				//FishEditorWindow::Play();
-			}
-		}
-
 		auto sceneView = m_Scene->GetSystem<SceneViewSystem>();
-
-		ImGui::SameLine();
-		if (ImGui::Button("Translate"))
-		{
+		auto& style = ImGui::GetStyle();
+		
+		
+		ImGui::BeginSegmentedButtons(4, 40);
+		ImGui::SegmentedButton("Hand");
+		if (ImGui::SegmentedButton("Move", sceneView->m_transformToolType == TransformToolType::Translate))
 			sceneView->m_transformToolType = TransformToolType::Translate;
-		}
-
-		ImGui::SameLine();
-		if (ImGui::Button("Rotate"))
-		{
+		if (ImGui::SegmentedButton("Rotate", sceneView->m_transformToolType == TransformToolType::Rotate))
 			sceneView->m_transformToolType = TransformToolType::Rotate;
-		}
-
-		ImGui::SameLine();
-		if (ImGui::Button("Scale"))
-		{
+		if (ImGui::SegmentedButton("Scale", sceneView->m_transformToolType == TransformToolType::Scale))
 			sceneView->m_transformToolType = TransformToolType::Scale;
-		}
-
-
+		ImGui::EndSegmentedButtons();
+		
 		ImGui::SameLine();
-		if (ImGui::Button("Pivot"))
-		{
-
-		}
-
-		ImGui::SameLine();
+		
+		ImVec2 framePadding = style.FramePadding;
+		framePadding.y -= 2;
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, framePadding);
+		ImGui::BeginSegmentedButtons(2, 40);
+		ImGui::SegmentedButton("Pivot");
+//		ImGui::SegmentedButton("Global");
 		if (sceneView->m_transformSpace == TransformSpace::Global)
 		{
-			if (ImGui::Button("Global"))
+			if (ImGui::SegmentedButton("Global"))
 			{
 				sceneView->m_transformSpace = TransformSpace::Local;
 			}
 		}
 		else
 		{
-			if (ImGui::Button("Local"))
+			if (ImGui::SegmentedButton("Local"))
 			{
 				sceneView->m_transformSpace = TransformSpace::Global;
 			}
 		}
+		ImGui::EndSegmentedButtons();
+		ImGui::PopStyleVar();
 		
+		ImGui::SameLine();
+		
+		ImGui::BeginSegmentedButtons(3, 40);
+		ImGui::SegmentedButton("Play");
+		ImGui::SegmentedButton("Stop");
+		ImGui::SegmentedButton("Pause");
+		ImGui::EndSegmentedButtons();
+		
+		ImGui::SameLine();
+		//if (FishEditorWindow::InPlayMode())
 	}
 	ImGui::End();
 	//ImGui::EndToolbar();
@@ -405,7 +480,7 @@ void EditorSystem::Inspector()
 			ImGui::PushID(comp);
 			if (ImGui::CollapsingHeader(comp->GetClassName(), ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				comp->Serialize(inspectorArchive);
+//				comp->Serialize(inspectorArchive);
 				if (comp->Is<Transform>())
 				{
 					auto t = comp->As<Transform>();
@@ -577,18 +652,18 @@ void EditorSystem::Inspector()
 void FishEditor::EditorSystem::StatusBar()
 {
 	ImGui::Begin("statusbar", nullptr, imgui_window_flags | ImGuiWindowFlags_NoTitleBar);
-	static double timeStamp = glfwGetTime();
-	static int frames = 0;
-	static int fps = 30;
-	constexpr int frameCount = 200;
-	frames++;
-	if (frames == frameCount)
-	{
-		double now = glfwGetTime();
-		fps = int(frameCount / (now - timeStamp));
-		timeStamp = now;
-		frames = 0;
-	}
-	ImGui::Text("fps:%d", fps);
+//	static double timeStamp = glfwGetTime();
+//	static int frames = 0;
+//	static int fps = 30;
+//	constexpr int frameCount = 200;
+//	frames++;
+//	if (frames == frameCount)
+//	{
+//		double now = glfwGetTime();
+//		fps = int(frameCount / (now - timeStamp));
+//		timeStamp = now;
+//		frames = 0;
+//	}
+//	ImGui::Text("fps:%d", fps);
 	ImGui::End();
 }

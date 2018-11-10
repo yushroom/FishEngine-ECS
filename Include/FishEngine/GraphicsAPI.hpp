@@ -16,7 +16,9 @@
 #include <CommandContext.h>
 #endif
 
-struct GLFWwindow;
+//#define USE_GLFW 0
+//#define USE_GLFW 1
+
 
 namespace FishEngine
 {
@@ -218,7 +220,7 @@ namespace FishEngine
 		void SetColorAttachment0Format(TextureFormat format) { m_ColorAttachment0Format = format; }
 		void SetDepthAttachmentFormat(TextureFormat format) { m_DepthAttachmentFormat = format; }
 		
-		void Create();
+		void Create(const char* name);
 		
 //    protected:
 
@@ -226,10 +228,13 @@ namespace FishEngine
 		
 		int m_Index = 0;
 		
+		const std::string& GetName() const { return m_Name; }
+		
 	private:
 		bool m_Created = false;
 		Shader* m_Shader = nullptr;
 		VertexDecl m_VertexDecl;
+		std::string m_Name;
 		
 		TextureFormat m_ColorAttachment0Format = TextureFormat::BGRA8Unorm;
 		TextureFormat m_DepthAttachmentFormat = TextureFormat::Depth32Float;
@@ -319,8 +324,8 @@ namespace FishEngine
         VertexBufferHandle vb;
     };
 	
-	void InitGraphicsAPI(GLFWwindow* window);
-	void ResetGraphicsAPI();
+	void InitGraphicsAPI();
+	void ResetGraphicsAPI(int framebufferWidth, int framebufferHeight);
 	
 	void ImguiNewFrame();
 	void ImguiRender();
@@ -341,5 +346,5 @@ namespace FishEngine
 	void SetVertexBuffer(VertexBufferHandle handle);
 	void SetVertexBuffer(DynamicVertexBufferHandle handle);
 	void Draw(Mesh* mesh, Material* material, int submeshID);
-	void Submit(Material* material);
+	void Submit(Material* material, int vertexCount);
 }

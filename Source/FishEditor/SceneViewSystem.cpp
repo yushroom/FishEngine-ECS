@@ -283,7 +283,7 @@ void SceneViewSystem::OnAdded()
 	s_color_material = Material::Clone(Material::ColorMaterial);
 	g_TransformGizmosRPS.SetShader(Shader::Find("Color"));
 	g_TransformGizmosRPS.SetVertexDecl(PUNTVertex::ms_decl);
-	g_TransformGizmosRPS.Create();
+	g_TransformGizmosRPS.Create("Temp/SceneView/TransformGizmos");
 }
 
 

@@ -9,15 +9,18 @@
 namespace FishEngine
 {
 
-class Mesh;
-class Material;
+	class Mesh;
+	class Material;
 
-class Graphics : public Static
-{
-public:
-	static void DrawMesh(Mesh* mesh, const Matrix4x4& matrix, Material* material, int submeshID = -1);
+	class Graphics : public Static
+	{
+	public:
+		static void BeginFrame();
+		static void EndFrame();
+		
+		static void DrawMesh(Mesh* mesh, const Matrix4x4& matrix, Material* material, int submeshID = -1);
 
-	static void DrawMesh2(Mesh* mesh, const Matrix4x4& matrix, Material* material, uint64_t state, int submeshID = -1);
-};
+		static void DrawMesh2(Mesh* mesh, const Matrix4x4& matrix, Material* material, uint64_t state, int submeshID = -1);
+	};
 
 }

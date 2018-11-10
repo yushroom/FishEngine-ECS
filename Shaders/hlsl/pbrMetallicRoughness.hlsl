@@ -15,37 +15,6 @@ struct VSToPS
 // metallicFactor  number  The metalness of the material.  No, default: 1
 // roughnessFactor number  The roughness of the material.  No, default: 1
 // metallicRoughnessTexture    object  The metallic-roughness texture. No
-
-struct PerFrame
-{
-	// float4x4 u_modelMat;
-	float4x4 u_modelViewProj;
-	float4x4 u_model[32];
-	float4 CameraPos;
-};
-
-ConstantBuffer<PerFrame> PerFrameCB : register(b1);
-
-VSToPS VS(AppData vin)
-{
-	VSToPS vout;
-	vout.Position = mul(float4(vin.Position, 1.0), PerFrameCB.u_modelViewProj);
-	vout.WorldPosition = mul(float4(vin.Position, 1.0), PerFrameCB.u_model[0]).xyz;
-	vout.TexCoord = vin.TexCoord;
-	vout.WorldNormal = mul(float4(vin.Normal, 0.0), PerFrameCB.u_model[0]).xyz;
-
-	return vout;
-}
-
-struct PerFrame2
-{
-	float4 baseColorFactor;
-	float4 lightDir;
-	float4 PBRFactor;	// Metallic, Roughness, Specular
-};
-
-ConstantBuffer<PerFrame2> PerFrame2CB : register(b2);
-
 #endif
 
 VSToPS VS(AppData vin)
@@ -118,13 +87,13 @@ float4 PS(VSToPS pin) : SV_Target
 	data.V = normalize(WorldSpaceCameraPos.xyz - pin.WorldPosition);
 	data.N = normalize(pin.WorldNormal);
 	// data.UV = pin.v_texcoord0;
-#if 1
+#if 0
 	data.BaseColor = baseColorTexture.Sample(baseColorTextureSampler, pin.TexCoord).rgb;
 	data.BaseColor *= baseColorFactor.rgb;
 #else
 	data.BaseColor = baseColorFactor.rgb;
 #endif
-#if 1
+#if 0
 	float4 c = metallicRoughnessTexture.Sample(metallicRoughnessSampler, pin.TexCoord);
 	data.Metallic = c.b;
 	data.Roughness = c.g;
@@ -155,7 +124,9 @@ float4 SurfacePS(SurfaceData s)
 	float NoV = saturate( dot(N, V) );
 	outColor.rgb = PI * LightColor * NoL * StandardShading(DiffuseColor, SpecularColor, s.Roughness, L, V, N);
 
+#if 0
 	outColor.rgb *= occlusionTexture.Sample(occlusionSampler, s.UV).r;	// ao
 	outColor.rgb += emissiveTexture.Sample(emissiveSampler, s.UV).rgb;
+#endif
 	return outColor;
 }

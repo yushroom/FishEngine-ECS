@@ -6,6 +6,7 @@
 #include "MeshVertex.hpp"
 #include "GraphicsAPI.hpp"
 #include <vector>
+#include "Mesh.hpp"
 
 namespace FishEngine
 {
@@ -37,7 +38,8 @@ namespace FishEngine
 		inline static std::vector<VertexPC> s_Lines;
 //		inline static bgfx::DynamicVertexBufferHandle s_LineDynamicVertexBuffer;
 //		inline static bgfx::VertexBufferHandle s_CircleVertexBuffer;
-		inline static DynamicVertexBufferHandle s_LineDynamaicVertexBuffer;
+//		inline static DynamicVertexBufferHandle s_LineDynamaicVertexBuffer;
+		static DynamicMesh s_LineDynamicMesh;
 		
 		
 	public:

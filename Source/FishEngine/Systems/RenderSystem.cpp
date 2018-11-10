@@ -121,7 +121,7 @@ void RenderSystem::Draw()
 	});
 	renderState->m_State = old_state;
 
-#if 1
+#if 0
 	// CPU skinning
 	
 	m_Scene->ForEach<Renderable>([](GameObject* go, Renderable* r)
@@ -151,8 +151,8 @@ void RenderSystem::Draw()
 			}
 			for (int i = 0; i < mesh->m_Vertices.size(); ++i)
 			{
-				const Vector4& a_weight = mesh->weights[i];
-				const auto& a_joint = mesh->joints[i];
+				const Vector4& a_weight = mesh->m_Weights[i];
+				const auto& a_joint = mesh->m_Joints[i];
 				Matrix4x4 skinMatrix = u_jointMatrix[a_joint.x] * a_weight.x;
 				if (a_weight.y > 0)
 					skinMatrix += u_jointMatrix[a_joint.y] * a_weight.y;
@@ -184,9 +184,10 @@ void RenderSystem::Draw()
 	
 	// test frustum culling
 //	auto gameCamera = Camera::GetMainCamera();
-	CameraFrustumCulling culling(camera, aspectRatio);
+	CameraFrustumCulling culling(Camera::GetMainCamera(), aspectRatio);
 
-
+	Graphics::BeginFrame();
+	
 #if 1
 	m_Scene->ForEach<Renderable>([&culling, renderState](GameObject* go, Renderable* rend)
 	{
@@ -244,6 +245,8 @@ void RenderSystem::Draw()
 		}
 	});
 #endif
+	
+	Graphics::EndFrame();
 	
 	Gizmos::__Draw();
 }

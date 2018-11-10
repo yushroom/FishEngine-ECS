@@ -227,8 +227,8 @@ void ImportPrimitive(Mesh* mesh,
 		auto& m2 = position_accessor.maxValues;
 		Vector3 maxv((float)m2[0], (float)m2[1], (float)m2[2]);
 		//mesh->bounds.SetMinMax(minv, maxv);
-		mesh->bounds.Encapsulate(minv);
-		mesh->bounds.Encapsulate(maxv);
+		mesh->m_Bounds.Encapsulate(minv);
+		mesh->m_Bounds.Encapsulate(maxv);
 	}
 
 	auto primitiveVertexCount = position_accessor.count;
@@ -289,7 +289,7 @@ void ImportPrimitive(Mesh* mesh,
 
 	if (withJoints)
 	{
-		mesh->joints.resize(mesh->m_VertexCount);
+		mesh->m_Joints.resize(mesh->m_VertexCount);
 		id = Get(primitive.attributes, "JOINTS_0");
 		auto& accessor = model.accessors[id];
 		auto& bufferView = model.bufferViews[accessor.bufferView];
@@ -304,7 +304,7 @@ void ImportPrimitive(Mesh* mesh,
 			auto p = (unsigned short*)ptr;
 			for (int i = 0; i < accessor.count; ++i)
 			{
-				auto& joint = mesh->joints[i+info.VertexOffset];
+				auto& joint = mesh->m_Joints[i+info.VertexOffset];
 				joint.x = *p; ++p;
 				joint.y = *p; ++p;
 				joint.z = *p; ++p;
@@ -316,7 +316,7 @@ void ImportPrimitive(Mesh* mesh,
 			auto p = (unsigned char*)ptr;
 			for (int i = 0; i < accessor.count; ++i)
 			{
-				auto& joint = mesh->joints[i+info.VertexOffset];
+				auto& joint = mesh->m_Joints[i+info.VertexOffset];
 				joint.x = *p; ++p;
 				joint.y = *p; ++p;
 				joint.z = *p; ++p;
@@ -342,7 +342,7 @@ void ImportPrimitive(Mesh* mesh,
 
 		auto offset = accessor.byteOffset + bufferView.byteOffset;
 		auto ptr = buffer.data.data() + offset;
-		auto dst = mesh->weights.data() + info.VertexOffset;
+		auto dst = mesh->m_Weights.data() + info.VertexOffset;
 		memcpy(dst, ptr, accessor.count * 4 * sizeof(float));
 	}
 
@@ -445,8 +445,8 @@ void ImportMesh(Mesh* mesh, const tinygltf::Model& model, tinygltf::Mesh& gltf_m
 	mesh->m_Vertices.resize(vertexCount);
 	if (skinned)
 	{
-		mesh->joints.resize(vertexCount);
-		mesh->weights.resize(vertexCount);
+		mesh->m_Joints.resize(vertexCount);
+		mesh->m_Weights.resize(vertexCount);
 	}
 	mesh->m_Indices.resize(indexCount);
 	mesh->m_TriangleCount = indexCount / 3;

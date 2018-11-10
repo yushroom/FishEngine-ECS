@@ -25,7 +25,7 @@ public:
         bool insideFrustum = false;
         for (int i = 0; i < 8; ++i)
         {
-            auto corner = mesh->bounds.GetCorner(i);
+            auto corner = mesh->m_Bounds.GetCorner(i);
             auto posV = mvp.MultiplyPoint(corner);
             insideFrustum = box_ndc.Contains(posV);
             if (insideFrustum)

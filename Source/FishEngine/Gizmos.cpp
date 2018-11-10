@@ -12,6 +12,16 @@ using namespace FishEngine;
 RenderPipelineState Gizmos::s_gizmosRPS;
 RenderPipelineState g_VertexColorRPS;
 
+DynamicMesh Gizmos::s_LineDynamicMesh;
+
+struct RenderObj
+{
+	Mesh* mesh;
+	Matrix4x4 local2World;
+	Vector4 color;
+};
+
+std::vector<RenderObj> g_GizmosRenderQueue;
 
 void Gizmos::StaticInit()
 {
@@ -24,12 +34,13 @@ void Gizmos::StaticInit()
 		s_VertexColorMaterial->SetShader(shader);
 		g_VertexColorRPS.SetShader(shader);
 		g_VertexColorRPS.SetVertexDecl(PUNTVertex::s_PC_decl);
-		g_VertexColorRPS.Create();
+		g_VertexColorRPS.Create("Gizmos/VertexColor");
 	}
 
 //	VertexPC temp;
 //	s_LineDynamicVertexBuffer = bgfx::createDynamicVertexBuffer(bgfx::copy(&temp, sizeof(temp)), PUNTVertex::s_PC_decl, BGFX_BUFFER_ALLOW_RESIZE);
-	s_LineDynamaicVertexBuffer = FishEngine::CreateDynamicVertexBufferHandle(16, PUNTVertex::s_PC_decl);
+//	s_LineDynamaicVertexBuffer = FishEngine::CreateDynamicVertexBufferHandle(16, PUNTVertex::s_PC_decl);
+	s_LineDynamicMesh.Create(16, PUNTVertex::s_PC_decl);
 
 	{
 		for (int i = 0; i < circle_vertex_count-1; ++i)
@@ -43,14 +54,15 @@ void Gizmos::StaticInit()
 	
 	s_gizmosRPS.SetShader(s_ColorMaterial->m_Shader);
 	s_gizmosRPS.SetVertexDecl(PUNTVertex::ms_decl);
-	s_gizmosRPS.Create();
+	s_gizmosRPS.Create("Gizmos/Color");
 }
 
 void Gizmos::DrawCube(const Vector3& center, const Vector3& size)
 {
 	auto m = Matrix4x4::Translate(center) * Matrix4x4::Scale(size);
-	s_ColorMaterial->SetVector("u_color", color);
-	Graphics::DrawMesh(Mesh::Cube, m, s_ColorMaterial);
+//	s_ColorMaterial->SetVector("u_color", color);
+//	Graphics::DrawMesh(Mesh::Cube, m, s_ColorMaterial);
+	g_GizmosRenderQueue.push_back({Mesh::Cube, m, color});
 }
 
 void Gizmos::DrawLine(Vector3 from, Vector3 to)
@@ -194,12 +206,26 @@ void Gizmos::__Draw()
 	{
 		FishEngine::BeginPass(g_VertexColorRPS);
 		Memory m = Memory::FromVectorArray(s_Lines);
-		FishEngine::UpdateDynamicVertexBuffer(s_LineDynamaicVertexBuffer, 0, m);
-		FishEngine::SetVertexBuffer(s_LineDynamaicVertexBuffer);
+//		FishEngine::UpdateDynamicVertexBuffer(s_LineDynamaicVertexBuffer, 0, m);
+		s_LineDynamicMesh.Update(0, m);
+		FishEngine::SetVertexBuffer(s_LineDynamicMesh.m_VertexBufferHandle);
 		FishEngine::SetModelMatrix(Matrix4x4::identity);
-		FishEngine::Submit(s_VertexColorMaterial);
+		FishEngine::Submit(s_VertexColorMaterial, s_Lines.size());
 		FishEngine::EndPass();
 		s_Lines.clear();
+	}
+	
+	if (!g_GizmosRenderQueue.empty())
+	{
+		FishEngine::BeginPass(s_gizmosRPS);
+		for (auto& ro : g_GizmosRenderQueue)
+		{
+			FishEngine::SetModelMatrix(ro.local2World);
+			s_ColorMaterial->SetVector("u_color", ro.color);
+			FishEngine::Draw(ro.mesh, s_ColorMaterial, -1);
+		}
+		FishEngine::EndPass();
+		g_GizmosRenderQueue.clear();
 	}
 }
 
