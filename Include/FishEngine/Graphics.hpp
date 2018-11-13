@@ -15,6 +15,7 @@ namespace FishEngine
 	class Graphics : public Static
 	{
 	public:
+		static void StaticInit();
 		static void BeginFrame();
 		static void EndFrame();
 		

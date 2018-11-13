@@ -210,7 +210,8 @@ void Gizmos::__Draw()
 		s_LineDynamicMesh.Update(0, m);
 		FishEngine::SetVertexBuffer(s_LineDynamicMesh.m_VertexBufferHandle);
 		FishEngine::SetModelMatrix(Matrix4x4::identity);
-		FishEngine::Submit(s_VertexColorMaterial, s_Lines.size());
+		FishEngine::BindMaterial(s_VertexColorMaterial);
+		FishEngine::Submit(s_Lines.size());
 		FishEngine::EndPass();
 		s_Lines.clear();
 	}
@@ -218,11 +219,13 @@ void Gizmos::__Draw()
 	if (!g_GizmosRenderQueue.empty())
 	{
 		FishEngine::BeginPass(s_gizmosRPS);
+		FishEngine::BindMaterial(s_ColorMaterial);
 		for (auto& ro : g_GizmosRenderQueue)
 		{
 			FishEngine::SetModelMatrix(ro.local2World);
+			FishEngine::UpdatePerDrawUniforms(s_ColorMaterial);
 			s_ColorMaterial->SetVector("u_color", ro.color);
-			FishEngine::Draw(ro.mesh, s_ColorMaterial, -1);
+			FishEngine::Draw(ro.mesh, -1);
 		}
 		FishEngine::EndPass();
 		g_GizmosRenderQueue.clear();

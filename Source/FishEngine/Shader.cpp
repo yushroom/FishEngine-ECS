@@ -15,18 +15,30 @@ using namespace FishEngine;
 
 std::map<std::string, Shader*> g_NameToShaders;
 
+std::string CorrectShaderName(const std::string& name)
+{
+	auto s = name;
+	for (int i = 0; i < name.size(); ++i)
+	{
+		if (s[i] == '-')
+			s[i] = '_';
+	}
+	return s;
+}
+
 Shader* Shader::Find(const std::string &shaderName)
 {
+	auto name = CorrectShaderName(shaderName);
 	Shader* shader = nullptr;
-	auto it = g_NameToShaders.find(shaderName);
+	auto it = g_NameToShaders.find(name);
 	if (it != g_NameToShaders.end())
 	{
 		shader = it->second;
 	}
 	else
 	{
-		shader = ShaderUtil::CompileFromShaderName(shaderName);
-		g_NameToShaders[shaderName] = shader;
+		shader = ShaderUtil::CompileFromShaderName(name);
+		g_NameToShaders[name] = shader;
 	}
 	return shader;
 }

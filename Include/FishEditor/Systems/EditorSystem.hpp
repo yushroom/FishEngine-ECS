@@ -10,6 +10,7 @@ namespace FishEditor
 		SYSTEM(EditorSystem);
 	public:
 		void OnAdded() override;
+		void Update() override;
 		void Draw();
 
 		void Play();

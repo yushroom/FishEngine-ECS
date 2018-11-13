@@ -202,7 +202,7 @@ public:
 //				| BGFX_STATE_DEPTH_TEST_ALWAYS
 //				| BGFX_STATE_CULL_CCW;
 //			Graphics::DrawMesh2(Mesh::Cone, m, s_color_material, state, (bgfx::ViewId)RenderViewType::SceneGizmos);
-			Graphics::DrawMesh(Mesh::Cone, m, s_color_material);
+			Graphics::DrawMesh2(Mesh::Cone, m, s_color_material, 0);
 		}
 	}
 	

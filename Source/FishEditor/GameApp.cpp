@@ -4,6 +4,7 @@
 #include <FishEngine/Texture.hpp>
 #include <FishEngine/Material.hpp>
 #include <FishEngine/Gizmos.hpp>
+#include <FishEngine/Graphics.hpp>
 #include <FishEngine/Render/RenderViewType.hpp>
 #include <FishEngine/Systems/TransformSystem.hpp>
 #include <FishEngine/Systems/RenderSystem.hpp>
@@ -27,6 +28,7 @@ using namespace FishEngine;
 
 
 GameApp* mainApp = nullptr;
+extern TextureHandle g_PickingRT;
 
 
 void GameApp::Init()
@@ -50,6 +52,7 @@ void GameApp::Init()
 	Material::StaticInit();
 	Mesh::StaticInit();
 	Gizmos::StaticInit();
+	Graphics::StaticInit();
 	
 	{
 		auto s = m_Scene->AddSystem<TransformSystem>();
@@ -190,21 +193,33 @@ void GameApp::Update()
 	if (show_editor && m_EditorSystem->m_Enabled)
 		m_EditorSystem->Draw();
 	
-	m_Scene->PostUpdate();
-	//Screen::width = w;
-	//Screen::height = h;
-	m_EditorScene->PostUpdate();
-	
 	// Advance to next frame. Rendering thread will be kicked to
 	// process submitted rendering primitives.
 	//		bgfx::frame();
 	FishEngine::EndFrame();
+	
+//	if (m_Scene->input->IsButtonPressed(KeyCode::MouseLeftButton))
+//	{
+//		uint8_t bytes[5*5*4];
+//		FishEngine::ReadTexture(g_PickingRT, bytes);
+//		auto center = bytes[12*4+1];
+//		int id = center;
+//		printf("select at: %d\n", id);
+//	}
+	
+	m_Scene->PostUpdate();
+	//Screen::width = w;
+	//Screen::height = h;
+	m_EditorScene->PostUpdate();
 	
 	/* Swap front and back buffers */
 	//glfwSwapBuffers(m_Window);
 	
 	auto input2 = m_EditorScene->input;
 	input2->m_MousePosition = old_mouse_position;
+	
+
+	
 }
 
 

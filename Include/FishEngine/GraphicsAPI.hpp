@@ -112,6 +112,15 @@ namespace FishEngine
         UInt16,
         UInt32
     };
+	
+	enum class TextureFormat
+	{
+//		R8G8B8,
+//		R8G8B8A8,
+		BGRA8Unorm,
+		RGBA8Unorm,
+		Depth32Float,
+	};
 
     VertexBufferHandle CreateVertexBuffer(const Memory& data, const VertexDecl& decl);
 
@@ -121,17 +130,16 @@ namespace FishEngine
 	
     ShaderHandle CreateShader(const char* functionName);
 	
+	TextureHandle CreateRenderTarget(uint32_t width, uint32_t height, TextureFormat format);
 	TextureHandle CreateTexture(const Memory& data, int width, int height);
+	
+	void Blit(TextureHandle dst, uint16_t dstX, uint16_t dstY, TextureHandle src, uint16_t srcX = 0, uint16_t srcY = 0, uint16_t width = UINT16_MAX, uint16_t height = UINT16_MAX);
+	
+	void ReadTexture(TextureHandle tex, void* outData);
 	
 	void UpdateDynamicVertexBuffer(DynamicVertexBufferHandle handle, int startVertex, const Memory& data);
     
-    enum class TextureFormat
-    {
-        R8G8B8,
-        R8G8B8A8,
-		BGRA8Unorm,
-		Depth32Float,
-    };
+
     
     FrameBufferHandle CreateFrameBuffer(TextureFormat foramt);
 	
@@ -168,7 +176,7 @@ namespace FishEngine
 	{
 		std::string name;
 		int index;
-		bool isInternal = false;
+//		bool isInternal = false;
 		int size;
 		ShaderUniformBufferType type;
 		std::vector<ShaderUniform> uniforms;
@@ -236,7 +244,7 @@ namespace FishEngine
 		VertexDecl m_VertexDecl;
 		std::string m_Name;
 		
-		TextureFormat m_ColorAttachment0Format = TextureFormat::BGRA8Unorm;
+		TextureFormat m_ColorAttachment0Format = TextureFormat::RGBA8Unorm;
 		TextureFormat m_DepthAttachmentFormat = TextureFormat::Depth32Float;
 		
 //		ShaderUniformSignature vertexShaderSignature;
@@ -250,10 +258,14 @@ namespace FishEngine
     };
 	
 	
+	
 	class RenderPass
 	{
 	public:
 		RenderPipelineState rps;
+		TextureHandle colorAttachment0;
+		TextureHandle depthAttachment;
+		TextureHandle stencilAttachment;
 	};
 	
     
@@ -331,6 +343,7 @@ namespace FishEngine
 	void ImguiRender();
 	void ImGuiDrawTexture(Texture* texture, const Vector2& size);
 	
+	void SetViewport(const Viewport& vp);
 	void SetModelMatrix(const Matrix4x4& model);
 	void SetViewProjectionMatrix(const Matrix4x4& view, const Matrix4x4& proj);
 	void SetCamera(Camera* camera);
@@ -341,10 +354,14 @@ namespace FishEngine
 	void ClearColorDepthBuffer();
 	
 	void BeginPass(const RenderPipelineState& rps, bool clear = false);
+	void BeginPass(const RenderPipelineState& rps, TextureHandle colorAttachment0, TextureHandle depthAttachment);
 	void EndPass();
 	
 	void SetVertexBuffer(VertexBufferHandle handle);
 	void SetVertexBuffer(DynamicVertexBufferHandle handle);
-	void Draw(Mesh* mesh, Material* material, int submeshID);
-	void Submit(Material* material, int vertexCount);
+	void BindMaterial(Material* mat);
+	void UpdateNonInternalUniforms(Material* mat);
+	void UpdatePerDrawUniforms(Material* mat);
+	void Draw(Mesh* mesh, int submeshID);
+	void Submit(int vertexCount);
 }

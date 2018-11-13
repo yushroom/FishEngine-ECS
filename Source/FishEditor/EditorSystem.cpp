@@ -144,6 +144,13 @@ void EditorSystem::OnAdded()
 }
 
 
+void EditorSystem::Update()
+{
+	auto pos = m_Scene->input->GetMousePosition_Unity();
+//	printf("pos: %d %d\n", int(pos.x), int(pos.y));
+}
+
+
 void EditorSystem::Draw()
 {
 	constexpr float hierarchy_width = 200;
@@ -181,14 +188,33 @@ void EditorSystem::Draw()
 
 	
 	float y_start = main_menu_bar_height + main_tool_bar_height;
+	float height = EditorScreen::height-y_start-status_bar_height;
 
 	ImGui::SetNextWindowPos(ImVec2(0.0f, y_start));
-	ImGui::SetNextWindowSize(ImVec2(hierarchy_width, (float)EditorScreen::height-y_start-status_bar_height));
+	ImGui::SetNextWindowSize(ImVec2(hierarchy_width, height/2));
 	Hierarchy();
 	if (selected == nullptr)
 		selection->selected = nullptr;
 	else
 		selection->selected = selected->m_GameObject;
+	
+#if 1
+	ImGui::SetNextWindowPos(ImVec2(0, y_start+height/2));
+	ImGui::SetNextWindowSize(ImVec2(hierarchy_width, height / 2));
+	ImGui::Begin("Systems", NULL, imgui_window_flags);
+	for (System* s : m_GameScene->GetSystems())
+	{
+		ImGui::PushID((void*)s);
+//		if (ImGui::CollapsingHeader(s->GetClassName(), ImGuiTreeNodeFlags_DefaultOpen))
+//		{
+//			ImGui::Checkbox("enabled", &s->m_Enabled);
+//		}
+//		ImGui::Checkbox(s->GetClassName(), &s->m_Enabled);
+		ImGui::Selectable(s->GetClassName());
+		ImGui::PopID();
+	}
+	ImGui::End();
+#endif
 
 	ImGui::SetNextWindowPos(ImVec2((float)EditorScreen::width - inspector_width, y_start));
 	ImGui::SetNextWindowSize(ImVec2(inspector_width, (float)EditorScreen::height-y_start-status_bar_height));
@@ -202,22 +228,6 @@ void EditorSystem::Draw()
 	ImGui::SetNextWindowPos(ImVec2(0, EditorScreen::height-status_bar_height));
 	ImGui::SetNextWindowSize(ImVec2(EditorScreen::width, status_bar_height));
 	StatusBar();
-	
-#if 0
-	ImGui::SetNextWindowPos(ImVec2(Screen::width - inspector_width, Screen::height / 2));
-	ImGui::SetNextWindowSize(ImVec2(inspector_width, Screen::height / 2));
-	ImGui::Begin("Systems", NULL, imgui_window_flags);
-	for (System* s : m_Scene->GetSystems())
-	{
-		ImGui::PushID((void*)s);
-		if (ImGui::CollapsingHeader(s->GetClassName(), ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			ImGui::Checkbox("enabled", &s->m_Enabled);
-		}
-		ImGui::PopID();
-	}
-	ImGui::End();
-#endif
 	
 	//ImGui::ShowDemoWindow();
 
@@ -467,7 +477,7 @@ InspectorArchive inspectorArchive;
 
 void EditorSystem::Inspector()
 {
-	ImGui::Begin("Inspector", NULL, imgui_window_flags);
+	ImGui::Begin("Components", NULL, imgui_window_flags);
 //	auto input = m_Scene->GetSingletonComponent<SingletonInput>();
 //	Vector2 mp = input->GetMousePosition();
 //	ImGui::InputFloat2("MousePos", mp.data());

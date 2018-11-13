@@ -38,7 +38,7 @@ struct HierarchyView
 		
 		Reset(editorScene->time->deltaTime);
 		
-		ImGui::Begin("Hierarchy", NULL, imgui_window_flags);
+		ImGui::Begin("Entities", NULL, imgui_window_flags);
 		m_LeftMouseButtonClicked = ImGui::IsWindowHovered() && input->IsButtonPressed(FishEngine::KeyCode::MouseLeftButton);
 		
 		ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 4);

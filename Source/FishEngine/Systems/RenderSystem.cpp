@@ -14,8 +14,14 @@
 #include <FishEngine/Render/RenderViewType.hpp>
 #include <FishEngine/Components/Animator.hpp>
 #include <FishEngine/Render/CameraFrustumCulling.hpp>
+#include <FishEngine/Shader.hpp>
 
 using namespace FishEngine;
+
+constexpr int PickingRTSize = 5;
+TextureHandle g_PickingRT;
+TextureHandle g_PickingRTDepth;
+RenderPipelineState pickingPSD;
 
 void RenderSystem::OnAdded()
 {
@@ -49,6 +55,13 @@ void RenderSystem::OnAdded()
 #endif
 	
 	auto state = m_Scene->AddSingletonComponent<SingletonRenderState>();
+	
+//	g_PickingRT = CreateRenderTarget(PickingRTSize, PickingRTSize);
+	g_PickingRT = CreateRenderTarget(PickingRTSize, PickingRTSize, TextureFormat::BGRA8Unorm);
+	g_PickingRTDepth = CreateRenderTarget(PickingRTSize, PickingRTSize, TextureFormat::Depth32Float);
+	pickingPSD.SetShader(Shader::Find("Color"));
+	pickingPSD.SetVertexDecl(PUNTVertex::ms_decl);
+	pickingPSD.Create("Picking");
 }
 
 void RenderSystem::Start()

@@ -32,6 +32,10 @@ def RunCommand(cmd):
 	ret = os.system(cmd)
 	assert(ret == 0)
 
+def CorrectName(name):
+	name2 = name.replace('-', '_')
+	return name2
+
 def compile(hlsl_path):
 	print('compiling', hlsl_path)
 	fn = os.path.splitext(os.path.basename(hlsl_path))[0]
@@ -60,10 +64,11 @@ def compile(hlsl_path):
 		
 		# --rename-entry-point <old> <new> <stage>
 		# --remove-unused-variables
+		name = CorrectName(fn)
 		if type == 'vs':
-			cmd3 = f"{spvir_cross} --msl {spv} --output {metal_path} --rename-entry-point VS {fn}_VS vert --stage vert"
+			cmd3 = f"{spvir_cross} --msl {spv} --output {metal_path} --rename-entry-point VS {name}_VS vert --stage vert"
 		else:
-			cmd3 = f"{spvir_cross} --msl {spv} --output {metal_path} --rename-entry-point PS {fn}_PS frag"
+			cmd3 = f"{spvir_cross} --msl {spv} --output {metal_path} --rename-entry-point PS {name}_PS frag"
 		RunCommand(cmd3)
 
 for f in glob("*.hlsl"):
